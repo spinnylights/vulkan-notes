@@ -586,8 +586,61 @@ In any case, let's consider what may need to happen during a
    reset.
 
    In order to detect when a command buffer has left the pending
-   state, a synchronization command should be used, which is
-   covered next.
+   state, a synchronization command should be used; see below.
+
+## Queues
+
+In order to actually do work on a device with Vulkan, commands
+need to be submitted to it. These commands are submitted through
+Vulkan objects called _queues_.
+
+The reason it is done this way, rather than calling commands on
+the device directly, is mainly a matter of performance. For one,
+sending a command to a device is an expensive operation and
+should be kept to a minimum; this approach allows many commands
+to be prepared in advance and then submitted to the device all at
+once. Also, this approach increases opportunities for
+concurrency: commands may run simultaneously unless explicltly
+synchronized (see "Synchronization," below). Because of the
+highly parallel nature of graphics devices, this is a more
+reasonable default than having the host call commands
+sequentially.
+
+When creating a logical device, queues are made for it at the
+same time as the device itself. The queues to make are specified
+via
+[`VkDeviceQueueCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDeviceQueueCreateInfo.html);
+[`VkDeviceCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDeviceCreateInfo.html)
+has a parameter `pQueueCreateInfos` which holds an array of
+`VkDeviceQueueCreateInfo`s. The queues that can be created depend
+on the properties of the physical device.
+
+Once the logical device has been created, you can retrieve
+handles to any of its queues via
+[`VkGetDeviceQueue()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetDeviceQueue.html)
+(or
+[`VkGetDeviceQueue2()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetDeviceQueue2.html),
+if you want to retrieve a handle to a queue created with specific
+[`VkDeviceQueueCreateFlags`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDeviceQueueCreateFlags.html)).
+
+Work is submitted to a queue via queue submission commands such
+as
+[`VkQueueSubmit2KHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueSubmit2KHR.html)
+or
+[`VkQueueSubmit()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueSubmit.html).
+A queue submission command takes a target queue, a set of
+_batches_ of work, and optionally a fence to signal on completion
+(see "Fences" under "Synchronization"). Each batch (described by
+e.g.
+[`VkSubmitInfo2KHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubmitInfo2KHR.html))
+consists of zero or more semaphores to wait on before starting,
+zero or more work items to execute (in the form of command
+buffers), and zero or more semaphores to signal afterwards (see
+"Semaphores" under "Synchronization").
+
+Queues are destroyed along with the logical device they were
+created with when `VkDestroyDevice` is called on the device in
+question.
 
 ## Synchronization
 
@@ -654,12 +707,22 @@ order will mean that memory writes in **Am∩Sm₁** will be made
 available, and that available memory writes in **Am∩Sm₁** will be
 made visible to **Bm∩Sm₂**.
 
+### The device and the host
+
+Synchronization can be necessary
+
 ### Mechanisms
 
 Earlier we said that Vulkan provides several mechanisms for
-synchronization. To be specific, there are five. One of
-these—render passes—we have already explored. The others are
-_semaphores_, _fences_, _events_, and _pipeline barriers_.
+synchronization. To be specific, there are five: _semaphores_,
+_fences_, _events_, _pipeline barriers_, and _render passes_. One
+of these—render passes—we have already explored briefly, but we
+will explore it in depth here. The others are new to us.
+
+Before we get into the details, here's a brief description of
+when you might want to use each:
+
+ * **Semaphores**:
 
 ### Semaphores
 
