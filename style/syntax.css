@@ -1,0 +1,186 @@
+code[class*="language-"],
+pre[class*="language-"],
+.manual {
+    max-height: inherit;
+    height: inherit;
+    display: block;
+    overflow: auto;
+    padding-bottom: 1em;
+    color: #393A34;
+    font-family: "Fira Code", "Consolas", "Bitstream Vera Sans Mono", "Courier New", Courier, monospace;
+    direction: ltr;
+    text-align: left;
+    white-space: pre;
+    word-spacing: normal;
+    word-break: normal;
+
+    -moz-tab-size: 4;
+    -o-tab-size: 4;
+    tab-size: 4;
+
+    -webkit-hyphens: none;
+    -moz-hyphens: none;
+    -ms-hyphens: none;
+    hyphens: none;
+}
+
+pre > code[class*="language-"],
+pre > code.manual {
+    font-size: 1em;
+}
+
+pre[class*="language-"]::-moz-selection, pre[class*="language-"] ::-moz-selection,
+code[class*="language-"]::-moz-selection, code[class*="language-"] ::-moz-selection,
+.manual {
+    background-color: #eef5ee;
+}
+
+pre[class*="language-"]::selection, pre[class*="language-"] ::selection,
+code[class*="language-"]::selection, code[class*="language-"] ::selection,
+.manual {
+    background-color: #eef5ee;
+}
+
+/* Code blocks */
+pre[class*="language-"],
+pre.manual {
+    padding: 1em;
+    margin: .5em 0;
+    overflow: auto;
+    border: 1px solid green;
+    background-color: #eef5ee;
+}
+
+/* Inline code */
+:not(pre) > code[class*="language-"] {
+    position: relative;
+    padding: .2em;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    background-color: #eef5ee;
+    border-radius: 0.3em;
+    color: #c92c2c;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    display: inline;
+    white-space: normal;
+}
+
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+    color: #897f7e;
+    font-style: italic;
+}
+
+.token.namespace {
+    opacity: .7;
+}
+
+.token.string,
+.token.attr-value {
+    color: #d11989;
+}
+
+.token.entity,
+.token.url,
+.token.symbol,
+.token.number,
+.token.boolean,
+.token.variable,
+.token.constant,
+.token.property,
+.token.regex,
+.token.inserted {
+    color: #a357a2;
+}
+
+.token.atrule,
+.token.keyword,
+.token.attr-name,
+.language-autohotkey .token.selector,
+.pass {
+    color: #239a57;
+}
+
+.token.function,
+.token.deleted,
+.language-autohotkey .token.tag {
+    color: #d6581a;
+}
+
+.token.tag,
+.token.selector,
+.language-autohotkey .token.keyword {
+    color: #00899f;
+}
+
+.token.important,
+.token.function,
+.token.bold,
+.status {
+    font-weight: bold;
+}
+
+.token.italic {
+    font-style: italic;
+}
+
+.error {
+    color: #b8ae1d;
+}
+
+.fail {
+    color: #c60000;
+}
+
+/* Plugin styles: Line Numbers */
+pre[class*="language-"].line-numbers.line-numbers {
+    padding-left: 0.75em;
+}
+
+pre[class*="language-"].line-numbers.line-numbers code {
+    padding-left: 2em;
+}
+
+pre[class*="language-"].line-numbers.line-numbers .line-numbers-rows {
+    left: 0;
+}
+
+/* Plugin styles: Line Highlight */
+pre[class*="language-"].line-numbers {
+    position: relative;
+    counter-reset: linenumber;
+}
+
+pre[class*="language-"].line-numbers > code {
+    position: relative;
+    white-space: inherit;
+}
+
+.line-numbers .line-numbers-rows {
+    position: absolute;
+    pointer-events: none;
+    top: 0px;
+    width: 2em; /* works for line-numbers below 1000 lines */
+    /*border-right: 1px solid #aaa;*/
+
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+}
+
+.line-numbers-rows > span {
+    display: block;
+    counter-increment: linenumber;
+}
+
+.line-numbers-rows > span:before {
+    content: counter(linenumber);
+    color: #aaa;
+    display: block;
+    padding-right: 0.8em;
+    text-align: right;
+}

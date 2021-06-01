@@ -1,0 +1,16 @@
+@font-face {
+    font-family: "Ovo";
+    src: url("../fonts/Ovo-Regular.ttf") format("truetype");
+    font-style: "normal";
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: "Fira Code";
+    src: url("../fonts/FiraCode.ttf") format("truetype");
+}
+
+@font-face {
+    font-family: "Josefin Sans";
+    src: url("../fonts/JosefinSans.ttf") format("truetype-variations");
+}

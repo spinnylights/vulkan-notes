@@ -1,0 +1,11 @@
+#!/bin/zsh
+
+md_f='vulkan_instance_architecture.md'
+header_f='header.html'
+body_f='body.html'
+footer_f='footer.html'
+html_f='vkinst.html'
+
+gvim "$md_f"
+firefox "$html_f"
+do_on_save "$md_f" "markdown -o $body_f $md_f && cat $header_f $body_f $footer_f > $html_f"
