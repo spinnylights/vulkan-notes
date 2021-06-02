@@ -1,9 +1,12 @@
-Copyright (c) 2014, The Fira Code Project Authors (https://github.com/tonsky/FiraCode)
+All the fonts in this directory have been made available by their
+authors under the Open Font License.
 
-This Font Software is licensed under the SIL Open Font License, Version 1.1.
-This license is copied below, and is also available with a FAQ at:
-http://scripts.sil.org/OFL
+Fire Code is Copyright (c) 2014 The Fira Code Project Authors (https://github.com/tonsky/FiraCode)
 
+Ovo is Copyright (c) 2011 Nicole Fally (https://t-g-d.de/)
+
+Josefin Sans is Copyright 2010 The Josefin Sans Project Authors
+(hi@typemade.mx), with Reserved Font Name "Josefin Sans".
 
 -----------------------------------------------------------
 SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
