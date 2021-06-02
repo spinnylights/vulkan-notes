@@ -1,10 +1,10 @@
 #!/bin/bash
 
-md_f='vulkan_instance_architecture.md'
+md_f='vulkan_notes.md'
 header_f='header.html'
 body_f='body.html'
 footer_f='footer.html'
-html_f='vkinst.html'
+html_f='vknotes.html'
 
 gvim "$md_f"
 firefox "$html_f"
