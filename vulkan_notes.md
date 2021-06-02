@@ -1,3 +1,5 @@
+# Vulkan notes
+
 The text of this file is made available under the [CC BY-SA
 4.0](https://creativecommons.org/licenses/by-sa/4.0/legalcode)
 license. You can copy it, redistribute it, make your own work
@@ -5,199 +7,17 @@ based on it, etc. as long as you use the same license for both
 this text and any work you make based on it, and give credit to
 me (Zoë Sparks) for authorship of this text.
 
-# Designing `Instance` and friends
-
-## The lay of the land
-
-Vulkan has a object called
-[`VkInstance`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkInstance.html)
-that represents the "top-level" interface between an
-application and the Vulkan runtime. Only one instance of it
-should exist at a time (in other words, it should be treated as a
-[singleton](https://en.wikipedia.org/wiki/Singleton_pattern)).
-Talking to Vulkan generally starts with the instantiation of a
-`VkInstance`, and a group of other Vulkan objects are created
-and/or destroyed via the `VkInstance` interface. This raises
-ownership questions: who should be responsible for destroying the
-objects created through a `VkInstance`?
-
-Three objects are destroyed via the `VkInstance` interface, not
-counting the `VkInstance` itself:
-[`VkDebugUtilsMessengerEXT`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDebugUtilsMessengerEXT.html),
-[`VkDebugReportCallbackEXT`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDebugReportCallbackEXT.html),
-and
-[`VkSurfaceKHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSurfaceKHR.html).
-`VkDebugUtilsMessengerEXT` and `VkDebugReportCallbackEXT` are
-also created via the `VkInstance` interface, but
-`VkSurfaceKHR` is not quite so simple. There *are* two ways of
-creating a `VkSurfaceKHR` via the `VkInstance` interface:
-[`vkCreateHeadlessSurfaceEXT`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateHeadlessSurfaceEXT.html)
-and
-[`vkCreateDisplayPlaneSurfaceKHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateDisplayPlaneSurfaceKHR.html).
-However, neither of these functions creates a surface that
-represents a platform window. The Vulkan API includes a variety
-of platform-specific functions for this, and platform abstraction
-libraries like
-[GLFW](https://www.glfw.org/docs/3.3/group__vulkan.html#ga1a24536bec3f80b08ead18e28e6ae965)
-and
-[SDL2](https://wiki.libsdl.org/SDL_Vulkan_CreateSurface?highlight=%28%5CbCategoryVulkan%5Cb%29%7C%28CategoryEnum%29%7C%28CategoryStruct%29)
-include their own functions for creating a Vulkan surface
-attached to a window. All these window-oriented functions take a
-`VkInstance`/`VkInstance` as an argument. So, the paths through
-which a `VkSurfaceKHR` can come into being always involve a
-`VkInstance` somehow, but are not the unambiguous
-responsibility of that `VkInstance`.
-
-There is also a type of object that can be obtained from a
-`VkInstance` without it needing to be instantiated:
-`VkPhysicalDevice`. A `VkPhysicalDevice` is a representation
-of a physical device available in the environment, and can be
-obtained via
-[`vkEnumeratePhysicalDevices()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkEnumeratePhysicalDevices.html).
-You can use one of these to create a
-[`VkDevice`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDevice.html),
-a more abstract representation of a device, which is what you
-actually send drawing commands to and the like.
-`VkPhysicalDevice`s don't need to be destroyed, as they aren't
-much more then a simple collection of data.
-
-For the sake of completeness, `VkInstance` also has a function
-[`vkEnumeratePhysicalDeviceGroups()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkEnumeratePhysicalDeviceGroups.html).
-Two `VkPhysicalDevice`s are in the same group if they are
-[more-or-less
-identical](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#devsandqueues-devices).
-In this case, a single `VkDevice` can be made with a
-[`VkDeviceGroupDeviceCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDeviceGroupDeviceCreateInfo.html) to represent all
-the `VkPhysicalDevice`s that share the same group. This is
-mainly useful in environments like render farms and
-supercomputers where many identical GPUs may be present on the
-same system, so we don't really need to worry about it here.
-
-## What should be a class?
-
-Aside from lifetime management concerns, we also need to think
-about the needs of our specific application. The Vulkan API is
-very general—it supports a huge variety of use cases, from
-offline rendering to nonvisual linear-algebra-heavy computation
-to lightweight display driving for embedded devices. In our case,
-we're developing a real-time, visual, user-space application
-designed to run on home PCs.  Therefore, we may not want to hew
-closely to the Vulkan API, as it may make the graphics interface
-of our application unnecessarily complicated. On the other hand,
-if we oversimplify our graphics API, it will be hard to take
-advantage of the power Vulkan offers. We have to strike the right
-balance between convenience and flexibility.
-
-In theory, we might want a very simple API:
-
-<pre class="language-cpp">
-<code>
-Game game;
-Graphics gr;
-
-while (game.run()) {
-    gr.draw(game);
-}
-</pre>
-</code>
-
-In this case, the whole Vulkan API would be hidden behind our
-`Graphics` class. Same goes for any platform abstraction library
-we may be using, like GLFW or SDL2. Without some ability to
-configure `Graphics`, our choice of graphics API (Vulkan) and
-platform window solution will be fixed. That might not be a good
-idea: graphics APIs, platform abstraction libraries, and
-platforms themselves all come and go, and the degree to which
-they all get along varies. If we keep our graphics representation
-separate from our platform window representation, we will be able
-to manage the communication between them from the outside, and
-even swap one out for another if we define a standard interface
-for them to communicate through.
-
-Even if we never need to support multiple graphics APIs or
-platforms, this strategy is also easier to understand from a
-user's perspective. A graphics API is very complicated, whereas a
-platform window is relatively simple; if we package the whole
-window API into the graphics API, the window-related options and
-functions may be hard to find. We may want to put limitations on
-what graphics devices are appropriate, specify the maximum size
-of the window, etc., and it will be more obvious where to look
-for these options if they are divided into their respective
-categories.
-
-If we take this approach, we might end up with something like
-this:
-
-<pre class="language-cpp">
-<code>
-Window::SDL win;
-Graphics::Vulkan gr;
-gr.attach(win);
-
-Game game;
-while (game.run()) {
-    gr.draw(game);
-}
-</code>
-</pre>
-
-This is only marginally more complicated, a small price to pay
-for the benefits it brings.
-
-One challenge here is that there is something of a circular
-dependency between a `Graphics::Vulkan` and a `Window`. As
-discussed earlier, a `VkInstance` is needed before much of
-anything can be done with Vulkan. However, it is hard to do much
-with a `VkInstance` until it has a surface to work with, and
-creating a surface invariably requires both a `VkInstance` and
-a platform window (provided we are going to render to a window
-and not to a file or something). So, a little song-and-dance must
-be done in which a surfaceless platform window is created along
-with a barebones `VkInstance`, following which a surface can be
-created from both, at which point the rest of the Vulkan
-environment can be set up. This is why `win` and `gr` need to be
-initialized separately and then brought together afterwards.
-
-In any case, having one object to represent our platform window
-is probably fine. As we said, a platform window is a relatively
-simple thing: a `Window` probably holds a handle to the platform
-window and some configuration associated with it. However, a
-`Graphics` wraps a huge amount of state, whatever API it's
-hiding. This only makes sense if we can make lots of assumptions
-about how graphics should be configured and operated, such that
-any game will function fine with only a small amount of graphics
-configuration and very high-level interaction with the graphics
-system afterwards. Is this a reasonable expectation?
-
-To answer this question, we can consider two things: what we
-might actually do to configure a `Graphics::Vulkan` before the
-main loop is run, and what is actually happening in a call to
-`Graphics::Vulkan::draw(Game game)`.
-
-### Setting up Vulkan
-
-Compared to OpenGL, a lot needs to happen before any drawing can
-be done with Vulkan. This comes with the upside that Vulkan is
-more configurable than OpenGL. For instance, error reporting was
-baked into OpenGL, meaning it would be checking for errors even
-in release builds. Vulkan has a concept of "validation layers"
-that can be turned on and off, allowing you to adjust how much
-validation is performed; this means you can do extensive
-validation in debug builds and turn it all off to save cycles in
-release builds, or even give the application user the option to
-turn the validations on or off themselves. There are many other
-such possibilities during Vulkan setup—but how many do we
-actually need to expose in our graphics interface?
+## Setting up Vulkan
 
 Here is, in order, roughly what needs to happen during the
 initial setup:
 
 1. A platform window needs to be initialized (just barely). This
    involves setting things like its width and height, title, any
-   hints, etc. These should be user-configurable as they will
-   vary with different applications.
+   hints, etc.
 
-1. A `VkInstance` needs to be created (just barely). In order
+1. A
+   [`VkInstance`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkInstance.html) needs to be created (just barely). In order
    for this to take place:
 
    1. The Vulkan environment needs to be queried for the presence
@@ -211,46 +31,24 @@ initial setup:
       via an extension as well, so we need to check for it if we
       want to use them. If we're using a platform abstraction
       library like SDL, it probably has a set of extensions it
-      needs to work that we need to check for. The user probably
-      doesn't need to have much of a hand in all this specifically;
-      they can specify what features they want at a higher level
-      and we can check for the necessary extensions behind the
-      scenes.
+      needs to work that we need to check for (SDL in particular
+      provides the function
+      [`SDL_Vulkan_GetInstanceExtensions()`](https://wiki.libsdl.org/SDL_Vulkan_GetInstanceExtensions)
+      for this purpose).
 
    1. The desired
       [layers](https://vulkan.lunarg.com/doc/sdk/1.2.170.0/linux/layer_configuration.html),
       if any, must be specified and configured. Layers are Vulkan
       components that insert themselves into the call chains of
       Vulkan commands to provide features such as logging,
-      tracing, or validations. As with extension checking, the
-      user probably doesn't need to know about this specifically
-      as long as they can turn these features on or off in
-      general.
+      tracing, or validations.
 
    1. If debug messages are desired, a debug messenger needs to
       be set up (this is necessary to get messages from the
       validation layers). This requires populating a
       [`VkDebugUtilsMessengerCreateInfoEXT`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDebugUtilsMessengerCreateInfoEXT.html)
       struct, which takes a callback function to handle the debug
-      messages among other things. All the user should need to
-      specify for this is some kind of high-level debug
-      config—turning debug messages on or off in general, for the
-      graphics system specifically, etc., depending on the
-      application.
-
-   At a minimum, we only need to check for the extensions
-   required to draw to a window (which may be specified by our
-   platform abstraction library) and check for and set up the
-   necessary debug features if they are wanted. All the user
-   needs to do is pick a window creation strategy and enable the
-   desired debug features. Some extensions provide features that
-   might be desirable in certain applications, such as the
-   ability to bypass the window manager and draw directly to the
-   screen (that's
-   [`VK_EXT_direct_mode_display`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VK_EXT_direct_mode_display.html)
-   if you're curious); whether or not to go further and support
-   these features will depend on what kinds of applications we
-   decide to target.
+      messages among other things.
 
 1. The available [physical
    devices](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#devsandqueues-physical-device-enumeration)
@@ -258,17 +56,8 @@ initial setup:
    `vkEnumeratePhysicalDevices()` and at least one
    device needs to be chosen out of those available if a suitable
    one can be found. Many applications have minimum requirements
-   for the graphics hardware they utilize, and these requirements
-   should be specified at this stage.  Also, some applications
-   may find a use for multiple devices at once, such as using the
-   graphics card to draw to and using the CPU's integrated
-   graphics for supplementary calculations. Therefore, the user
-   should have the ability to specify how many devices they need
-   and what they require from these devices, along with the
-   ability to mark requirements as absolutely necessary or merely
-   nice-to-have. The results of this should be reported back to
-   the user, as they may need to disable certain features or the
-   like if their ideal requirements aren't met.
+   for the graphics hardware they utilize; physical devices can
+   be filtered and ranked based on these.
 
 1. At least one [logical
    device](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#devsandqueues-devices)
@@ -278,96 +67,19 @@ initial setup:
    drawing commands to, allocate memory with, etc.  In order to
    create a logical device, we need to specify what
    [queues](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#devsandqueues-queues)
-   we are going to create along with it, using
-   [`VkDeviceQueueCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#VkDeviceQueueCreateInfo),
-   and the extensions and features of the physical device we need
-   to use. (A logical device's queues are what it receives
-   commands through; we will retrieve handles to the queue(s) we
-   need using
-   [`vkGetDeviceQueue()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetDeviceQueue.html)
-   along with their logical device.) We also have the option to
-   specify a custom memory allocator for the device to use in
-   place of the default allocator. What to do for the queues and
-   device features should be inferrable from the high-level
-   graphics requirements the user describes, so they probably
-   don't need to be exposed to the user directly. The custom
-   allocator is potentially a different story.
+   we are going to create along with it (see "Queues" below).
 
 At this point, we are still a ways away from being able to
 actually draw to the window. What we do have are the objects that
-are likely to survive for the duration of the application's run.
-Everything we create after this point may need to be torn down
-and recreated periodically, and in some cases may be torn down
-and recreated quite often. So, it would be reasonable to look on
-these steps as constituting the initialization of a Vulkan
-graphics envrionment, with the remaining steps constituting its
-"runtime".
+are likely to survive for the duration of the application's run
+(unless the user wants to switch graphics cards). Everything we
+create after this point may need to be torn down and recreated
+periodically, and in some cases may be torn down and recreated
+quite often. So, it would be reasonable to look on these steps as
+constituting the initialization of a Vulkan graphics envrionment,
+with the remaining steps constituting its "runtime".
 
-Let's consider all the information the user might want to supply
-during these steps:
-
-* What windowing strategy to use (native API, a platform
-  abstraction library, etc.)
-* The dimensions, title, hints, etc. of the platform window
-* What graphics debug features should be enabled if any
-* Minimum and nice-to-have requirements of the graphics hardware
-* More esoteric stuff like custom allocators, multiple physical
-  and/or logical devices, a compute pipeline setup, etc.
-
-Excepting the more esoteric features, this information seems
-logical to supply in essentially three steps. The user can pick a
-windowing strategy based on what windowing interface object they
-choose to instantiate, and they can supply information about the
-sort of window they want during its instantiation. The debug
-features and other high-level (i.e. extension-level) requirements
-need to be supplied during `VkInstance` creation, so those
-would be reasonable to provide during initialization of the
-graphics object. When specifying requirements for physical device
-characteristics, the user will want feedback about what sort of
-device has been selected and how well it actually fits their
-requirements; this implies that this step should be done
-separately from initializating the graphics object.
-
-These leads us to the following:
-
-<pre class="language-cpp">
-<code>
-SDLWindow win {settings};
-VulkanGraphics gr {features, debug_lvl};
-gr.attach(win);
-gr.pick_device(requirements);
-
-Game game;
-while (game.run()) {
-    gr.draw(game);
-}
-</pre>
-</code>
-
-This seems reasonable as far as setup goes. What about
-`gr.draw(game)`?
-
-### Runtime
-
-What's actually happening when a `Game` is being drawn? (This
-presumes a design where `Game` consists of abstract data and
-behavior and has only a high-level understanding of the graphics
-system at best, such that the graphics object will be treating it
-like a large data structure). Considering this will let us know
-if we can present as simple an interface as
-`VulkanGraphics::draw` or if we may want something more
-complicated.
-
-Of course, if we really are treating `Game` as nothing but data
-during the `draw` call, we can think of a `Game` as a giant set
-of parameters to `draw`. This implies that `draw` may indeed be a
-simple enough interface at this level of the program regardless
-of how involved and variable the behavior of `draw` is. The
-viability of this approach naturally depends on the design of
-`Game`.
-
-In any case, let's consider what may need to happen during a
-`draw` call:
+## "Runtime"
 
 1. For creation, storage, and manipulation of image data, we will
    need to work with
@@ -421,11 +133,7 @@ In any case, let's consider what may need to happen during a
    A swapchain will need to be set up at least once, but can be
    long-lived under some circumstances.  However, because it is
    associated with a surface, it needs to be reconstructed if the
-   surface changes, such as during a window resize. This implies
-   that the graphics object needs to keep track of its associated
-   window somehow in order to query it for changes during a
-   `draw` call, although the user probably doesn't need to be
-   aware of this.
+   surface changes, such as during a window resize.
 
 1. To actually make use of the `VkImage`s in the swapchain, we
    need to create
@@ -433,10 +141,7 @@ In any case, let's consider what may need to happen during a
    to them. These are essentially objects that describe how the
    images should be treated during rendering, such as the image's
    dimensions, the subset of the image that should be rendered,
-   the subresource range to make available, etc. This obviously
-   depends closely on what the image actually is, and can
-   probably be determined based on that without direct user
-   input.
+   the subresource range to make available, etc.
 
 1. In order to create a video frame, we need a
    [`VkRenderPass`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkRenderPass.html),
