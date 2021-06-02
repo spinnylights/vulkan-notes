@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 
 md_f='vulkan_instance_architecture.md'
 header_f='header.html'
