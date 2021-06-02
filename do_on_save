@@ -1,0 +1,8 @@
+#!/bin/bash
+
+inotifywait -m -e close_write,moved_to --format %e/%f . |
+while IFS=/ read -r events file; do
+    if [ "$file" = "$1" ]; then
+        eval $2
+    fi
+done
