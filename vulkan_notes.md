@@ -510,90 +510,7 @@ In any case, let's consider what may need to happen during a
 
 1. The last major piece of machinery we need is a way to tell the
    graphics hardware to actually make use of everything we've set
-   up. That requires
-   [`vk::CommandBuffer`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCommandBuffer.html)s,
-   which are used to submit commands to a device queue. These are
-   allocated using
-   [`vk::AllocateCommandBuffers()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkAllocateCommandBuffers.html),
-   which requires specifying a device, a _command pool_, and the
-   _level_ of the buffers to be allocated. Rather than execute
-   commands immediately, commands are _recorded_ onto command
-   buffers to be later submitted to a device queue, which allows
-   command buffers to be set up concurrently with rendering
-   operations.
-
-   A _command pool_, represented by
-   [`vk::CommandPool`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCommandPool.html),
-   is an opaque object used to allocate memory for command
-   buffers on a device. They can be _reset_ using
-   [`vk::ResetCommandPool()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkResetCommandPool.html),
-   which reinitializes all the command buffers alocated from the
-   pool and return the resources they were using back to the
-   pool. A command pool can also be _trimmed_ using
-   [`vk::TrimCommandPool()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkTrimCommandPoolKHR.html),
-   which frees up any unused memory from the pool without
-   affecting the command buffers allocated from it; this is
-   useful to e.g. reclaim memory from a specific command buffer
-   that has been reset without needing to reset the whole pool.
-
-   Every command buffer has a level, which is either _primary_ or
-   _secondary_. A primary command buffer can be submitted to a
-   device queue, and can also execute secondary command buffers.
-   Neither of these things is true of secondary command buffers.
-   However, secondary command buffers can inherit state from
-   primary command buffers by using
-   [`vk::CommandBufferInheritanceInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCommandBufferInheritanceInfo.html)
-   and setting
-   [`VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCommandBufferUsageFlagBits.html)
-   when calling
-   [`vk::BeginCommandBuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkBeginCommandBuffer.html).
-   This allows secondary command buffers to be recorded
-   concurrently after the primary command buffer which is going
-   to execute them has been set up, and also allows a secondary
-   command buffer to be recycled for use with different primary
-   command buffers. See
-   [here](https://github.com/KhronosGroup/Vulkan-Samples/blob/master/samples/performance/command_buffer_usage/command_buffer_usage_tutorial.md)
-   for more on this.
-
-   Command buffers can execute a wide variety of commands. They
-   are all specified with functions that follow the naming format
-   `vk::Cmd*`. Among other things, they allow for copying images
-   and buffers, starting and managing render passes and
-   subpasses, binding resources like pipelines and buffers to the
-   command buffer, and making draw calls on the associated device.
-
-   Command buffers pass through a number of different states.
-   When first allocated they are in the _initial_ state. From
-   here, they can either be freed with
-   [`vk::FreeCommandBuffers()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkFreeCommandBuffers.html)
-   or be put into the _recording_ state via
-   [`vk::BeginCommandBuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkBeginCommandBuffer.html).
-   While in the recording state, `vk::Cmd*` functions can be used
-   to record commands to the buffer, or it can be reset back to
-   the initial state with
-   [`vk::ResetCommandBuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkResetCommandBuffer.html).
-   Afterwards, calling
-   [`vk::EndCommandBuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkEndCommandBuffer.html)
-   puts it into the _executable_ state; from here, it can be submitted
-   to a queue with
-   [`vk::QueueSubmit2KHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueSubmit2KHR.html)
-   or
-   [`vk::QueueSubmit()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueSubmit.html)
-   if it's a primary buffer, recorded to a primary buffer with
-   [`vk::CmdExecuteCommands()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdExecuteCommands.html)
-   if it's a secondary buffer, or reset. Once submitted to a
-   queue, it enters the _pending_ state, during which the
-   application must not modify it in any way. Once executed, it
-   either re-enters the executable state or enters the _invalid_
-   state if it was recorded with
-   [`VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCommandBufferUsageFlagBits.html)
-   It can also enter the invalid state through other means, such
-   as if a resource used in one of its commands is modified or
-   deleted. When in the invalid state, it can only be freed or
-   reset.
-
-   In order to detect when a command buffer has left the pending
-   state, a synchronization command should be used; see below.
+   up. This is via command buffers; see below.
 
 ## Queues
 
@@ -648,6 +565,93 @@ buffers), and zero or more semaphores to signal afterwards (see
 Queues are destroyed along with the logical device they were
 created with when `VkDestroyDevice` is called on the device in
 question.
+
+## Command buffers
+
+Command buffers, represented by
+[`VkCommandBuffer`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCommandBuffer.html),
+are used to submit commands to a device queue. They are
+allocated using
+[`vk::AllocateCommandBuffers()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkAllocateCommandBuffers.html),
+which requires specifying a device, a _command pool_, and the
+_level_ of the buffers to be allocated. Rather than execute
+commands immediately, commands are _recorded_ onto command
+buffers to be later submitted to a device queue, which allows
+command buffers to be set up concurrently with rendering
+operations.
+
+A _command pool_, represented by
+[`vk::CommandPool`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCommandPool.html),
+is an opaque object used to allocate memory for command
+buffers on a device. They can be _reset_ using
+[`vk::ResetCommandPool()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkResetCommandPool.html),
+which reinitializes all the command buffers alocated from the
+pool and return the resources they were using back to the
+pool. A command pool can also be _trimmed_ using
+[`vk::TrimCommandPool()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkTrimCommandPoolKHR.html),
+which frees up any unused memory from the pool without
+affecting the command buffers allocated from it; this is
+useful to e.g. reclaim memory from a specific command buffer
+that has been reset without needing to reset the whole pool.
+
+Every command buffer has a level, which is either _primary_ or
+_secondary_. A primary command buffer can be submitted to a
+device queue, and can also execute secondary command buffers.
+Neither of these things is true of secondary command buffers.
+However, secondary command buffers can inherit state from
+primary command buffers by using
+[`vk::CommandBufferInheritanceInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCommandBufferInheritanceInfo.html)
+and setting
+[`VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCommandBufferUsageFlagBits.html)
+when calling
+[`vk::BeginCommandBuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkBeginCommandBuffer.html).
+This allows secondary command buffers to be recorded
+concurrently after the primary command buffer which is going
+to execute them has been set up, and also allows a secondary
+command buffer to be recycled for use with different primary
+command buffers. See
+[here](https://github.com/KhronosGroup/Vulkan-Samples/blob/master/samples/performance/command_buffer_usage/command_buffer_usage_tutorial.md)
+for more on this.
+
+Command buffers can execute a wide variety of commands. They
+are all specified with functions that follow the naming format
+`vk::Cmd*`. Among other things, they allow for copying images
+and buffers, starting and managing render passes and
+subpasses, binding resources like pipelines and buffers to the
+command buffer, and making draw calls on the associated device.
+
+Command buffers pass through a number of different states.
+When first allocated they are in the _initial_ state. From
+here, they can either be freed with
+[`vk::FreeCommandBuffers()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkFreeCommandBuffers.html)
+or be put into the _recording_ state via
+[`vk::BeginCommandBuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkBeginCommandBuffer.html).
+While in the recording state, `vk::Cmd*` functions can be used
+to record commands to the buffer, or it can be reset back to
+the initial state with
+[`vk::ResetCommandBuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkResetCommandBuffer.html).
+Afterwards, calling
+[`vk::EndCommandBuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkEndCommandBuffer.html)
+puts it into the _executable_ state; from here, it can be submitted
+to a queue with
+[`vk::QueueSubmit2KHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueSubmit2KHR.html)
+or
+[`vk::QueueSubmit()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueSubmit.html)
+if it's a primary buffer, recorded to a primary buffer with
+[`vk::CmdExecuteCommands()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdExecuteCommands.html)
+if it's a secondary buffer, or reset. Once submitted to a
+queue, it enters the _pending_ state, during which the
+application must not modify it in any way. Once executed, it
+either re-enters the executable state or enters the _invalid_
+state if it was recorded with
+[`VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCommandBufferUsageFlagBits.html)
+It can also enter the invalid state through other means, such
+as if a resource used in one of its commands is modified or
+deleted. When in the invalid state, it can only be freed or
+reset.
+
+In order to detect when a command buffer has left the pending
+state, a synchronization command should be used.
 
 ## Synchronization
 
