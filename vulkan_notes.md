@@ -10,30 +10,30 @@ me (Zoë Sparks) for authorship of this text.
 ## The lay of the land
 
 Vulkan has a object called
-[`vk::Instance`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkInstance.html)
+[`VkInstance`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkInstance.html)
 that represents the "top-level" interface between an
 application and the Vulkan runtime. Only one instance of it
 should exist at a time (in other words, it should be treated as a
 [singleton](https://en.wikipedia.org/wiki/Singleton_pattern)).
 Talking to Vulkan generally starts with the instantiation of a
-`vk::Instance`, and a group of other Vulkan objects are created
-and/or destroyed via the `vk::Instance` interface. This raises
+`VkInstance`, and a group of other Vulkan objects are created
+and/or destroyed via the `VkInstance` interface. This raises
 ownership questions: who should be responsible for destroying the
-objects created through a `vk::Instance`?
+objects created through a `VkInstance`?
 
-Three objects are destroyed via the `vk::Instance` interface, not
-counting the `vk::Instance` itself:
-[`vk::DebugUtilsMessengerEXT`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDebugUtilsMessengerEXT.html),
-[`vk::DebugReportCallbackEXT`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDebugReportCallbackEXT.html),
+Three objects are destroyed via the `VkInstance` interface, not
+counting the `VkInstance` itself:
+[`VkDebugUtilsMessengerEXT`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDebugUtilsMessengerEXT.html),
+[`VkDebugReportCallbackEXT`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDebugReportCallbackEXT.html),
 and
-[`vk::SurfaceKHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSurfaceKHR.html).
-`vk::DebugUtilsMessengerEXT` and `vk::DebugReportCallbackEXT` are
-also created via the `vk::Instance` interface, but
-`vk::SurfaceKHR` is not quite so simple. There *are* two ways of
-creating a `vk::SurfaceKHR` via the `vk::Instance` interface:
-[`vk::Instance::createHeadlessSurfaceEXT`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateHeadlessSurfaceEXT.html)
+[`VkSurfaceKHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSurfaceKHR.html).
+`VkDebugUtilsMessengerEXT` and `VkDebugReportCallbackEXT` are
+also created via the `VkInstance` interface, but
+`VkSurfaceKHR` is not quite so simple. There *are* two ways of
+creating a `VkSurfaceKHR` via the `VkInstance` interface:
+[`vkCreateHeadlessSurfaceEXT`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateHeadlessSurfaceEXT.html)
 and
-[`vk::Instance::createDisplayPlaneSurfaceKHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateDisplayPlaneSurfaceKHR.html).
+[`vkCreateDisplayPlaneSurfaceKHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateDisplayPlaneSurfaceKHR.html).
 However, neither of these functions creates a surface that
 represents a platform window. The Vulkan API includes a variety
 of platform-specific functions for this, and platform abstraction
@@ -43,32 +43,32 @@ and
 [SDL2](https://wiki.libsdl.org/SDL_Vulkan_CreateSurface?highlight=%28%5CbCategoryVulkan%5Cb%29%7C%28CategoryEnum%29%7C%28CategoryStruct%29)
 include their own functions for creating a Vulkan surface
 attached to a window. All these window-oriented functions take a
-`vk::Instance`/`VkInstance` as an argument. So, the paths through
-which a `vk::SurfaceKHR` can come into being always involve a
-`vk::Instance` somehow, but are not the unambiguous
-responsibility of that `vk::Instance`.
+`VkInstance`/`VkInstance` as an argument. So, the paths through
+which a `VkSurfaceKHR` can come into being always involve a
+`VkInstance` somehow, but are not the unambiguous
+responsibility of that `VkInstance`.
 
 There is also a type of object that can be obtained from a
-`vk::Instance` without it needing to be instantiated:
-`vk::PhysicalDevice`. A `vk::PhysicalDevice` is a representation
+`VkInstance` without it needing to be instantiated:
+`VkPhysicalDevice`. A `VkPhysicalDevice` is a representation
 of a physical device available in the environment, and can be
 obtained via
-[`vk::Instance::enumeratePhysicalDevices`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkEnumeratePhysicalDevices.html).
+[`vkEnumeratePhysicalDevices()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkEnumeratePhysicalDevices.html).
 You can use one of these to create a
-[`vk::Device`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDevice.html),
+[`VkDevice`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDevice.html),
 a more abstract representation of a device, which is what you
 actually send drawing commands to and the like.
-`Vk::PhysicalDevice`s don't need to be destroyed, as they aren't
+`VkPhysicalDevice`s don't need to be destroyed, as they aren't
 much more then a simple collection of data.
 
-For the sake of completeness, `vk::Instance` also has a function
-[`vk::Instance::enumeratePhysicalDeviceGroups`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkEnumeratePhysicalDeviceGroups.html).
-Two `vk::PhysicalDevice`s are in the same group if they are
+For the sake of completeness, `VkInstance` also has a function
+[`vkEnumeratePhysicalDeviceGroups()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkEnumeratePhysicalDeviceGroups.html).
+Two `VkPhysicalDevice`s are in the same group if they are
 [more-or-less
 identical](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#devsandqueues-devices).
-In this case, a single `vk::Device` can be made with a
-[`vk::DeviceGroupDeviceCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDeviceGroupDeviceCreateInfo.html) to represent all
-the `vk::PhysicalDevice`s that share the same group. This is
+In this case, a single `VkDevice` can be made with a
+[`VkDeviceGroupDeviceCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDeviceGroupDeviceCreateInfo.html) to represent all
+the `VkPhysicalDevice`s that share the same group. This is
 mainly useful in environments like render farms and
 supercomputers where many identical GPUs may be present on the
 same system, so we don't really need to worry about it here.
@@ -146,14 +146,14 @@ for the benefits it brings.
 
 One challenge here is that there is something of a circular
 dependency between a `Graphics::Vulkan` and a `Window`. As
-discussed earlier, a `vk::Instance` is needed before much of
+discussed earlier, a `VkInstance` is needed before much of
 anything can be done with Vulkan. However, it is hard to do much
-with a `vk::Instance` until it has a surface to work with, and
-creating a surface invariably requires both a `vk::Instance` and
+with a `VkInstance` until it has a surface to work with, and
+creating a surface invariably requires both a `VkInstance` and
 a platform window (provided we are going to render to a window
 and not to a file or something). So, a little song-and-dance must
 be done in which a surfaceless platform window is created along
-with a barebones `vk::Instance`, following which a surface can be
+with a barebones `VkInstance`, following which a surface can be
 created from both, at which point the rest of the Vulkan
 environment can be set up. This is why `win` and `gr` need to be
 initialized separately and then brought together afterwards.
@@ -197,7 +197,7 @@ initial setup:
    hints, etc. These should be user-configurable as they will
    vary with different applications.
 
-1. A `vk::Instance` needs to be created (just barely). In order
+1. A `VkInstance` needs to be created (just barely). In order
    for this to take place:
 
    1. The Vulkan environment needs to be queried for the presence
@@ -230,7 +230,7 @@ initial setup:
    1. If debug messages are desired, a debug messenger needs to
       be set up (this is necessary to get messages from the
       validation layers). This requires populating a
-      [`vk::DebugUtilsMessengerCreateInfoEXT`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDebugUtilsMessengerCreateInfoEXT.html)
+      [`VkDebugUtilsMessengerCreateInfoEXT`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDebugUtilsMessengerCreateInfoEXT.html)
       struct, which takes a callback function to handle the debug
       messages among other things. All the user should need to
       specify for this is some kind of high-level debug
@@ -255,7 +255,7 @@ initial setup:
 1. The available [physical
    devices](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#devsandqueues-physical-device-enumeration)
    need to be enumerated via
-   `vk::Instance::enumeratePhysicalDevices` and at least one
+   `vkEnumeratePhysicalDevices()` and at least one
    device needs to be chosen out of those available if a suitable
    one can be found. Many applications have minimum requirements
    for the graphics hardware they utilize, and these requirements
@@ -279,12 +279,12 @@ initial setup:
    create a logical device, we need to specify what
    [queues](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#devsandqueues-queues)
    we are going to create along with it, using
-   [`vk::DeviceQueueCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#VkDeviceQueueCreateInfo),
+   [`VkDeviceQueueCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#VkDeviceQueueCreateInfo),
    and the extensions and features of the physical device we need
    to use. (A logical device's queues are what it receives
    commands through; we will retrieve handles to the queue(s) we
    need using
-   [`vk::GetDeviceQueue()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetDeviceQueue.html)
+   [`vkGetDeviceQueue()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetDeviceQueue.html)
    along with their logical device.) We also have the option to
    specify a custom memory allocator for the device to use in
    place of the default allocator. What to do for the queues and
@@ -320,7 +320,7 @@ windowing strategy based on what windowing interface object they
 choose to instantiate, and they can supply information about the
 sort of window they want during its instantiation. The debug
 features and other high-level (i.e. extension-level) requirements
-need to be supplied during `vk::Instance` creation, so those
+need to be supplied during `VkInstance` creation, so those
 would be reasonable to provide during initialization of the
 graphics object. When specifying requirements for physical device
 characteristics, the user will want feedback about what sort of
@@ -371,25 +371,25 @@ In any case, let's consider what may need to happen during a
 
 1. For creation, storage, and manipulation of image data, we will
    need to work with
-   [`vk::Image`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#resources-images)s,
+   [`VkImage`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#resources-images)s,
    which are 1–3-dimensional formatted data sets stored in device
    memory that are well-suited to capturing visual information.
-   `vk::Image`s can be created via
-   [`vk::CreateImage()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateImage.html),
+   `VkImage`s can be created via
+   [`vkCreateImage()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateImage.html),
    which takes a
-   [`vk::ImageCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageCreateInfo.html),
+   [`VkImageCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageCreateInfo.html),
    but there are also other ways of creating them; for example,
-   creating a swapchain (see below) creates a set of `vk::Image`s
+   creating a swapchain (see below) creates a set of `VkImage`s
    implicitly, which can be accessed via
-   [`vk::GetSwapchainImagesKHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetSwapchainImagesKHR.html).
-   A `vk::Image` is composed of
+   [`vkGetSwapchainImagesKHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetSwapchainImagesKHR.html).
+   A `VkImage` is composed of
    [texels](https://developer.mozilla.org/en-US/docs/Glossary/Texel),
    which are short sequences of bits that often describe color
    information but can also be used for other purposes. The
-   structure of a `vk::Image`'s texel data is described by its
-   [`vk::Format`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkFormat.html).
+   structure of a `VkImage`'s texel data is described by its
+   [`VkFormat`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkFormat.html).
 
-   `vk::Image`s do not necessarily consist of a single cohesive
+   `VkImage`s do not necessarily consist of a single cohesive
    set of texels of specific height and width. For example, they
    can store mipmaps, and can function as an array of sets of
    texel data by storing data in multiple layers. As such, Vulkan
@@ -402,14 +402,14 @@ In any case, let's consider what may need to happen during a
 1. A [WSI
    swapchain](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#_wsi_swapchain),
    represented by
-   [`vk::SwapchainKHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSwapchainKHR.html)
+   [`VkSwapchainKHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSwapchainKHR.html)
    and created via
-   [`vk::CreateSwapchainKHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateSwapchainKHR.html)
+   [`vkCreateSwapchainKHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateSwapchainKHR.html)
    using a
-   [`vk::SwapchainCreateInfoKHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSwapchainCreateInfoKHR.html),
+   [`VkSwapchainCreateInfoKHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSwapchainCreateInfoKHR.html),
    is needed to actually draw to a window surface. This is
    basically a collection of
-   [`vk::Image`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#resources-images)s
+   [`VkImage`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#resources-images)s
    that is associated with a specific surface. In order to draw
    to an image, the application requests an image from the
    swapchain, queues up a set of drawing commands on a logical
@@ -427,9 +427,9 @@ In any case, let's consider what may need to happen during a
    `draw` call, although the user probably doesn't need to be
    aware of this.
 
-1. To actually make use of the `vk::Image`s in the swapchain, we
+1. To actually make use of the `VkImage`s in the swapchain, we
    need to create
-   [`vk::ImageView`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#resources-image-views)s
+   [`VkImageView`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#resources-image-views)s
    to them. These are essentially objects that describe how the
    images should be treated during rendering, such as the image's
    dimensions, the subset of the image that should be rendered,
@@ -439,7 +439,7 @@ In any case, let's consider what may need to happen during a
    input.
 
 1. In order to create a video frame, we need a
-   [`vk::RenderPass`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkRenderPass.html),
+   [`VkRenderPass`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkRenderPass.html),
    which represents the high-level structure of the frame—what
    images will be drawn to it, how they should be processed,
    where they can be found, etc. In more precise terms, a render
@@ -447,16 +447,16 @@ In any case, let's consider what may need to happen during a
    two different things: attachments and subpasses.
 
    Attachments are like containers or slots for images (in the
-   `vk::Image` sense) that can contain things like color,
+   `VkImage` sense) that can contain things like color,
    stencil, or depth information. They are defined via
-   [`vk::AttachmentDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentDescription.html)
+   [`VkAttachmentDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentDescription.html)
    (or the more recent
-   [`vk::AttachmentDescription2`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentDescription2.html)
+   [`VkAttachmentDescription2`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentDescription2.html)
    which is designed to be extensible; many of the objects
    associated with render passes have variants like this). Aside
    from storing references to them directly, there is also a
    special structure
-   [`vk::AttachmentReference`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentReference.html)
+   [`VkAttachmentReference`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentReference.html)
    that objects which need to make use of an attachment can store
    as a kind of placeholder. This allows them to express what
    type of attachment they require without having to bind tightly
@@ -465,10 +465,10 @@ In any case, let's consider what may need to happen during a
    A subpass is expressed mainly through two struct types in
    tandem.
    One is
-   [`vk::SubpassDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubpassDescription.html),
-   a collection of `vk::AttachmentReference`s associated with one of
+   [`VkSubpassDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubpassDescription.html),
+   a collection of `VkAttachmentReference`s associated with one of
    the pipeline types. The other is
-   [`vk::SubpassDependency`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubpassDependency.html),
+   [`VkSubpassDependency`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubpassDependency.html),
    which describes dependent relationships between subpasses for
    the sake of synchronization as well as the pipeline stages the
    subpasses need access to. Together, they describe a certain
@@ -476,35 +476,35 @@ In any case, let's consider what may need to happen during a
    instructions to be executed by the GPU during that phase.
 
    Attachments and subpasses are brought together in a
-   [`vk::RenderPassCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkRenderPassCreateInfo.html).
-   This structure stores a list of `vk::AttachmentDescription`s, a
-   list of `vk::SubpassDescription`s, and a list of
-   `vk::SubpassDependency`s, which formally describes the render
+   [`VkRenderPassCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkRenderPassCreateInfo.html).
+   This structure stores a list of `VkAttachmentDescription`s, a
+   list of `VkSubpassDescription`s, and a list of
+   `VkSubpassDependency`s, which formally describes the render
    pass. It can be passed to
-   [`vk::CreateRenderPass`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateRenderPass.html)
-   to produce a `vk::RenderPass`.
+   [`VkCreateRenderPass`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateRenderPass.html)
+   to produce a `VkRenderPass`.
 
 1. In order to make use of a render pass, we also need a
    framebuffer for it to work with, which in the context of
    Vulkan is a collection of specific attachments in memory
-   represented by `vk::ImageView`s. A framebuffer is represented
+   represented by `VkImageView`s. A framebuffer is represented
    by a
-   [`vk::FrameBuffer`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkFramebuffer.html)
+   [`VkFrameBuffer`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkFramebuffer.html)
    handle, which is created via
-   [`vk::CreateFramebuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateFramebuffer.html)
+   [`vkCreateFramebuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateFramebuffer.html)
    using a
-   [`vk::FramebufferCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkFramebufferCreateInfo.html).
-   It is associated with a specific `vk::RenderPass`, and in
-   addition to holding onto a list of `vk::ImageViews` it also
+   [`VkFramebufferCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkFramebufferCreateInfo.html).
+   It is associated with a specific `VkRenderPass`, and in
+   addition to holding onto a list of `VkImageViews` it also
    has its own parameters for width, height, and number of
    layers. The number of layers must be equal to or less than the
-   `arrayLayers` property of the `vk::Image`s.
+   `arrayLayers` property of the `VkImage`s.
 
 1. We also need
-   [`vk::Pipeline`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipeline.html)s,
+   [`VkPipeline`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipeline.html)s,
    which represent a set of operations for the GPU to perform
    (this is where you actually attach your shaders, using
-   [`vk::ShaderModule`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkShaderModule.html)s).
+   [`VkShaderModule`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkShaderModule.html)s).
    They come in three flavors: *graphics*, *compute*, and *ray
    tracing*. See below for more information on pipelines.
 
@@ -541,17 +541,17 @@ on the properties of the physical device.
 
 Once the logical device has been created, you can retrieve
 handles to any of its queues via
-[`VkGetDeviceQueue()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetDeviceQueue.html)
+[`vkGetDeviceQueue()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetDeviceQueue.html)
 (or
-[`VkGetDeviceQueue2()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetDeviceQueue2.html),
+[`vkGetDeviceQueue2()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetDeviceQueue2.html),
 if you want to retrieve a handle to a queue created with specific
 [`VkDeviceQueueCreateFlags`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDeviceQueueCreateFlags.html)).
 
 Work is submitted to a queue via queue submission commands such
 as
-[`VkQueueSubmit2KHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueSubmit2KHR.html)
+[`vkQueueSubmit2KHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueSubmit2KHR.html)
 or
-[`VkQueueSubmit()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueSubmit.html).
+[`vkQueueSubmit()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueSubmit.html).
 A queue submission command takes a target queue, a set of
 _batches_ of work, and optionally a fence to signal on completion
 (see "Fences" under "Synchronization"). Each batch (described by
@@ -572,7 +572,7 @@ Command buffers, represented by
 [`VkCommandBuffer`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCommandBuffer.html),
 are used to submit commands to a device queue. They are
 allocated using
-[`vk::AllocateCommandBuffers()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkAllocateCommandBuffers.html),
+[`vkAllocateCommandBuffers()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkAllocateCommandBuffers.html),
 which requires specifying a device, a _command pool_, and the
 _level_ of the buffers to be allocated. Rather than execute
 commands immediately, commands are _recorded_ onto command
@@ -581,14 +581,14 @@ command buffers to be set up concurrently with rendering
 operations.
 
 A _command pool_, represented by
-[`vk::CommandPool`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCommandPool.html),
+[`VkCommandPool`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCommandPool.html),
 is an opaque object used to allocate memory for command
 buffers on a device. They can be _reset_ using
-[`vk::ResetCommandPool()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkResetCommandPool.html),
+[`vkResetCommandPool()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkResetCommandPool.html),
 which reinitializes all the command buffers alocated from the
 pool and return the resources they were using back to the
 pool. A command pool can also be _trimmed_ using
-[`vk::TrimCommandPool()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkTrimCommandPoolKHR.html),
+[`vkTrimCommandPool()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkTrimCommandPoolKHR.html),
 which frees up any unused memory from the pool without
 affecting the command buffers allocated from it; this is
 useful to e.g. reclaim memory from a specific command buffer
@@ -600,11 +600,11 @@ device queue, and can also execute secondary command buffers.
 Neither of these things is true of secondary command buffers.
 However, secondary command buffers can inherit state from
 primary command buffers by using
-[`vk::CommandBufferInheritanceInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCommandBufferInheritanceInfo.html)
+[`VkCommandBufferInheritanceInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCommandBufferInheritanceInfo.html)
 and setting
 [`VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCommandBufferUsageFlagBits.html)
 when calling
-[`vk::BeginCommandBuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkBeginCommandBuffer.html).
+[`vkBeginCommandBuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkBeginCommandBuffer.html).
 This allows secondary command buffers to be recorded
 concurrently after the primary command buffer which is going
 to execute them has been set up, and also allows a secondary
@@ -615,7 +615,7 @@ for more on this.
 
 Command buffers can execute a wide variety of commands. They
 are all specified with functions that follow the naming format
-`vk::Cmd*`. Among other things, they allow for copying images
+`VkCmd*`. Among other things, they allow for copying images
 and buffers, starting and managing render passes and
 subpasses, binding resources like pipelines and buffers to the
 command buffer, and making draw calls on the associated device.
@@ -623,22 +623,22 @@ command buffer, and making draw calls on the associated device.
 Command buffers pass through a number of different states.
 When first allocated they are in the _initial_ state. From
 here, they can either be freed with
-[`vk::FreeCommandBuffers()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkFreeCommandBuffers.html)
+[`vkFreeCommandBuffers()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkFreeCommandBuffers.html)
 or be put into the _recording_ state via
-[`vk::BeginCommandBuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkBeginCommandBuffer.html).
-While in the recording state, `vk::Cmd*` functions can be used
+[`vkBeginCommandBuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkBeginCommandBuffer.html).
+While in the recording state, `VkCmd*` functions can be used
 to record commands to the buffer, or it can be reset back to
 the initial state with
-[`vk::ResetCommandBuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkResetCommandBuffer.html).
+[`vkResetCommandBuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkResetCommandBuffer.html).
 Afterwards, calling
-[`vk::EndCommandBuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkEndCommandBuffer.html)
+[`vkEndCommandBuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkEndCommandBuffer.html)
 puts it into the _executable_ state; from here, it can be submitted
 to a queue with
-[`vk::QueueSubmit2KHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueSubmit2KHR.html)
+[`vkQueueSubmit2KHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueSubmit2KHR.html)
 or
-[`vk::QueueSubmit()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueSubmit.html)
+[`vkQueueSubmit()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueSubmit.html)
 if it's a primary buffer, recorded to a primary buffer with
-[`vk::CmdExecuteCommands()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdExecuteCommands.html)
+[`vkCmdExecuteCommands()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdExecuteCommands.html)
 if it's a secondary buffer, or reset. Once submitted to a
 queue, it enters the _pending_ state, during which the
 application must not modify it in any way. Once executed, it
@@ -857,18 +857,18 @@ The only context needed to create and destroy semaphores is a
 device.
 
 Semaphores are created via
-[`vk::CreateSemaphore()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateSemaphore.html).
+[`vkCreateSemaphore()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateSemaphore.html).
 By default, this creates a binary semaphore in the unsignaled
 state. However, a timeline semaphore can be created by adding a
-[`vk::SemaphoreTypeCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSemaphoreTypeCreateInfo.html)
+[`VkSemaphoreTypeCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSemaphoreTypeCreateInfo.html)
 to the `pNext` chain of the
-[`vk::SemaphoreCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSemaphoreCreateInfo.html),
+[`VkSemaphoreCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSemaphoreCreateInfo.html),
 setting its `semaphoreType` field to
 `VK_SEMAPHORE_TYPE_TIMELINE`, and supplying the initial value of
 the semaphore state in its `initialValue` field.
 
 Semaphores are destroyed via
-[`vk::DestroySemaphore()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroySemaphore.html).
+[`vkDestroySemaphore()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroySemaphore.html).
 Any submitted batches which refer to a semaphore must have
 finished execution before this is called on it.
 
@@ -881,25 +881,25 @@ way to do this depends on whether you are using the
 `synchronization2` feature or not.
 
 If you are, you can use
-[`vk::QueueSubmit2KHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueSubmit2KHR.html).
+[`vkQueueSubmit2KHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueSubmit2KHR.html).
 This takes an array of
-[`vk::SubmitInfo2KHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubmitInfo2KHR.html),
+[`VkSubmitInfo2KHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubmitInfo2KHR.html),
 which includes fields `pWaitSemaphoreInfos[]` and
 `pSignalSemaphoreInfos[]`. These point to arrays of
-[`vk::SemaphoreSubmitInfoKHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSemaphoreSubmitInfoKHR.html),
+[`VkSemaphoreSubmitInfoKHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSemaphoreSubmitInfoKHR.html),
 which most significantly takes a handle to a semaphore, the value
 to signal with or wait on if the semaphore is a timeline
 semaphore, and a bitmask of
-[`vk::PipelineStageFlagBits2KHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineStageFlagBits2KHR.html)
+[`VkPipelineStageFlagBits2KHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineStageFlagBits2KHR.html)
 flags to restrict the semaphore's scopes to specific pipeline
 stages. This method of submission also takes into account the
 submission order of commands submitted to the queue, in terms of
 the semaphore's scopes.
 
 If you are not using `synchronization2`, you can instead use
-[`vk::QueueSubmit()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueSubmit.html).
+[`vkQueueSubmit()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueSubmit.html).
 This takes an array of
-[`vk::SubmitInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubmitInfo.html),
+[`VkSubmitInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubmitInfo.html),
 which includes two arrays of semaphore handles, `pWaitSemaphores`
 and `pSignalSemaphores`. These indicate the semaphores to wait on and
 signal in the batch, respectively. There is also an array
@@ -908,11 +908,11 @@ signal in the batch, respectively. There is also an array
 which restricts the scopes of the corresponding semaphore wait
 operations to specific pipeline stages. If using timeline
 semaphores, you can add a
-[`vk::TimelineSemaphoreSubmitInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkTimelineSemaphoreSubmitInfo.html)
-to the `pNext` chain of your `vk::SubmitInfo`, which allows you
+[`VkTimelineSemaphoreSubmitInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkTimelineSemaphoreSubmitInfo.html)
+to the `pNext` chain of your `VkSubmitInfo`, which allows you
 to specify values for the wait and signal operations on the
 respective semaphores (binary semaphores can have values of 0 set
-here as they are ignored). As with `vk::QueueSubmit2KHR`, this
+here as they are ignored). As with `VkQueueSubmit2KHR`, this
 takes submission order into account in scope terms for the
 semaphores in question.
 
@@ -920,7 +920,7 @@ You can also use other
 [queue submission
 commands](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#devsandqueues-submission)
 such as 
-[`vk::QueueBindSparse()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueBindSparse.html).
+[`vkQueueBindSparse()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueBindSparse.html).
 See the relevant documentation for more details.
 
 ##### Host operations
@@ -930,7 +930,7 @@ of these operations work with binary semaphores.
 
 The host can query the value of a timeline
 semaphore's state via
-[`vk::GetSemaphoreCounterValue()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetSemaphoreCounterValue.html).
+[`vkGetSemaphoreCounterValue()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetSemaphoreCounterValue.html).
 This takes device and semaphore handles and a pointer to a
 `uint64_t` which will receive the value. Note that if there is a
 pending queue submission command that involves the semaphore, it
@@ -939,9 +939,9 @@ called, so take care in its use.
 
 The host can wait on a set of semaphores to reach particular
 state values using
-[`vk::WaitSemaphores()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkWaitSemaphores.html).
+[`vkWaitSemaphores()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkWaitSemaphores.html).
 This takes a
-[`vk::SemaphoreWaitInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSemaphoreWaitInfo.html),
+[`VkSemaphoreWaitInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSemaphoreWaitInfo.html),
 which in turn takes a pointer into an array of semaphore handles,
 a pointer into an array of values to wait on (one for each
 corresponding semaphore). It also allows a timeout period to be
@@ -950,19 +950,19 @@ guaranteed), and a flag to specify if it should wait for any of
 the semaphores to reach its corresponding value or if it should
 wait on all of them (the latter being the default).
 
-When `vk::WaitSemaphores()` is called, it returns immediately if
+When `vkWaitSemaphores()` is called, it returns immediately if
 its wait condition is met or if its timeout period is set to 0.
 Otherwise, it blocks until the condition is met or until the
 timeout period has elapsed, whichever is sooner.
 
 The host can signal a semaphore using
-[`vk::SignalSemaphore()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkSignalSemaphore.html).
+[`vkSignalSemaphore()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkSignalSemaphore.html).
 This takes a
-[`vk::SemaphoreSignalInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSemaphoreSignalInfo.html),
+[`VkSemaphoreSignalInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSemaphoreSignalInfo.html),
 which allows you to specify a semaphore and a value to set its
 state to upon signalling. The signalling operation produced is
 executed immediately, and its first synchronization scope
-includes the execution of `vk::SignalSemaphore()` as well as
+includes the execution of `vkSignalSemaphore()` as well as
 anything that has happened prior to it.
 
 ### Fences
@@ -971,19 +971,19 @@ Fences are a way to create a dependency from within a queue to
 the host. They date to before the introduction of timeline
 semaphores, and in most cases a timeline semaphore may be more
 elegant to use. They can be _signaled_ as part of the execution of a
-queue submission command like `vk::QueueSubmit2KHR()`. From the
+queue submission command like `vkQueueSubmit2KHR()`. From the
 host, they can be read via
-[`vk::GetFenceStatus()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetFenceStatus.html),
+[`vkGetFenceStatus()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetFenceStatus.html),
 waited on via
-[`vk::WaitForFences()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkWaitForFences.html),
+[`vkWaitForFences()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkWaitForFences.html),
 and unsignaled via
-[`vk::ResetFences()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkResetFences.html).
+[`vkResetFences()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkResetFences.html).
 They are created with
-[`vk::CreateFence()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateFence.html),
+[`vkCreateFence()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateFence.html),
 and require a device to create the fence with and a specification
 of whether the fence should be initialized in the signaled or
 unsignaled state. They are destroyed with
-[`vk::DestroyFence()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroyFence.html).
+[`vkDestroyFence()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroyFence.html).
 
 When a fence is submitted to a queue, it defines a _fence signal
 operation_. It's generally safe to think of a fence signal
@@ -1007,7 +1007,7 @@ ensure this (see below).
 <!--
 Vulkan provides mechanisms for interprocess signalling via fences.
 See
-[`vk::ExportFenceCreateinfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkExportFenceCreateInfo.html)
+[`VkExportFenceCreateinfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkExportFenceCreateInfo.html)
 and [7.3.2 Importing Fence Payloads](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#synchronization-fences-importing) for more on this.
 -->
 
@@ -1021,11 +1021,11 @@ and unsignaled. They support signalling on the device or the
 host, waiting on the device, and querying from the host.
 
 Events are created via
-[`vk::CreateEvent()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateEvent.html).
+[`vkCreateEvent()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateEvent.html).
 This requires a device, and allows the caller to specify if the
 event will be managed from the device only (i.e. no host event
 commands will be used with it). They are destroyed via
-[`vk::DestroyEvent()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroyEvent.html),
+[`vkDestroyEvent()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroyEvent.html),
 which requires the same device used to create the event.
 
 #### Device operations
@@ -1034,32 +1034,32 @@ which requires the same device used to create the event.
 
 Events can be set to be signaled on the device as part of batch
 execution with
-[`vk::CmdSetEvent2KHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdSetEvent2KHR.html).
+[`vkCmdSetEvent2KHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdSetEvent2KHR.html).
 This takes a pointer to a
-[`vk::DependencyInfoKHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDependencyInfoKHR.html),
+[`VkDependencyInfoKHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDependencyInfoKHR.html),
 which allows the caller to use arrays of
-[`vk::MemoryBarrier2KHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkMemoryBarrier2KHR.html),
-[`vk::BufferMemoryBarrier2KHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkBufferMemoryBarrier2KHR.html),
+[`VkMemoryBarrier2KHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkMemoryBarrier2KHR.html),
+[`VkBufferMemoryBarrier2KHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkBufferMemoryBarrier2KHR.html),
 and
-[`vk::ImageMemoryBarrier2KHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageMemoryBarrier2KHR.html)
+[`VkImageMemoryBarrier2KHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageMemoryBarrier2KHR.html)
 to specify the first synchronization and access scopes of the
 signaling operation (i.e. using the `src*` fields of these
 structures). Its second synchronization scope includes itself.
 Its second synchronization scope as well as its second access
 scope also include any queue family ownership transfers or image
-layout transitions defined in the `vk::DependencyInfoKHR`.
+layout transitions defined in the `VkDependencyInfoKHR`.
 
 Events can be waited on as part of batch execution with
-[`vk::CmdWaitEvents2KHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdWaitEvents2KHR.html)
+[`vkCmdWaitEvents2KHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdWaitEvents2KHR.html)
 This takes an array of events and a matching array of
-`vk::DependencyInfoKHR`s. The `vk::DependencyInfoKHR`s are used
+`VkDependencyInfoKHR`s. The `VkDependencyInfoKHR`s are used
 to define the second synchronization and access scopes of the
 wait operation (i.e. using the `dst*` fields of its memory
 barrier structures). If the first synchronization scope of an
 events included in this operation contains any device operations,
 it should have had a corresponding signal operation defined for
 it earlier in the submission order on the same queue, and the
-`vk::DependencyInfoKHR` supplied for it should exactly match that
+`VkDependencyInfoKHR` supplied for it should exactly match that
 used there. These conditions do not apply if its first
 synchronization scope includes only host operations and
 `VK_EVENT_CREATE_DEVICE_ONLY_BIT_KHR` was not set during its
@@ -1068,14 +1068,14 @@ creation.
 ##### Without `synchronization2`
 
 Events can be set to be signaled during queue execution with
-[`vk::CmdSetEvent()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdSetEvent.html).
-This works identically to `vk::CmdSetEvent2KHR` except that it
+[`vkCmdSetEvent()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdSetEvent.html).
+This works identically to `VkCmdSetEvent2KHR` except that it
 does not define an access scope. Its first synchronization scope
-is specified via a `vk::PipelineStageFlags`.
+is specified via a `VkPipelineStageFlags`.
 
 Events can be waited on during queue execution with
-[`vk::CmdWaitEvents()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdWaitEvents.html).
-This works similarly to `vk::CmdWaitEvents2KHR`, but defines the
+[`vkCmdWaitEvents()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdWaitEvents.html).
+This works similarly to `VkCmdWaitEvents2KHR`, but defines the
 first access scope for every signal operation waited on in
 addition to its own scopes. Speaking roughly, signal operations
 on the same queue are included in the first synchronization scope
@@ -1098,14 +1098,14 @@ mask.
 #### Host operations
 
 The host can query the status of an event via
-[`vk::GetEventStatus()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetEventStatus.html).
+[`vkGetEventStatus()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetEventStatus.html).
 Note that if the event is involved in a pending batch the result
 of this operation may be out-of-date.
 
 The host can signal an event via
-[`vk::SetEvent()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkSetEvent.html),
+[`vkSetEvent()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkSetEvent.html),
 and can unsignal an event via
-[`vk::ResetEvent()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkResetEvent.html).
+[`vkResetEvent()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkResetEvent.html).
 These immediately defines and executes an event signal/unsignal
 operation for the event, unless the event is already
 signaled/unsignaled, in which case nothing happens. Note that
@@ -1129,8 +1129,8 @@ them in the submission order.
 
 If using `synchronization2`, you can record a pipeline barrier
 via
-[`vk::CmdPipelineBarrier2KHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdPipelineBarrier2KHR.html).
-This takes a pointer to a `vk::DependencyInfoKHR` like the
+[`vkCmdPipelineBarrier2KHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdPipelineBarrier2KHR.html).
+This takes a pointer to a `VkDependencyInfoKHR` like the
 queue-based event commands do. The first synchronization and
 access scopes of the dependencies described in this structure are
 applied to any commands submitted earlier, and the second
@@ -1139,10 +1139,10 @@ submitted later.
 
 If not using `synchronization2`, you can record a pipeline
 barrier via
-[`vk::CmdPipelineBarrier()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdPipelineBarrier.html).
-This is similar to `vk::CmdPipelineBarrier2KHR()` except that the
+[`vkCmdPipelineBarrier()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdPipelineBarrier.html).
+This is similar to `vkCmdPipelineBarrier2KHR()` except that the
 memory barriers are passed as arguments separately instead of
-within a `vk::DependencyInfoKHR`.
+within a `VkDependencyInfoKHR`.
 
 #### Use within a render pass
 
@@ -1180,10 +1180,10 @@ the context of defining events and pipeline barriers, but they
 have some properties we have not yet explored.
 
 Memory barriers come in three types. Global memory barriers such
-as `vk::MemoryBarrier2KHR` encompass all the memory accesses in
+as `VkMemoryBarrier2KHR` encompass all the memory accesses in
 their specified pipeline stages. Buffer and image memory barriers
-such as `vk::BufferMemoryBarrier2KHR` and
-`vk::ImageMemoryBarrier2KHR` apply to specific, single buffer and
+such as `VkBufferMemoryBarrier2KHR` and
+`VkImageMemoryBarrier2KHR` apply to specific, single buffer and
 image resources respectively.
 
 #### Queue family ownership transfer
@@ -1191,7 +1191,7 @@ image resources respectively.
 Buffer and image memory barriers can be used to declare a _queue
 family ownership transfer_ for the resource they relate to. If
 this resource was created with a
-[`vk::SharingMode`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSharingMode.html)
+[`VkSharingMode`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSharingMode.html)
 of `VK_SHARING_MODE_EXCLUSIVE`, the first queue family in which
 it is used acquires the exclusive use of it, and this _ownership_
 must be explicitly transferred to another queue family in order
@@ -1211,8 +1211,8 @@ ensure this, such as that introduced by a semaphore.
 
 To define a release operation, execute a buffer or image memory
 barrier on a queue from the source family using
-`vk::CmdPipelineBarrier` (and possibly
-`vk::CmdPipelineBarrier2KHR`; see
+`VkCmdPipelineBarrier` (and possibly
+`VkCmdPipelineBarrier2KHR`; see
 [here](https://github.com/KhronosGroup/Vulkan-Docs/issues/1516)).
 To define an acquire operation, perform the same procedure on a
 queue from the destination family. In both cases, the
@@ -1270,7 +1270,7 @@ the interactions between shader invocations.
 ### Graphics pipeline
 
 A graphics pipeline, created through
-[`vk::createGraphicsPipelines()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateGraphicsPipelines.html),
+[`vkCreateGraphicsPipelines()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateGraphicsPipelines.html),
 is meant primarily for the production of visual imagery. It can:
 
 * take a set of vertices ("draw")
@@ -1343,7 +1343,7 @@ high-end GPUs.
 A compute pipeline is meant for performing abstract computation
 on the GPU, apart from the complicated machinery of the graphics
 pipeline. They are created with
-[`vk::createComputePipelines()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateComputePipelines.html).
+[`vkCreateComputePipelines()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateComputePipelines.html).
 This can provide better performance than using a graphics
 pipeline if the desired operations don't need to produce a visual
 image directly. Despite their abstract nature, they are still
@@ -1378,7 +1378,7 @@ Ray tracing pipelines are designed for simulating the behavior of
 light at a high level of detail by tracing the paths of "beams"
 of light as they travel through a scene's geometry.  They are
 created via
-[`vk::createRayTracingPipelinesKHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateRayTracingPipelinesKHR.html).
+[`VkcreateRayTracingPipelinesKHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateRayTracingPipelinesKHR.html).
 As you might guess from the suffix, they were introduced as a
 recent extension to Vulkan, having been added to the spec in
 December 2020.
