@@ -7,6 +7,50 @@ based on it, etc. as long as you use the same license for both
 this text and any work you make based on it, and give credit to
 me (Zoë Sparks) for authorship of this text.
 
+## Introduction
+
+Vulkan is often described as a low-level API, but to me that's a
+bit deceptive. After all, it's not like it has you writing
+machine instructions for graphics devices. That level of detail
+is still concealed from you, and it's mostly unclear what objects
+in the API actually map onto the physical components or circuitry
+of a given graphics device or in what manner (well, unless the
+vendor speaks up about it). What Vulkan is is a
+fairly _explicit_ API: its functions are precisely-defined and
+narrow in scope, by and large. However, much of its design comes
+from a relatively subjective place of trying to give graphics
+developers control over what they have voiced a desire to have
+control over.  The explicitness is perhaps not so much in the
+name of closely representing the design of graphics hardware as
+it is in making the behavior of Vulkan operations predictable to
+developers, especially in performance terms, and in letting them
+dictate exactly what they need from the device and no more.
+Therefore, getting a good holistic sense of what Vulkan is all
+about is easier if you think about what graphics developers might
+need fine control over to maximize performance.
+
+Much of the complexity of Vulkan comes from two sources: graphics
+devices are highly concurrent, and they have their own memory. To
+get the best performance from a graphics device, you want to run
+operations on it in parallel as much as possible, and you want to
+have it using its own memory as much as possible. Much of Vulkan
+is designed with at least one if not both of these goals in mind.
+It gives you a variety of different ways to order work on the
+device and synchronize operation between the device and the
+host, and otherwise says little about what order device
+operations will take place in. It also gives you a variety of
+ways to transfer data between the device and host, gives you
+tools to minimize overhead in host-device communication, and
+allows you to precisely manage how resources are laid out in
+device memory.
+
+If you're trying to understand why a certain object is in the
+Vulkan API, or how to make the best use of it, a good place to
+start is to ask yourself "How does this help me express my
+ordering requirements only as much as I truly need to?" and "How
+does this help me make the best use of device memory and
+minimize host-device interaction?".
+
 ## Setting up Vulkan
 
 Here is, in order, roughly what needs to happen during the
