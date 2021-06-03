@@ -406,6 +406,10 @@ have `*2KHR()` variants via the
 [`VK_KHR_copy_commands2`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VK_KHR_copy_commands2.html)
 extension.
 
+These commands have a number of valid usage requirements; the
+spec has [the
+details](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#_common_operation).
+
 #### Simple copying
 
 These commands copy a list of regions of a buffer or image, specified with
