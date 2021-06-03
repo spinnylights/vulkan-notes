@@ -400,6 +400,88 @@ reset.
 In order to detect when a command buffer has left the pending
 state, a synchronization command should be used.
 
+### Copying images and buffers
+
+There are four commands for simple image/buffer to buffer/image
+copying, a command for image copying with scaling and format
+conversion, and a command for resolving a multisample image. They
+have `*2KHR()` variants via the
+[`VK_KHR_copy_commands2`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VK_KHR_copy_commands2.html)
+extension.
+
+#### Simple copying
+
+These commands copy a list of regions of a buffer or image, specified with
+[`VkBufferCopy`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkBufferCopy.html)s
+or
+[`VkImageCopy`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageCopy.html)s.
+They don't do format conversion; image-to-image copying must be
+between
+[compatible](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#formats-compatibility)
+formats, and buffer-to-image copying is done with the assumption
+that the data in the buffer region(s) matches the image format.
+
+The `*2KHR()` commands here are are mostly the same in functional
+terms as the original commands but are more extensible. Those
+that take
+[`VkBufferImageCopy2KHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkBufferImageCopy2KHR.html)
+can perform a rotated copy using
+[`VkCopyCommandTransformInfoQCOM`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCopyCommandTransformInfoQCOM.html).
+
+The commands are as follows:
+
+  * for image-to-image copy, [`vkCmdCopyImage()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdCopyImage.html)
+    or
+    [`vkCmdCopyImage2KHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdCopyImage2KHR.html);
+  * for buffer-to-buffer copy, [`vkCmdCopyBuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdCopyBuffer.html)
+    or
+    [`vkCmdCopyBuffer2KHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdCopyBuffer2KHR.html);
+  * for image-to-buffer copy, [`vkCmdCopyImageToBuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdCopyImageToBuffer.html)
+    or
+    [`vkCmdCopyImageToBuffer2KHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdCopyImageToBuffer2KHR.html);
+  * for buffer-to-image copy, [`vkCmdCopyBufferToImage()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdCopyBufferToImage.html)
+    or
+    [`vkCmdCopyBufferToImage2KHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdCopyBufferToImage2KHR.html).
+
+#### "Sprite-style" copying
+
+If you need to do format conversion and/or scaling as part of
+your copy operation, you can use
+[`vkCmdBlitImage()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBlitImage.html)
+or
+[`vkCmdBlitImage2KHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBlitImage2KHR.html).
+With these commands, the formats of the source and destination
+images have looser requirements than with the "simple" image
+copying commands, and the source and destination regions can
+differ in size. If the regions do differ in size, scaling is
+performed, and the filtering algorithm to use while scaling can
+be chosen (see
+[`VkFilter`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkFilter.html)
+for the available algorithms).
+
+`vkCmdBlitImage2KHR()` can also perform a rotation as part of the
+copy.
+
+These commands are not intended for use with multisampled images,
+unlike the following commands.
+
+#### Multisample resolve
+
+If you need to resolve a multisample color image to a
+non-multisample color image, you can use
+[`vkCmdResolveImage()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdResolveImage.html)
+or
+[`vkCmdResolveImage2KHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdResolveImage2KHR.html).
+These are similar to the "simple" image-image copying commands,
+but resolve all the samples corresponding to a single pixel
+location in the source image into a single sample in the
+destination image.
+
+
+starting and managing render passes and subpasses, binding
+resources like pipelines and buffers to the command buffer,
+and making draw calls on the associated device.
+
 ## Synchronization
 
 Execution of commands is highly concurrent, and ordering of
