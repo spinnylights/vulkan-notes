@@ -397,6 +397,79 @@ reset.
 In order to detect when a command buffer has left the pending
 state, a synchronization command should be used.
 
+### Drawing
+
+Draw commands take a set of vertices and submit it to a graphics
+pipeline (see "Pipelines"). This can be used to e.g. render a 3D
+model, among many other things. All the draw commands are named
+in the format `VkCmdDraw*`. For relatively obvious reasons, they
+should be called inside of a render pass instance.
+
+Both the format of vertices in memory and how they are processed
+by the graphics pipeline are very flexible. See
+[`VkVertexInputBindingDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkVertexInputBindingDescription.html)
+and
+[`VkVertexInputAttributeDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkVertexInputAttributeDescription.html)
+for more information on laying out vertices, and
+[`VkPrimitiveTopology`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPrimitiveTopology.html)
+for the strategies that can be used by the graphics pipeline for
+assembling vertices into primitives. [Ch. 21: Drawing
+Commands](https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/chap21.html)
+and [Ch. 22: Fixed-Function Vertex
+Processing](https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/chap22.html)
+in the spec cover this topic in detail.
+
+The most commonly-used draw commands can be categorized based on
+whether or not they take a vertex index buffer. Without an index
+buffer, vertices are assembled one-by-one into primitives based
+on their index in the vertex buffer. With an index buffer, the
+order in which to assemble the vertices into primitives can be
+specified explicitly. The advantage of using an index buffer is
+that vertices can be reused, which avoids the need to duplicate
+vertices used to assemble more than one primitive. 3D file
+formats often work this way. In either case, the primitive
+toplogy in use dictates how the vertices are assembled once an
+ordering is established.
+
+The two most straightforward draw commands are
+[`vkCmdDraw()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDraw.html)
+and
+[`vkCmdDrawIndexed()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDrawIndexed.html).
+These simply take a filled vertex buffer and possible index
+buffer and submit them to the graphics pipeline.
+
+Another way of categorizing draw commands is by whether or not
+they perform an indirect draw. Indirect draws read vertex data
+from a buffer during execution as opposed to loading it
+beforehand. This is useful if the vertex data is e.g. generated
+by a compute shader as opposed to being handled on the CPU side,
+which can be used for high-performance rendering techniques. See
+[this GPU-driven rendering
+article](https://vkguide.dev/docs/gpudriven/gpu_driven_engines/)
+and [these
+slides](https://www.advances.realtimerendering.com/s2015/aaltonenhaar_siggraph2015_combined_final_footer_220dpi.pdf)
+for some more information on that sort of thing.
+
+The "simple" draw commands have their indirect equivalents in
+[`vkCmdDrawIndirect()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDrawIndirect.html)
+and
+[`vkCmdDrawIndexedIndirect()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDrawIndexedIndirect.html).
+There is also
+[`vkCmdDrawIndexedIndirectCount()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDrawIndexedIndirectCount.html),
+which gets its draw count parameter from a buffer instead of
+having it passed directly, and
+[`vkCmdDrawIndirectByteCountEXT()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDrawIndirectByteCountEXT.html),
+which gets its vertex count from a buffer. The latter comes from
+the
+[`VK_EXT_transform_feedback`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VK_EXT_transform_feedback.html)
+extension and is not recommended for use outside of translation
+layers for other 3D graphics APIs.
+
+There are also three draw commands introduced by the
+[`VK_NV_mesh_shader`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VK_NV_mesh_shader.html)
+mesh shading extension. However, my GPU does not support mesh
+shading, so I'm not going to cover these.
+
 ### Copying images and buffers
 
 There are four commands for simple image/buffer to buffer/image
