@@ -312,14 +312,14 @@ buffers), and zero or more semaphores to signal afterwards (see
 "Semaphores" under "Synchronization").
 
 Queues are destroyed along with the logical device they were
-created with when `VkDestroyDevice` is called on the device in
+created with when `vkDestroyDevice()` is called on the device in
 question.
 
 ## Command buffers
 
-Command buffers, represented by
+_Command buffers_, represented by
 [`VkCommandBuffer`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCommandBuffer.html),
-are used to submit commands to a device queue. They are
+are used to submit _commands_ to a device queue. They are
 allocated using
 [`vkAllocateCommandBuffers()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkAllocateCommandBuffers.html),
 which requires specifying a device, a _command pool_, and the
@@ -329,13 +329,18 @@ buffers to be later submitted to a device queue, which allows
 command buffers to be set up concurrently with rendering
 operations.
 
+Command buffers can be used to execute a wide variety of
+commands. They are all specified with functions that follow the
+naming format `VkCmd*`. Some of the most notable are described
+below in their own subsections.
+
 A _command pool_, represented by
 [`VkCommandPool`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCommandPool.html),
 is an opaque object used to allocate memory for command
 buffers on a device. They can be _reset_ using
 [`vkResetCommandPool()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkResetCommandPool.html),
-which reinitializes all the command buffers alocated from the
-pool and return the resources they were using back to the
+which reinitializes all the command buffers allocated from the
+pool and returns the resources they were using back to the
 pool. A command pool can also be _trimmed_ using
 [`vkTrimCommandPool()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkTrimCommandPoolKHR.html),
 which frees up any unused memory from the pool without
@@ -343,7 +348,7 @@ affecting the command buffers allocated from it; this is
 useful to e.g. reclaim memory from a specific command buffer
 that has been reset without needing to reset the whole pool.
 
-Every command buffer has a level, which is either _primary_ or
+Every command buffer has a _level_, which is either _primary_ or
 _secondary_. A primary command buffer can be submitted to a
 device queue, and can also execute secondary command buffers.
 Neither of these things is true of secondary command buffers.
@@ -361,13 +366,6 @@ command buffer to be recycled for use with different primary
 command buffers. See
 [here](https://github.com/KhronosGroup/Vulkan-Samples/blob/master/samples/performance/command_buffer_usage/command_buffer_usage_tutorial.md)
 for more on this.
-
-Command buffers can execute a wide variety of commands. They
-are all specified with functions that follow the naming format
-`VkCmd*`. Among other things, they allow for copying images
-and buffers, starting and managing render passes and
-subpasses, binding resources like pipelines and buffers to the
-command buffer, and making draw calls on the associated device.
 
 Command buffers pass through a number of different states.
 When first allocated they are in the _initial_ state. From
