@@ -256,7 +256,9 @@ with the remaining steps constituting its "runtime".
 
 1. The last major piece of machinery we need is a way to tell the
    graphics hardware to actually make use of everything we've set
-   up. This is via command buffers; see below.
+   up. This is via
+   [`VkCommandBuffer`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCommandBuffer.html)s;
+   see below.
 
 ## Queues
 
@@ -397,6 +399,56 @@ reset.
 In order to detect when a command buffer has left the pending
 state, a synchronization command should be used.
 
+### Binding to a command buffer
+
+Many of the objects used in a command buffer need to be bound to
+it beforehand. Once bound, subsequent operations that make use of
+the type of object that was bound will generally use the bound
+object. This is main way that commands that act on an object not
+supplied as a parameter know what to work with.
+
+To bind a pipeline, use
+[`vkCmdBindPipeline()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindPipeline.html).
+This command binds the given pipeline to a specific bind point
+based on its type (graphics, compute, or ray tracing). It is
+possible to bind pipelines of different type to the same command
+buffer; the spec says that "binding [to] one [point] does not
+disturb the others." A bound graphics pipeline controls all
+commands with "Draw" in the name, a bound compute pipeline controls all
+commands with "Dispatch" in the name, and a bound ray tracing
+pipeline controls all commands with "TraceRays" in the name.
+
+To bind vertex and index buffers, use
+[`vkCmdBindVertexBuffers()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindVertexBuffers.html)
+(or
+[`vkCmdBindVertexBuffers2EXT()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindVertexBuffers2EXT.html))
+and
+[`vkCmdBindIndexBuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindIndexBuffer.html).
+As you can probably tell from the function names,
+`vkCmdBindVertexBuffers()` takes a list of vertex buffers,
+whereas `vkCmdBindIndexBuffer()` takes only a single index
+buffer. This is because vertex _attributes_ are put together from
+the vertex buffers, and the index buffer specifies indices for
+complete sets of those attributes, which are each made available
+in the vertex shader. The manner in which this occurs is defined
+during pipeline creation. (`vkCmdBindVertexBuffers2EXT()` allows
+size and stride information for the vertex buffers to be
+specified at binding time instead of during pipeline creation.)
+
+To bind descriptor sets, use
+[`vkCmdBindDescriptorSets()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindDescriptorSets.html).
+This takes an array of descriptor sets, a pipeline layout, and
+the type of pipeline (i.e. the pipeline bind point) that will use
+the descriptor sets. If the descriptor sets being bound include
+dynamic uniform or storage buffers, offsets into these buffers
+can be specified here as well.
+
+There are a few other binding commands enabled by extensions; see
+[`vkCmdBindTransformFeedbackBuffersEXT()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindTransformFeedbackBuffersEXT.html),
+[`vkCmdBindPipelineShaderGroupNV()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindPipelineShaderGroupNV.html),
+and
+[`vkCmdBindShadingRateImageNV()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindShadingRateImageNV.html).
+
 ### Drawing
 
 Draw commands take a set of vertices and submit it to a graphics
@@ -426,7 +478,7 @@ on their index in the vertex buffer. With an index buffer, the
 order in which to assemble the vertices into primitives can be
 specified explicitly. The advantage of using an index buffer is
 that vertices can be reused, which avoids the need to duplicate
-vertices used to assemble more than one primitive. 3D file
+vertices used to assemble more than one primitive. 3D model
 formats often work this way. In either case, the primitive
 toplogy in use dictates how the vertices are assembled once an
 ordering is established.
