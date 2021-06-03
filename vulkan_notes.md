@@ -2,10 +2,7 @@
 
 The text of this file is made available under the [CC BY-SA
 4.0](https://creativecommons.org/licenses/by-sa/4.0/legalcode)
-license. You can copy it, redistribute it, make your own work
-based on it, etc. as long as you use the same license for both
-this text and any work you make based on it, and give credit to
-me (Zoë Sparks) for authorship of this text.
+license.
 
 ## Introduction
 
