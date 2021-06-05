@@ -1338,7 +1338,7 @@ Ray tracing pipelines are designed for simulating the behavior of
 light at a high level of detail by tracing the paths of "beams"
 of light as they travel through a scene's geometry.  They are
 created via
-[`VkcreateRayTracingPipelinesKHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateRayTracingPipelinesKHR.html).
+[`vkCreateRayTracingPipelinesKHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateRayTracingPipelinesKHR.html).
 As you might guess from the suffix, they were introduced as a
 recent extension to Vulkan, having been added to the spec in
 December 2020.
