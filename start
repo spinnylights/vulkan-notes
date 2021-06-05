@@ -25,5 +25,5 @@ html_f='vknotes.html'
 build="markdown -o $body_f $md_f && cat $header_f $body_f $footer_f > $html_f"
 eval "$build"
 gvim "$md_f"
-firefox "$html_f"
+firefox "$html_f" &
 do_on_save "$md_f" "$build"
