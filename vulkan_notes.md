@@ -1227,6 +1227,82 @@ do something concrete with Vulkan and feeling a bit overwhelmed
 by the size of the API, meditating on pipelines for a while can
 help bring everything into focus.
 
+### Initialization
+
+The creation of each variant has unique aspects which we will
+cover separately. However, they also have aspects in common.  For
+one, they all require a logical device and support custom
+allocation callbacks. Their other common aspects are more
+particular to pipelines.
+
+All pipelines can be created in conjunction with a pipeline cache
+(see "Caches" below). This can be used to optimize the
+creation of a group of pipelines that have some things in common.
+It can also be used to cache the results of pipeline creations
+between application runs.
+
+Each pipeline takes a
+[`VkPipelineCreateFlagBits`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineCreateFlagBits.html)
+bitmask as a parameter in its initialization. These are involved
+in setting up pipeline derivation (see "Derivatives"
+below). They also allow disabling optimization, which
+may speed up pipeline creation at the cost of slowing its
+execution time. Other than that, the available flags come from
+extensions, are specific to a single pipeline variant, etc.
+
+The struct type
+[`VkPipelineShaderStageCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineShaderStageCreateInfo.html)
+is involved in the creation of all pipelines. This is where you
+can join a
+[`VkShaderModule`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkShaderModule.html),
+containing shader code, to a pipeline stage. Graphics and ray
+tracing pipelines are made with an array of these, whereas
+compute pipelines use only one; this reflects how graphics and
+ray tracing pipelines have multiple stages whereas compute
+pipelines do not. A single instance is made with a
+[`VkShaderStageFlagBits`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkShaderStageFlagBits.html),
+which is used across the API to describe shader stages, but its
+value here must describe a single shader stage (i.e. it cannot be
+`VK_SHADER_STAGE_ALL_GRAPHICS` or `VK_SHADER_STAGE_ALL`). You are
+also required to specify the name of the entry point for the
+shader, the entry point being the function which is executed
+first in the shader (this is typically set to `"main"`). You can
+optionally pass an array of
+[`VkSpecializationInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSpecializationInfo.html)s,
+which allow constant values in a shader module to be specified at
+pipeline creation time (see "Specialization constants" below).
+If the
+[`VK_EXT_subgroup_size_control`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VK_EXT_subgroup_size_control.html)
+extension is enabled, the
+[`VkPipelineShaderStageCreateFlagBits`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineShaderStageCreateFlagBits.html)
+parameter can be used to control aspects of the stage's subgroup
+size variance (see "Subgroup" under "Shaders").
+
+Pipeline initilization also requires a valid
+[`VkPipelineLayout`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineLayout.html),
+which is used to make resource descriptors and push constants
+available to shaders in the pipeline (see "Resource
+descriptors").
+
+All the pipeline creation functions take an array of their
+respective `*CreateInfo` structures, which allows pipeline
+creation to be done in batches. This allows pipeline creation
+calls to be kept to a minimum. There are optional parameters
+available in the `*CreateInfo`s for supplying a pipeline handle or
+an index to another `*CreateInfo` in the array for the pipeline
+to derive from (see "Derivatives").
+
+When creating multiple pipelines at once, only the handles for
+the pipelines that failed to be created will be set to
+`VK_NULL_HANDLE`; the others will be valid. If any pipeline
+creation fails despite valid arguments, the `VkResult` returned
+by the creation function will indicate the reason.
+
+Pipeline creation can be an expensive process. It may be
+advisable to create uncached pipelines as early as possible in
+your application, and to perform pipeline creation asynchronously
+from rendering so as not to cause stuttering.
+
 ### Variants
 
 #### Compute pipeline
