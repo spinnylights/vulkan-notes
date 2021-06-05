@@ -1311,6 +1311,51 @@ Any submitted commands that refer to the pipeline in question
 must have finished executing (see "Synchronization" for more on
 how to ensure this).
 
+### Caches
+
+A _pipeline cache_ is meant to allow the reuse of work done in
+the course of pipeline creation. That said, they are an
+optimization mechanism that is used in an implementation-defined
+way, and thus are not guaranteed by the spec to do much of
+anything in particular. At the same time,
+[AMD](https://gpuopen.com/performance/),
+[Nvidia](https://developer.nvidia.com/blog/vulkan-dos-donts/),
+[Samsung](https://developer.samsung.com/galaxy-gamedev/resources/articles/usage.html),
+and
+[Arm](https://github.com/ARM-software/vulkan_best_practice_for_mobile_developers/blob/master/samples/performance/pipeline_cache/pipeline_cache_tutorial.md)
+have all recommended their use, so at least to the extent that
+those articles are still current it's probably a safe bet that
+you'll get a performance boost out of pipeline caches.
+
+Pipeline caches are created via
+[`vkCreatePipelineCache()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreatePipelineCache.html).
+The associated
+[`VkPipelineCacheCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineCacheCreateInfo.html)
+structure is fairly simple. It has a
+[`VkPipelineCacheCreateFlagBits`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineCacheCreateFlagBits.html)
+parameter that supports only the flag
+`VK_PIPELINE_CACHE_CREATE_EXTERNALLY_SYNCHRONIZED_BIT_EXT`, which
+signals that the host will take care of synchronizing access to
+the pipeline cache (the implementation _might_ use this
+information to make access to the cache faster). It also has
+optional parameters for supplying existing pipeline cache data,
+i.e. if it was saved to disk during a prior application run.
+
+To make use of a cache, its handle can be supplied during
+pipeline creation; see "Initialization" above.
+
+To retrieve the data from a pipeline cache, use
+[`vkGetPipelineCacheData()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetPipelineCacheData.html),
+which can write the cache data to a caller-supplied address as a
+string of bytes. The format of this data is largely
+implementation-defined, but is required to begin with a header
+supplying information about the device, driver version, etc. that
+can be used to check whether or not the cache is compatible with
+the current environment (see the link for details).
+
+To destroy a pipeline cache, call
+[`vkDestroyPipelineCache()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroyPipelineCache.html).
+
 ### Variants
 
 #### Compute pipeline
