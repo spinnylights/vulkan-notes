@@ -1227,7 +1227,45 @@ do something concrete with Vulkan and feeling a bit overwhelmed
 by the size of the API, meditating on pipelines for a while can
 help bring everything into focus.
 
-### Graphics pipeline
+### Variants
+
+#### Compute pipeline
+
+Even though the graphics pipeline may well be the main pipeline
+variant on your mind, the compute pipeline is simpler, so it's
+worth exploring first to help get our bearings.
+
+A compute pipeline is meant for performing abstract computation
+on the GPU, apart from the complicated machinery of the graphics
+pipeline. This can provide better performance than using a
+graphics pipeline if the desired operations don't need to produce
+a visual image directly. Despite their abstract nature, they are
+still used in the context of graphics work for "purely
+mathematical" data transformations, such as effects applied to an
+already-rendered image. They can also be used for other
+applications, such as scientific simulations.
+
+GPUs excel at linear algebra, owing to their highly parallel
+nature and large number of cores. If you need to perform a
+relatively simple operation over a large matrix, doing it on the
+GPU with a compute shader may be faster than doing it on the CPU,
+even if the CPU code is properly multithreaded.  Furthermore, the
+shader code needed to perform the desired operation may be much
+simpler to write than the equivalent CPU code; GPUs are intended
+for this particular use case, and their interfaces reflect this.
+
+One compute pipeline wraps a single compute shader, which
+contains the actual code intended to run on the GPU. Compute
+shaders have a different execution context from graphics shaders:
+they are given workloads from groups of work items called
+_workgroups_, each of which represents a single shader invocation
+and which may be run in parallel. A compute shader runs in the
+context of a _global workgroup_, which can be divided into a
+configurable number of _local workgroups_. Shader invocations
+within a local workgroup can communicate, sharing data and
+synchronizing execution via barriers and the like.
+
+#### Graphics pipeline
 
 A graphics pipeline, created through
 [`vkCreateGraphicsPipelines()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateGraphicsPipelines.html),
@@ -1298,41 +1336,7 @@ shader and passed directly from there to the rasterizer, which
 in the pipeline. Mesh shading is only available on recent,
 high-end GPUs.
 
-### Compute pipeline
-
-A compute pipeline is meant for performing abstract computation
-on the GPU, apart from the complicated machinery of the graphics
-pipeline. They are created with
-[`vkCreateComputePipelines()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateComputePipelines.html).
-This can provide better performance than using a graphics
-pipeline if the desired operations don't need to produce a visual
-image directly. Despite their abstract nature, they are still
-used in the context of graphics work for "purely mathematical"
-data transformations, such as effects applied to an
-already-rendered image. They can also be used for other
-applications, such as scientific simulations.
-
-GPUs excel at linear algebra, owing to their highly parallel
-nature and large number of cores. If you need to perform a
-relatively simple operation over a large matrix, doing it on the
-GPU with a compute shader may be faster than doing it on the CPU,
-even if the CPU code is properly multithreaded.  Furthermore, the
-shader code needed to perform the desired operation may be much
-simpler to write than the equivalent CPU code; GPUs are intended
-for this particular use case, and their APIs reflect this.
-
-One compute pipeline wraps a single compute shader, which
-contains the actual code intended to run on the GPU. Compute
-shaders have a different execution context from graphics shaders:
-they are given workloads from groups of work items called
-_workgroups_, each of which represents a single shader invocation
-and which may be run in parallel. A compute shader runs in the
-context of a _global workgroup_, which can be divided into a
-configurable number of _local workgroups_.  Shader invocations
-within a local workgroup can communicate, sharing data and
-synchronizing execution via barriers and the like.
-
-### Ray tracing pipeline
+#### Ray tracing pipeline
 
 Ray tracing pipelines are designed for simulating the behavior of
 light at a high level of detail by tracing the paths of "beams"
