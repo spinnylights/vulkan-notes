@@ -1356,6 +1356,41 @@ the current environment (see the link for details).
 To destroy a pipeline cache, call
 [`vkDestroyPipelineCache()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroyPipelineCache.html).
 
+### Derivatives
+
+One pipeline can serve as the _parent_ of another, which is then
+termed its _child_ or its _derivative_. Theoretically, this
+allows part of the work used in creating the parent to be reused
+in the creation of the child, making the creation of the child
+more efficient. Like pipeline caches, though, the spec does not
+currently describe what designating one pipeline as the child of
+another actually accomplishes in concrete terms; it is left up to
+the graphics driver to make use of this information however it
+wishes (which might be not at all). What's more,
+[Nvidia](https://developer.nvidia.com/blog/vulkan-dos-donts/),
+[Samsung](https://developer.samsung.com/galaxy-gamedev/resources/articles/usage.html),
+and
+[Arm](https://github.com/ARM-software/vulkan_best_practice_for_mobile_developers/blob/master/samples/performance/pipeline_cache/pipeline_cache_tutorial.md)
+have actively recommended against their use as of 2019, so unless
+something has changed since then you may not see a performance
+boost from using this feature.
+
+To create a pipeline that can serve as the parent of another, set
+the `VK_PIPELINE_CREATE_ALLOW_DERIVATIVES` flag during its
+creation (see "Initialization" above for more on this).
+
+To create a pipeline as the child of another, set the
+`VK_PIPELINE_CREATE_DERIVATIVE` flag, and then either supply an
+already-created pipeline handle _or_ an index to an
+earlier-appearing `*CreateInfo` struct in the same call (see
+"Initialization" above for more on this). If the handle parameter
+is the unused one, it should be set to `VK_NULL_HANDLE`, and if
+the index parameter is the unused one, it should be set to `-1`.
+
+It is valid to set both `VK_PIPELINE_CREATE_ALLOW_DERIVATIVES`
+and `VK_PIPELINE_CREATE_DERIVATIVE`, allowing a pipeline to serve
+as both a parent and a child.
+
 ### Variants
 
 #### Compute pipeline
