@@ -248,11 +248,7 @@ with the remaining steps constituting its "runtime".
 
 1. We also need
    [`VkPipeline`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipeline.html)s,
-   which represent a set of operations for the GPU to perform
-   (this is where you actually attach your shaders, using
-   [`VkShaderModule`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkShaderModule.html)s).
-   They come in three flavors: *graphics*, *compute*, and *ray
-   tracing*. See below for more information on pipelines.
+   which represent a set of operations for the GPU to perform.
 
 1. The last major piece of machinery we need is a way to tell the
    graphics hardware to actually make use of everything we've set
@@ -1217,10 +1213,19 @@ likewise.
 
 ## Pipelines
 
-As we said earlier, Vulkan pipelines represent a set of
-operations for the GPU to perform, and they come in three flavors.
-They are where you attach your shaders, and where you configure
-the interactions between shader invocations.
+Vulkan pipelines represent a set of operations for the GPU to
+perform. They come in three variants: _graphics_, _compute_, and
+_ray tracing_.  They are where you attach your shaders, and where
+you configure the interactions between shader invocations.
+
+From a certain perspective, the pipeline is the "heart" of
+Vulkan. The rest of the API could be viewed as setup, teardown,
+input, and output handling around the pipelines, which is where
+the "actual work" takes place. There are obviously other ways of
+looking at Vulkan too, but if you're trying to figure out how to
+do something concrete with Vulkan and feeling a bit overwhelmed
+by the size of the API, meditating on pipelines for a while can
+help bring everything into focus.
 
 ### Graphics pipeline
 
