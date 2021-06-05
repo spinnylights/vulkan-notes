@@ -1303,6 +1303,14 @@ advisable to create uncached pipelines as early as possible in
 your application, and to perform pipeline creation asynchronously
 from rendering so as not to cause stuttering.
 
+### Destruction
+
+All pipelines are destroyed with
+[`vkDestroyPipeline()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroyPipeline.html).
+Any submitted commands that refer to the pipeline in question
+must have finished executing (see "Synchronization" for more on
+how to ensure this).
+
 ### Variants
 
 #### Compute pipeline
