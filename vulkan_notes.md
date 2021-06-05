@@ -1341,6 +1341,25 @@ configurable number of _local workgroups_. Shader invocations
 within a local workgroup can communicate, sharing data and
 synchronizing execution via barriers and the like.
 
+##### Initialization
+
+Compute pipelines are created with
+[`vkCreateComputePipelines()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateComputePipelines.html).
+This takes an array of pipeline handles and their respective
+[`VkComputePipelineCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkComputePipelineCreateInfo.html)s,
+in addition to the typical pipeline initialization parameters.
+
+In the creation of a single compute pipeline, the
+`VkPipelineShaderStageCreateInfo` parameter must be set to
+`VK_SHADER_STAGE_COMPUTE_BIT`. Also, `VkPipelineCreateFlagBits`
+includes a compute-pipeline-specific flag
+`VK_PIPELINE_CREATE_DISPATCH_BASE`, which allows the pipeline to
+be used with
+[`vkCmdDispatchBase()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDispatchBase.html)
+(see "Dispatch" under "Command buffers"). Otherwise there is
+not much to distinguish this process from the creation of other
+pipelines.
+
 #### Graphics pipeline
 
 A graphics pipeline, created through
