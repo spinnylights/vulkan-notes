@@ -1265,9 +1265,7 @@ which is used across the API to describe shader stages, but its
 value here must describe a single shader stage (i.e. it cannot be
 `VK_SHADER_STAGE_ALL_GRAPHICS` or `VK_SHADER_STAGE_ALL`). You are
 also required to specify the name of the entry point for the
-shader, the entry point being the function which is executed
-first in the shader (this is typically set to `"main"`). You can
-optionally pass an array of
+shader (see "Shaders"). You can optionally pass an array of
 [`VkSpecializationInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSpecializationInfo.html)s,
 which allow constant values in a shader module to be specified at
 pipeline creation time (see "Specialization constants" below).
@@ -1568,3 +1566,32 @@ the closest hit point to the start of the ray. A built-in
 intersection shader can be used if the geometry is made of
 triangles, and any-hit shaders can be omitted. Miss shaders are
 run for rays that don't intersect the geometry.
+
+## Shaders
+
+A shader is a computer program written in a shading language,
+which is a programming language used to write shaders.
+Tautological? You betcha. It's hard to give a rigorous definition
+of the term "shader" these days because although shaders usually
+run on GPUs, they don't have to, and although they're often used
+in the production of visual imagery, they aren't always. One
+thing that does stand out about them is that they're generally
+parallel by default; they're intended to be run with many
+invocations operating at once, and synchronization between these
+invocations is the programmer's responsibility. Shading languages
+also tend to include more built-in support for linear algebra
+than other kinds of programming langauges, and they tend to be
+C-like.
+
+In the context of Vulkan, the spec describes shaders as
+"[specifications of] programmable operations that execute for
+each vertex, control point, tessellated vertex, primitive,
+fragment, or workgroup in the corresponding stage(s) of the
+graphics and compute pipelines" (see "[9.
+Shaders](https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html#shaders)").
+So, a vertex shader would be run for every vertex submitted to a
+graphics pipeline (see "Drawing" under "Command Buffers").
+
+Vulkan shaders have an _entry point_, which is the name of the
+function where execution is meant to begin in the shader
+(typically "`main`").
