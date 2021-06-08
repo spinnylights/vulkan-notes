@@ -1619,3 +1619,24 @@ For the best performance, it is generally a good idea to use
 SPIR-V shader code in Vulkan at runtime rather than GLSL code, as
 GLSL is likely to be more time-consuming for the graphics driver
 to compile.
+
+### Modules
+
+_Shader modules_ are Vulkan objects used to wrap shader code.
+They are attached to pipelines during pipeline creation (see
+"Initialization" under "Pipelines").
+
+The function to create a shader module is
+[`vkCreateShaderModule()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateShaderModule.html).
+This utilizes a
+[`VkShaderModuleCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkShaderModuleCreateInfo.html),
+which mainly takes a pointer to the code and the size of the code
+in bytes. If you are using a validation cache, you can add it to
+this struct's `pNext` chain to make use of it with the module in
+question (see "Validation cache" below for the specifics).
+
+To destroy a shader module, use
+[`vkDestroyShaderModule()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroyShaderModule.html).
+It's okay to call this while pipelines created with the module in
+question are still in use.
+## Resource descriptors
