@@ -1596,6 +1596,12 @@ Vulkan shaders have an _entry point_, which is the name of the
 function where execution is meant to begin in the shader
 (typically "`main`").
 
+As a general rule, you should not make assumptions about the
+order in which shader invocations will run, period. The most
+significant exception is that a shader with inputs that depend on
+previous pipeline stages will run after the operations needed to
+generate those inputs.
+
 ### Language
 
 Shader code used within Vulkan must be in either the
