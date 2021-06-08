@@ -1595,3 +1595,27 @@ graphics pipeline (see "Drawing" under "Command Buffers").
 Vulkan shaders have an _entry point_, which is the name of the
 function where execution is meant to begin in the shader
 (typically "`main`").
+
+### Language
+
+Shader code used within Vulkan must be in either the
+[SPIR-V](https://www.khronos.org/registry/spir-v/specs/unified1/SPIRV.html)
+language, or the
+[GLSL](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.pdf)
+language in conformance with the
+[`GL_KHR_vulkan_glsl`](https://github.com/KhronosGroup/GLSL/blob/master/extensions/khr/GL_KHR_vulkan_glsl.txt)
+extension spec. SPIR-V is specified in a binary format and
+intended to be fast to compile, whereas GLSL is intended to be
+relatively easy for human programmers to read and write. The
+reference compiler for GLSL is The Khronos Group's
+[`glslang`](https://www.khronos.org/opengles/sdk/tools/Reference-Compiler/),
+which is capable of outputting SPIR-V binaries. Microsoft's
+[`dxc`](https://github.com/Microsoft/DirectXShaderCompiler),
+which takes
+[HLSL](https://docs.microsoft.com/en-us/windows/win32/direct3dhlsl/dx-graphics-hlsl)
+input, also supports a SPIR-V target.
+
+For the best performance, it is generally a good idea to use
+SPIR-V shader code in Vulkan at runtime rather than GLSL code, as
+GLSL is likely to be more time-consuming for the graphics driver
+to compile.
