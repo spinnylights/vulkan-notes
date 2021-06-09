@@ -1764,4 +1764,17 @@ modifications to the vertex data. It can also specify the amount
 of tesselation at the edge (outer) and in the interior (inner)
 performed on primitives before the tesselation evaluation stage.
 
+#### Tessellation evaluation shaders
+
+Between tessellation control and tessellation evaluation,
+abstract primitives are assembled from the patches output by the
+tesselation control stage. After this, the tessellation
+evaluation shader is responsible for actually specifying the
+position and other data associated with the vertices in the
+abstract primitive.
+
+They are able to control some aspects of how the tessellation
+primitive generator operates, such as the kind of primitives
+that are assembled and the spacing of the vertices.
+
 ## Resource descriptors
