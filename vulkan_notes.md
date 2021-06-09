@@ -1777,4 +1777,16 @@ They are able to control some aspects of how the tessellation
 primitive generator operates, such as the kind of primitives
 that are assembled and the spacing of the vertices.
 
+#### Geometry shaders
+
+Geometry shaders take primitives as input, either from automatic
+primitive assembly as dictacted during graphics pipeline creation
+or as produced by the tessellation stages if tessellation is
+enabled.
+
+If tessellation is not enabled, they are able to control the
+type of primitive they receive as input, similarly to the
+tessellation evaluation shader. They are also able to control the
+number of times they run per primitive.
+
 ## Resource descriptors
