@@ -1645,4 +1645,13 @@ To destroy a shader module, use
 [`vkDestroyShaderModule()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroyShaderModule.html).
 It's okay to call this while pipelines created with the module in
 question are still in use.
+
+### Inputs and outputs
+
+Shaders can receive data via _inputs_ and pass on data via
+_outputs_. In SPIR-V terms, this is via variables with input or
+output storage class; in GLSL, this is via variables specified
+with the `in` or `out` storage qualifiers. Shaders can have both
+built-in and user-specified inputs and outputs.
+
 ## Resource descriptors
