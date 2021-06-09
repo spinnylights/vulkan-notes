@@ -1958,4 +1958,28 @@ fragments, and derivatives may be computed based on differences
 between neighboring fragments, derivatives of centroid-sampled
 inputs may be less accurate than if `centroid` was not used.
 
+#### Compute shaders
+
+Compute shaders provide a mechanism for doing "generic"
+computation in Vulkan. They run within a compute pipeline as
+opposed to a graphics pipeline.
+
+Compute shaders have no fixed-function outputs. However, they
+have access to many of the same resources as other shaders, so
+they can affect the outside world via changes to buffers, images,
+etc.
+
+Compute shader invocations operate in _workgroups_. A workgroup
+is a collection of compute shader invocations executing the same
+code, possibly in parallel. Compute shaders run in a _global
+workgroup_ which is divided into a configurable number of _local
+workgroups_ (GLSL compute shaders can use [workgroup size
+qualifiers](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#layout-qualifiers)
+for this purpose). Invocations within a local workgroup can share
+data (e.g. through the GLSL
+[`shared`](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#storage-qualifiers)
+storage qualifier) and synchronize execution via barriers (e.g.
+by using the GLSL function
+[`barrier()`](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#shader-invocation-control-functions)).
+
 ## Resource descriptors
