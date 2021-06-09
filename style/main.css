@@ -125,3 +125,15 @@ h6 {
     padding-bottom: 2em;
     padding-top: 3.5em;
 }
+
+table {
+    margin: 0 auto;
+}
+
+th, td {
+    padding: 0.5em;
+}
+
+table, th, td {
+    border: 1px solid black;
+}
