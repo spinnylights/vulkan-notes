@@ -1982,4 +1982,15 @@ storage qualifier) and synchronize execution via barriers (e.g.
 by using the GLSL function
 [`barrier()`](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#shader-invocation-control-functions)).
 
+#### Task and mesh shaders
+
+These are both involved in mesh shading, which my GPU doesn't
+support, so I'm not going to cover them.
+
+#### Ray tracing, intersection, any-hit, miss, and callable shaders
+
+These are all part of the ray tracing extensions. My GPU barely
+supports ray tracing and can't really do it in real time. Since
+I'm writing a game engine, I'm not going to cover these either.
+
 ## Resource descriptors
