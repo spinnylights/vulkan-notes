@@ -1789,4 +1789,173 @@ type of primitive they receive as input, similarly to the
 tessellation evaluation shader. They are also able to control the
 number of times they run per primitive.
 
+#### Fragment shaders
+
+In a graphics pipeline, after vertex processing occurs (which
+includes the tesselation and geometry stages if used), some
+vertex post-processing such as primitive clipping occurs. After
+that, the rasterization stage produces fragments from the vertex
+data, which are data associated with rectangular framebuffer
+regions (more on this in the graphics pipeline section). A
+fragment shader invocation receives one of these fragments as
+input and outputs values that can be applied to framebuffer or
+texture memory, like color information.
+
+As a general rule, fragment shader invocations run in isolation
+from each other, so any information they will need about the
+scene as a whole will likely need to be prepared beforehand.
+
+Although at least one fragment shader invocation will be produced
+for each fragment, _helper invocations_ are also sometimes
+generated to compute derivatives for non-helper invocations. This
+happens implicitly when calling the GLSL texel lookup function
+`texture()` and explicitly when calling the GLSL derivative
+functions. These execute the same code as non-helper invocations,
+but will not modify shader-accessible memory (so they won't
+update the framebuffer or anything).
+
+There are a few tests that can be performed prior to fragment
+shading, such as the [discard rectangles
+test](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#fragops-discard-rectangles)
+and the [scissor
+test](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#fragops-scissor),
+which can discard fragments. In this case, non-helper fragment
+shader invocations will not be produced for the discarded
+fragments, although helper invocations may still be.
+
+A fragment shader can use the GLSL
+[`early_fragment_tests`](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#layout-qualifiers)
+layout qualifier to also make per-fragment tests run prior to the
+fragment shader instead of afterwards (see "[28. Fragment
+Operations](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#fragops)"
+for the specifics). In this case, any depth information computed
+by the fragment shader is ignored, because [depth
+testing](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#fragops-depth)
+is done beforehand.
+
+Fragment shader invocations may also not be run if the
+implementation can determine that another fragment shader would
+overwrite its output entirely, or if another fragment shader
+discards its fragment and it doesn't write to any storage
+resources.
+
+If there are overlapping primitives, it is possible for more than
+one fragment shader invocation to operate simultaneously for the
+same pixel. In theory, you could use the [fragment shader
+interlock](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#shaders-fragment-shader-interlock)
+features to define sections of your shader that are guaranteed
+not to run simultaneously. However, at the time of writing, [AMD
+does not support these
+features](https://github.com/GPUOpen-Drivers/AMDVLK/issues/108)
+(see also
+[`VK_EXT_fragment_shader_interlock`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VK_EXT_fragment_shader_interlock.html)
+support for
+[Linux](https://vulkan.gpuinfo.org/listdevicescoverage.php?extension=VK_EXT_fragment_shader_interlock&platform=linux) and
+[Windows](https://vulkan.gpuinfo.org/listdevicescoverage.php?extension=VK_EXT_fragment_shader_interlock&platform=windows)—[macOS](https://vulkan.gpuinfo.org/listdevicescoverage.php?extension=VK_EXT_fragment_shader_interlock&platform=macos)
+support is better as [MoltenVK supports it under Metal 2.0+ with
+raster order
+groups](https://github.com/KhronosGroup/MoltenVK/blob/master/Docs/MoltenVK_Runtime_UserGuide.md#interacting-with-the-moltenvk-runtime)).
+In some cases an approach using multiple subpasses is a good
+alternative.
+
+##### Interpolation
+
+The following discussion will proceed in GLSL terms for ease of
+understanding, although in truth the Vulkan spec is concerned
+with SPIR-V decorations.
+
+Fragment shader input variables are typically interpolated from
+a previous stage's outputs. _Interpolation qualifiers_ can be
+used to control the manner in which interpolation is done for a
+given input variable. With Vulkan, you can use at most one of the
+interpolation qualifiers `flat` and `noperspective` for an input
+variable.
+
+`flat` implies no interpolation. Variables designated as `flat`
+will have their value assigned based on a single provoking vertex
+(see [21.1 "Primitive
+Topologies"](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#drawing-primitive-topologies)).
+
+`noperspective` implies linear interpolation (for lines and
+polygons, i.e. not points, naturally). To be precise, this uses
+the following formula:
+
+<p align='center'>
+    <i>f</i> =
+        (1 - <i>t</i>)<i>f<sub>a</sub></i> + <i>tf<sub>b</sub></i>
+</p>
+
+where _f_ is the value the variable takes on,
+<i>f<sub>a</sub></i> and <i>f<sub>b</sub></i> are the start and
+end points of the segment, and _t_ is defined as follows:
+
+<p align='center'>
+    <i>t</i> =
+        【 (<b>p</b><sub><i>r</i></sub>
+         - <b>p</b><sub><i>a</i></sub>)
+        ・
+         (<b>p</b><sub><i>b</i></sub>
+         - <b>p</b><sub><i>a</i></sub>) 】
+        ／
+        【 ||<b>p</b><sub><i>b</i></sub>
+         - <b>p</b><sub><i>a</i></sub>||<sup>2</sup> 】
+</p>
+
+where __p__<sub><i>r</i></sub> is the _(x,y)_ window coordinates
+of the center of the fragment, __p__<sub><i>a</i></sub> is the
+_(x,y)_ window coordinates of the start of the segment, and
+__p__<sub><i>b</i></sub> is the _(x,y)_ window coordinates of the
+end of the segment.
+
+Input variables with neither of these qualifiers will behave as
+if they had the `smooth` qualifier applied to them, which implies
+_perspective-correct interpolation_. This uses the following
+formula:
+
+<p align='center'>
+    <i>f</i> =
+        【 (1 - <i>t</i>)<i>f<sub>a</sub></i>/<i>w<sub>a</sub></i>
+        + <i>tf<sub>b</sub></i>/<i>w<sub>b</sub></i> 】
+        ／
+        【 (1 - <i>t</i>)/<i>w<sub>a</sub></i>
+        + <i>t</i>/<i>w<sub>b</sub></i> 】
+</p>
+
+where _f_, <i>f<sub>a</sub></i>, <i>f<sub>b</sub></i>, and _t_
+are as defined above, and <i>w<sub>a</sub></i> and
+<i>w<sub>b</sub></i> are the clip _w_ coordinates of the start
+and end points of the segment.
+
+(These equations are from [the OpenGL
+spec](https://www.khronos.org/registry/OpenGL/specs/gl/glspec46.core.pdf),
+section 14.5.1 "Basic Line Segment Rasterization".)
+
+Inputs that contain or consist of integers or double-precision
+floats must be qualified as `flat`.
+
+###### Auxiliary storage qualifiers
+
+_Auxiliary storage qualifiers_ `centroid` and `sample` can
+additionally be used to control the location interpolated to when
+multisample rasterization is being used. Without them, the value
+may be interpolated anywhere within the fragment. (If
+`rasterizationSamples` is
+[`VK_SAMPLE_COUNT_1_BIT`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSampleCountFlagBits.html)
+in
+[`VkPipelineMultisampleStateCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineMultisampleStateCreateInfo.html),
+the fragment center will be interpolated to regardless of
+auxiliary storage qualifiers.)
+
+With `sample`, a separate value will be assigned to the variable
+for each covered sample in the fragment, and the value will be
+sampled at the location of the individual sample.
+
+With `centroid`, a single value may be assigned to the variable
+for all samples in the fragment, but it will be interpolated at a
+location that lies in both the fragment and the primitive being
+rendered. Because this location may vary between neighboring
+fragments, and derivatives may be computed based on differences
+between neighboring fragments, derivatives of centroid-sampled
+inputs may be less accurate than if `centroid` was not used.
+
 ## Resource descriptors
