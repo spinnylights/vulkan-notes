@@ -1738,4 +1738,30 @@ in the Vulkan spec and "[4.4 Layout
 Qualifiers](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#layout-qualifiers)"
 in the GLSL spec.
 
+#### Tessellation control shaders
+
+Vertices leaving the vertex shading stage are organized into sets
+of vertices called _patches_. These become _input patches_ into
+the tessellation section of the graphics pipeline if tessellation
+is enabled for that pipeline. (The number of points in a patch is
+configurable via
+[`VkPipelineTesselationStateCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineTessellationStateCreateInfo.html)
+during graphics pipeline creation.) The tesselation control
+shading stage receives these input patches and produces output
+patches for the tesselation evaluation stage. A single
+tesselation control shader invocation runs for each control point
+of an output patch; if output patches were set in the shader to
+have four control points, each input patch would produce four
+tesselation control shader invocations, each operating on that
+input patch.
+
+A tesselation control shader can specify how many control points
+go into an output patch, and thus can add extra vertices that
+were not present during vertex shading or discard some vertices.
+This can be used to add interpolating points between the vertices
+coming into the graphics pipeline, or even perform complex
+modifications to the vertex data. It can also specify the amount
+of tesselation at the edge (outer) and in the interior (inner)
+performed on primitives before the tesselation evaluation stage.
+
 ## Resource descriptors
