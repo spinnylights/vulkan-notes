@@ -1654,4 +1654,88 @@ output storage class; in GLSL, this is via variables specified
 with the `in` or `out` storage qualifiers. Shaders can have both
 built-in and user-specified inputs and outputs.
 
+### Variants
+
+#### Vertex shaders
+
+Vertex shaders run once per vertex and operate on that vertex and
+its associated vertex attribute data (see below). Each outputs a
+vertex and associated data (if any). Graphics pipelines must
+include a vertex shader unless they are running in mesh shading
+mode, and this shader is always run first in the pipeline.
+
+##### Attributes
+
+_Vertex attributes_ are a way for vertex shaders to receive data
+through input variables. In the shader, each input variable
+is associated with a _vertex input attribute number_. These
+correspond to _vertex input bindings_ in a graphics pipeline. The
+command `vkCmdBindVertexBuffers()` can be used to update the
+vertex input bindings of a bound graphics pipeline with values
+from `VkBuffer`s, making them available to the vertex shader
+invocations (see "Binding to a command buffer" under "Command
+buffers").
+
+That all sounds rather abstract and confusing, so let's consider
+an example. Say we have the following declaration in a GLSL
+vertex shader:
+
+```glsl
+layout(location = 1) in vec4 color;
+```
+
+In this case, the input variable `color` has the vertex input
+attribute number `1`.
+
+Now, say we're using this shader in a C++ program where we've
+declared a constant with this vertex input attribute number and a
+vector with color information for each vertex (using
+[Eigen](https://eigen.tuxfamily.org/index.php?title=Main_Page)'s
+[`Vector4f`](https://eigen.tuxfamily.org/dox/group__matrixtypedefs.html)):
+
+```cpp
+constexpr uint32_t color_attr_n = 1;
+
+std::vector<Eigen::Vector4f> vert_colors {
+    {0.0, 1.0, 0.0, 1.0},
+    // etc...
+};
+```
+
+and assume we've moved this data into a `VkBuffer` called
+`vert_colors_buff` and specified an offset into it for the draw
+call:
+
+```cpp
+VkBuffer vert_colors_buff;
+// copy vert_colors data into vert_colors_buff
+
+VkDeviceSize colors_buff_offset = 0;
+```
+
+Now say we've started recording to a `VkCommandBuffer` called
+`command_buff`. We've started a render pass and bound a graphics
+pipeline created with the vertex shader we described above and
+the applicable vertex input binding. To make our color
+information available during vertex shading in this graphics
+pipeline, we can call
+
+```cpp
+vkCmdBindVertexBuffers(command_buff,
+                       color_attr_n,         // the input binding to start with
+                       1,                    // the number of bindings to update
+                       &vert_colors_buff,
+                       &colors_buff_offset);
+```
+
+This will make the proper `vec4` of color information we first
+stored in `vert_colors` available in the `color` input variable
+for each invocation of our vertex shader.
+
+For more information, see "[22. Fixed-Function Vertex
+Processing](https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html#fxvertex)"
+in the Vulkan spec and "[4.4 Layout
+Qualifiers](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#layout-qualifiers)"
+in the GLSL spec.
+
 ## Resource descriptors
