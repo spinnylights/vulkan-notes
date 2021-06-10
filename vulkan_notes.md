@@ -1752,6 +1752,12 @@ The line-removal character (`\`) is taken into account before
 comment processing, so a comment line ending in `\` will continue
 the comment onto the next line.
 
+### Tokens
+
+After preprocessing, valid GLSL consists of tokens. A token is
+either a keyword, identifier, integer constant, floating point
+constant, operator, or the characters `;`, `{`, or `}`.
+
 ## Shaders
 
 A shader is a computer program written in a shading language,
