@@ -1858,6 +1858,159 @@ in places C doesn't allow keywords. Also, with keywords that GLSL
 and C share, GLSL doesn't always use them in quite the same way.
 We'll get into this sort of thing as it comes up.
 
+### Types
+
+Okay! Now we're getting somewhere. GLSL has a significantly
+larger selection of built-in types than C, mainly to support
+linear algebra and texture manipulation. There is also support
+for user-defined `struct` types akin to those in C.
+
+GLSL is statically typed, and as in C, variable and function
+declarations must come with type declarations.
+
+GLSL is type-safe, although there are some implicit conversions
+between types.
+
+#### `void`
+
+This can only be used for functions that do not return a value
+and in empty parameter lists.
+
+#### `bool`
+
+A Boolean type, having either the value `true` or `false`.
+
+#### `int` and `uint`
+
+32-bit signed and unsigned integers. Signed integers are two's
+complement.
+
+Overflow/underflow behavior differs depending on whether or not
+it happens as the result of division. If it occurs from addition,
+subtraction, or multiplication, the result is the low 32 bits of
+the correct result, as computed with enough precision to avoid
+overflow/underflow. If it happens from division, the result is
+undefined. (All of this behavior is true whether the integer is
+signed or unsigned.)
+
+Signed integer declarations can include a precision qualifier.
+There are three available, `highp`, `mediump`, and `lowp`. They
+come before the type name, as in `lowp int my_int`. You can only
+specify them during variable declaration and they cannot be
+changed afterwards. `highp` is the default and implies 32 bits of
+precision.
+
+`mediump` and `lowp` both have the same effect; they imply
+_relaxed precision_. This means that the integer will be treated
+as having somewhere between 16 and 32 bits of precision for any
+given operation. Afterwards, the result will be sign-extended
+back to 32 bits. (See [2.14 "Relaxed
+Precision"](https://www.khronos.org/registry/spir-v/specs/1.0/SPIRV.html#_a_id_relaxedprecisionsection_a_relaxed_precision)
+in the SPIR-V spec.)
+
+For a given operation, the precision qualifier in effect will be
+the highest _specified_ one in use by any of the operands. If
+none of the operands have a precision qualifier specified, the
+compiler will use that of the next operation that consumes the
+result recursively. If no precision qualifier is find in this
+manner, then a precision at least that of the default for the
+type is used.
+
+A default precision qualifier for signed integers can be set via
+the statement
+
+```glsl
+precision <precision_qualifier> int;
+```
+
+where `<precision_qualifier>` is one of `lowp`, `mediump`, or
+`highp`. This statement has the same scoping rules as variable
+declarations, so it can be applied e.g. just for the body of a
+single function.
+
+#### `float` and `double`
+
+Single- and double-precision floating point scalars. (Remember
+that floating-point literals are single-precision unless
+specified otherwise.) These mostly behave according to IEEE 754,
+including support for `NaN`s and `Inf`s and signed zeroes, as
+well as the encodings used (at least in logical terms). However,
+operations over them work a bit differently than in IEEE 754.
+(I'd love to link to the IEEE 754-2019 standard here but it's
+behind a hefty paywall.)
+
+Single-precision floating point declarations can also include a
+precision qualifier like signed integers can, with the same
+keywords. `highp` is the default here as well and implies IEEE
+754 32-bit precision. `mediump` and `lowp` imply that, quoting
+from the [SPIR-V
+spec](https://www.khronos.org/registry/spir-v/specs/1.0/SPIRV.html#_a_id_relaxedprecisionsection_a_relaxed_precision):
+
+> * the floating point range may be as small as (-2<sup>14</sup>,
+>   2<sup>14</sup>),
+> * the floating point magnitude range may be as small as
+>   (2<sup>-14</sup>, 2<sup>14</sup>), and
+> * the relative floating point precision may be as small as
+>   2<sup>-10</sup>.
+
+As such, the relative error for the result of an operation under
+these conditions should be taken as in the worst case (i.e. with
+the coarsest precision allowed for).
+
+As with signed integers, single-precision floating point values
+can be assigned a default precision via
+
+```glsl
+precision <precision_qualifier> float;
+```
+
+Assuming `highp`, all the basic arithmetic operations other than
+division will perform accurate rounding. The margin of error for
+division is 2.5 ULP provided that the magnitude of the divisor is
+within [2<sup>-126</sup>, 2<sup>126</sup>]. Given an exponent
+_x_, the margin of error for exponentiation is (3 + 2 · |_x_|)
+ULP, and the margin of error for taking a logarithm is 3 ULP if
+_x_ is outside [0.5, 2.0] or corresponding to absolute error <
+2<sup>-21</sup> when _x_ is within that range. Taking the square
+root or its inverse has a margin of error of 2 ULP. Conversions
+between types are accurately rounded.
+
+Double-precision operations have margins of error at least as
+small as their single-precision equivalents.
+
+#### Vectors
+
+GLSL provides 2-, 3-, and 4-component vector types for single-
+and double-precision floats, signed and unsigned integers, and
+Booleans. They are specified with an optional type prefix, the
+string `vec`, and the number of components, in that order. Here
+are the prefixes:
+
+Prefix | Meaning
+------ | -------
+none   | `float`
+`d`    | `double`
+`i`    | `int`
+`u`    | `uint`
+`b`    | `bool`
+
+So, a `vec3` is a 3-component vector of single-precision floats,
+a `bvec2` is a 2-component vector of Booleans, etc.
+
+#### Matrices
+
+There are built-in matrix types as well, but only for floating
+point numbers. They are specified with an optional `d`, the
+string `mat`, a digit from 2–4, and an optional `x` followed by
+another digit from 2–4. Matrix types specified without `d` hold
+single-precision floats, whereas those specified with it hold
+double-precision floats. The first digit specifies the number of
+columns, and the second digit specifies the number of rows. If
+the second digit is omitted, the matrix is square.
+
+For example, `mat3` is a 3x3 matrix of `float`s, whereas
+`dmat2x4` is a 2-column, 4-row matrix of `double`s.
+
 ## Shaders
 
 A shader is a computer program written in a shading language,
