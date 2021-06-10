@@ -1793,6 +1793,23 @@ Although an error will not occur if you define such an
 identifier, it may result in unpredictable behavior, so you
 shouldn't do so (unless you like to live dangerously).
 
+### Literals
+
+The keywords `true` and `false` are used as Boolean literals.
+
+Integer literals are mostly the same as in C. They can be
+expressed in decimal, octal, or hexadecimal, and as signed or
+unsigned, in the same manner as in C. The main difference is that
+GLSL integer literals do not support the `l`/`L` and `ll`/`LL`
+suffixes (we'll discuss their bit width later).
+
+Floating point literals are also mostly the same as in C. The
+main differences are that the `l`/`L` suffixes are instead
+`lf`/`LF` in GLSL, and that floating point literals specify a
+single-precision value by default instead of a double.
+
+There are no character or string literals.
+
 ## Shaders
 
 A shader is a computer program written in a shading language,
