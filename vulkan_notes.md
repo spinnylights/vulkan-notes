@@ -1878,6 +1878,8 @@ variable.
 will have their value assigned based on a single provoking vertex
 (see [21.1 "Primitive
 Topologies"](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#drawing-primitive-topologies)).
+Inputs that contain or consist of integers or double-precision
+floats must be qualified as `flat`.
 
 `noperspective` implies linear interpolation (for lines and
 polygons, i.e. not points, naturally). To be precise, this uses
@@ -1932,9 +1934,6 @@ and end points of the segment.
 (These equations are from [the OpenGL
 spec](https://www.khronos.org/registry/OpenGL/specs/gl/glspec46.core.pdf),
 section 14.5.1 "Basic Line Segment Rasterization".)
-
-Inputs that contain or consist of integers or double-precision
-floats must be qualified as `flat`.
 
 ###### Auxiliary storage qualifiers
 
