@@ -1758,6 +1758,14 @@ After preprocessing, valid GLSL consists of tokens. A token is
 either a keyword, identifier, integer constant, floating point
 constant, operator, or the characters `;`, `{`, or `}`.
 
+### Keywords
+
+The keywords are all predefined and named using the alphanumeric
+and underscore characters. We will explore them as we go, but you
+can see a comprehensive list at [3.6
+"Keywords"](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#keywords)
+in the GLSL spec.
+
 ## Shaders
 
 A shader is a computer program written in a shading language,
