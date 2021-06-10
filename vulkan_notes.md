@@ -1604,6 +1604,17 @@ diagnostics, but are removed by the time preprocessing ends.
 
 The language is case-sensitive.
 
+### Compilation phases
+
+1. All source strings are concatenated together.
+1. Line numbering is recorded based on newline placement.
+1. If a backslash occurs right before a newline, both are
+   removed. No whitespace is substituted, so you can have a
+   single token span multiple lines.
+1. All comments are replaced with a single space.
+1. Preprocessing is performed.
+1. GLSL processing is performed.
+
 ## Shaders
 
 A shader is a computer program written in a shading language,
