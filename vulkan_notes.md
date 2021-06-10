@@ -1838,6 +1838,26 @@ for construction. See [5.1
 in the GLSL spec for the complete list, including precedence
 information.
 
+### Expressions, statements, and declarations
+
+Assignment, variable and function declarations, conditional
+expressions, switch statements, etc. mostly follow the same rules
+as in C. Your instincts about semicolons, braces, etc. will lead
+you in the right direction and all that. I know this sounds
+worryingly vague, but for now, it's generally safe to assume that
+GLSL works just like C except where explicitly specified
+otherwise. If you want a rigorous understanding at this stage,
+you can consult [9. "Shading Language
+Grammar"](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#shading-language-grammar)
+in the GLSL spec, but I think you'll see what I mean by the time
+you return.
+
+The most significant differences are in terms of keywords—GLSL
+has various keywords that C doesn't, and sometimes it allows them
+in places C doesn't allow keywords. Also, with keywords that GLSL
+and C share, GLSL doesn't always use them in quite the same way.
+We'll get into this sort of thing as it comes up.
+
 ## Shaders
 
 A shader is a computer program written in a shading language,
