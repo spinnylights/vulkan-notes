@@ -1912,7 +1912,7 @@ For a given operation, the precision qualifier in effect will be
 the highest _specified_ one in use by any of the operands. If
 none of the operands have a precision qualifier specified, the
 compiler will use that of the next operation that consumes the
-result recursively. If no precision qualifier is find in this
+result, recursively. If no precision qualifier is found in this
 manner, then a precision at least that of the default for the
 type is used.
 
