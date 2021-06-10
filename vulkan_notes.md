@@ -1567,6 +1567,26 @@ intersection shader can be used if the geometry is made of
 triangles, and any-hit shaders can be omitted. Miss shaders are
 run for rays that don't intersect the geometry.
 
+## GLSL
+
+This is a detailed discussion of the [OpenGL Shading
+Language](https://www.khronos.org/opengl/wiki/OpenGL_Shading_Language),
+or GLSL, from the perspective of use with Vulkan. It does not
+assume prior graphics programming experience, although it does
+assume knowledge of C and C++. In addition to [the GLSL
+spec](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.pdf),
+it interleaves information from the Vulkan spec, the [GLSL Vulkan
+extension
+spec](https://github.com/KhronosGroup/GLSL/blob/master/extensions/khr/GL_KHR_vulkan_glsl.txt),
+and the [OpenGL
+spec](https://www.khronos.org/registry/OpenGL/specs/gl/glspec46.core.pdf).
+
+GLSL largely resembles a simplified version of C. The rules for
+declaring variables, defining functions, etc. are mostly the
+same, although it lacks pointers. However, it has stronger
+support for graphics-specific types and operations, as you might
+expect.
+
 ## Shaders
 
 A shader is a computer program written in a shading language,
