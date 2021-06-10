@@ -2011,6 +2011,91 @@ the second digit is omitted, the matrix is square.
 For example, `mat3` is a 3x3 matrix of `float`s, whereas
 `dmat2x4` is a 2-column, 4-row matrix of `double`s.
 
+#### Opaque types
+
+These are built-in types that behave similarly to opaque handles
+in C. They are only intended to be handled through built-in
+functions, and do not support direct access to their underlying
+value.
+
+##### Texture-combined samplers
+
+These are handles for accessing textures. They are specified with
+an optional type prefix, the string `sampler`, and one of a set
+of possible strings, in that order. The prefixes are `i` for
+signed integer and `u` for unsigned integer; without them,
+single-precision float is assumed. The set of possible strings
+following `sampler` is:
+
+String        | Meaning
+------        | -------
+`1`–`3D`      | 1–3D (i.e. `sampler2D` is for a 2D `float` texture)
+`1`–`2DArray` | 1–2D array
+`2DMS`        | 2D multisample
+`2DMSArray`   | 2D multisample array
+`2DRect`      | rectangle
+`Cube`        | cube-mapped
+`CubeArray`   | cubemap array
+`Buffer`      | buffer
+
+So, `usamplerCubeArray` is a sampler for an integer cubemap array
+texture, `isampler1DArray` is a sampler for a signed integer 1D
+array texture, `sampler2DMS` is a sampler for a single-precision
+floating point 2D multisample texture, etc.
+
+##### Images
+
+These are handles for accessing images, i.e. all or a part of a
+single level of a texture. They are specified just like
+texture-combined samplers but with the string `image` substituted
+for `sampler`.  For example, `uimage2D` is for an unsigned
+integer 2D image.
+
+##### Textures
+
+Texture types are handles to textures themselves. They are
+specified like texture-combined samplers but with `texture`
+substituted for `sampler`.
+
+##### `sampler` and `samplerShadow`
+
+These can be used to create a texture-combined sampler from a
+texture type. For example, `sampler2D(texture2D, sampler)` is a
+constructor that creates a `sampler2D` from the corresponding
+`texture2D`. We'll discuss this in more detail shortly when we
+get into constructors.
+
+##### Shadow samplers
+
+There are shadow forms of some of the floating-point `sampler` types for
+performing depth texture comparison. These are named by appending
+`Shadow` to the type name. The applicable types are:
+
+* `1`–`2D`,
+* `1`–`2DArray`,
+* `2DRect`,
+* `Cube`,
+* and `CubeArray`.
+
+So, `sampler2DArrayShadow` is a shadow sampler for a 2D array
+texture, for instance. These variants do not exist for the
+integral `sampler` types.
+
+We'll get into depth comparisons later on.
+
+##### Subpass inputs
+
+These are handles for accessing subpass inputs within fragment
+shaders. Their names all contain the string `subpassInput`. Like
+sampler types, they can have a `u` or `i` prefix indicating
+integral type, and otherwise are taken as single-precision
+floating point. They can also have the suffix `MS`, indicating a
+multi-sampled subpass input. So, `subpassInput` is a
+single-precision floating point subpass input, `isubpassInputMS`
+is a multi-sampled signed integer subpass input, etc.
+
+More on fragment shaders and subpass inputs later.
+
 ## Shaders
 
 A shader is a computer program written in a shading language,
