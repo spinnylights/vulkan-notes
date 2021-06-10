@@ -1615,6 +1615,133 @@ The language is case-sensitive.
 1. Preprocessing is performed.
 1. GLSL processing is performed.
 
+### Preprocessor
+
+The preprocessor behaves mostly like the C++ standard
+preprocessor.
+
+#### Operators
+
+The preprocessor responds to the `defined` operator and the token
+pasting (`##`) operator in the same way as in C++. The same
+arithmetic, logical, and bitwise operators are also present, and
+behave as they do in C++ as opposed to in GLSL.
+
+Character constants (e.g. a single character enclosed in single
+quotes such as `'A'`) are not supported. There is no charizing
+operator (`#@`) or stringizing operator (`#`).
+
+There is also not a `sizeof` operator.
+
+#### Predefined macros
+
+`__LINE__` substitutes the current line number. To be specific,
+it substitutes an integer one more than the number of
+preceeding newlines in the current source string.
+
+`__FILE__` substitutes an integer corresponding to the number of
+the source string currently being preprocessed.
+
+`__VERSION__` substitutes an integer corresponding to the version
+of GLSL currently in use. The latest version at the time of
+writing (which I'm working from here) is indicated by the integer
+`460`.
+
+`VULKAN` substitues `100`.
+
+#### Directives
+
+Directives are formed from any number of spaces or tabs, a number
+sign (`#`), any number of spaces or tabs, the name of the
+directive, and a newline, in that order.
+
+A number sign by itself is ignored.
+
+The directives `#define` and `#undef` are the same as in C++.
+
+The directives `#if`, `#ifdef`, `#ifndef`, `#else`, `#elif`, and
+`#endif` are the same as in C++, except that expressions
+following `#if` and `#elif` are restricted to those operating on
+the output of the `defined` operator and integer literals.
+
+The `#error` directive will print a message into the shader
+object's information log at compile time and induce an error
+state in the compiler. The message consists of the tokens
+following the directive up to the first newline.
+
+Shaders should declare the version of GLSL they are written to
+with `#version <number>`, where `<number>` corresponds to the
+number substituted for `__VERSION__` (`110` corresponds to 1.10,
+`300` corresponds to 3.00, etc.). If a version directive is not
+supplied, the compiler will assume you are targeting GLSL 1.10,
+which probably isn't what you want. Macro expansion is not done
+on `#version` lines.
+
+The `#line` directive can be used to change the current line
+number, similarly to in C++. It is used in the form `#line <line>
+<source_string_number>`, where `<line>` is a constant integer
+expression and `<source_string_number>` is an optional constant
+integer expression. If `<source_string_number>` is omitted the
+directive is assumed to apply to the current source string.
+
+##### `#pragma`
+
+`#pragma` allows messages to be sent to the compiler. This
+directive can only be used outside of function definitions.
+
+`#pragma optimize(on)` and `#pragma optimize(off)` can be used to
+turn optimizations on and off. Turning optimizations off can be
+helpful for debugging. They are turned on by default.
+
+`#pragma debug(on)` and `#pragma debug(off)` can be used to
+enable and disable debug annotations. It is off by default.
+
+##### `#extension`
+
+The `#extension` directive can be used to enable GLSL extensions.
+It can be specified as
+
+```glsl
+#extension <extension_name> : <behavior>
+```
+
+where `<extension_name>` is the name of an extension, or as
+
+```glsl
+#extension all : <behavior>
+```
+
+`<behavior>` can be one of:
+
+Behavior  | Effect
+--------- | ------
+`require` | Enable the specified extension or give a compile-time __error__ if it isn't available. Does not accept `all`.
+`enable`  | Enable the specified extension or give a compile-time __warning__ if it isn't available. Does not accept `all`.
+`warn`    | Enable the specified extension, but warn if it is used, unless the use in question is supported by other `require`d or `enable`d extensions. Also warn if the extension is not available. If `all` is specified, warn on detectable use of any extension.
+`disable` | Behave as if the specified extension is not part of the language definition. Warn if the specified extension is not available. If `all` is specified, use only the features of the GLSL core.
+
+The order of `#extension` directives is significant: later
+directives will override earlier ones to the extent that they
+apply. The compiler initially behaves as if
+
+```glsl
+#extension all : disable
+```
+
+has been set.
+
+Extensions are allowed to define how widely or narrowly they
+apply. If they don't say anything about it, they are considered
+to apply to a single shader at a time. The linker can enforce a
+wider scope of applicability than this, in which case all the
+shaders to which the extension applies will need to contain the
+necessary `#extension` directive.
+
+An `#extension` directive must occur before any non-preprocessor
+tokens unless the corresponding extension spec says otherwise.
+
+Macro expansion is not done on `#extension` lines.
+
 ## Shaders
 
 A shader is a computer program written in a shading language,
