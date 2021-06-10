@@ -1587,6 +1587,23 @@ same, although it lacks pointers. However, it has stronger
 support for graphics-specific types and operations, as you might
 expect.
 
+### Character set
+
+GLSL is encoded in UTF-8. After the preprocessing stage, the only
+characters allowed are a–z, A–Z, 0–9, and the following symbols:
+`_.+-/*%<>[](){}^|&~=!:;,?`.
+
+The preprocessor uses the number sign (`#`).
+
+Backslashes (`\`) can be used for line continuation; they are
+removed before preprocessing ends.
+
+Newlines are indicated by carriage-return, line-feed, or both
+together. They are used by the preprocessor and for compiler
+diagnostics, but are removed by the time preprocessing ends.
+
+The language is case-sensitive.
+
 ## Shaders
 
 A shader is a computer program written in a shading language,
