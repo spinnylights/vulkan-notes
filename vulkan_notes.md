@@ -1742,6 +1742,16 @@ tokens unless the corresponding extension spec says otherwise.
 
 Macro expansion is not done on `#extension` lines.
 
+### Comments
+
+As in C++, comments can be delimted either by `/*` and `*/` or by
+`//` and a newline, and in the same manner. Any byte value except
+`0` is permitted within a comment.
+
+The line-removal character (`\`) is taken into account before
+comment processing, so a comment line ending in `\` will continue
+the comment onto the next line.
+
 ## Shaders
 
 A shader is a computer program written in a shading language,
