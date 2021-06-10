@@ -1766,6 +1766,33 @@ can see a comprehensive list at [3.6
 "Keywords"](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#keywords)
 in the GLSL spec.
 
+### Reserved words
+
+The following keywords are reserved for future use and should not
+be used or a compile-time error will result:
+
+```
+common partition active
+asm
+class union enum typedef template this
+resource
+goto
+inline noinline public static extern external interface
+long short half fixed unsigned superp
+input output
+hvec2 hvec3 hvec4 fvec2 fvec3 fvec4
+filter
+sizeof cast
+namespace using
+sampler3DRect
+```
+
+Also, all identifiers containing two consecutive underscores
+(`__`) are reserved for use by underlying software layers.
+Although an error will not occur if you define such an
+identifier, it may result in unpredictable behavior, so you
+shouldn't do so (unless you like to live dangerously).
+
 ## Shaders
 
 A shader is a computer program written in a shading language,
