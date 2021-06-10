@@ -1694,6 +1694,9 @@ vector with color information for each vertex (using
 [`Vector4f`](https://eigen.tuxfamily.org/dox/group__matrixtypedefs.html)):
 
 ```cpp
+// you can use SPIRV-Reflect
+// (https://github.com/KhronosGroup/SPIRV-Reflect)
+// to avoid the duplication here
 constexpr uint32_t color_attr_n = 1;
 
 std::vector<Eigen::Vector4f> vert_colors {
