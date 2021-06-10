@@ -1810,6 +1810,23 @@ single-precision value by default instead of a double.
 
 There are no character or string literals.
 
+### Identifiers
+
+Identifiers are used to name variables, functions, and
+structures, and as field selectors for components of vectors and
+matricies.  They are formed from the alphanumeric and underscore
+characters, except that they cannot start with a digit.
+
+In general, identifiers starting with "`gl_`" are reserved, and
+you should not declare identifiers in this format. There are
+certain situations where identifiers can be redeclared, though,
+and in these cases it is permitted to redefine predeclared
+"`gl_`" identifiers.
+
+Identifiers can be up to 1024 characters long. Some
+implementations may allow them to be longer, but they are
+permitted to generate an error if this limit is crossed.
+
 ## Shaders
 
 A shader is a computer program written in a shading language,
