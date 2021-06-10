@@ -1827,6 +1827,17 @@ Identifiers can be up to 1024 characters long. Some
 implementations may allow them to be longer, but they are
 permitted to generate an error if this limit is crossed.
 
+### Operators
+
+The operators are mostly the same as in C. The main differences
+are that there are no operators for working with pointers and no
+typecast operator, the `.` operator can be used to swizzle vector
+components and call methods, and the `()` operator can be used
+for construction. See [5.1
+"Operators"](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#operators)
+in the GLSL spec for the complete list, including precedence
+information.
+
 ## Shaders
 
 A shader is a computer program written in a shading language,
