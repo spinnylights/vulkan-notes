@@ -1801,7 +1801,8 @@ Integer literals are mostly the same as in C. They can be
 expressed in decimal, octal, or hexadecimal, and as signed or
 unsigned, in the same manner as in C. The main difference is that
 GLSL integer literals do not support the `l`/`L` and `ll`/`LL`
-suffixes (we'll discuss their bit width later).
+suffixes (we'll discuss their bit width later). Similarly to C,
+an integer literal with no suffix is taken to be signed.
 
 Floating point literals are also mostly the same as in C. The
 main differences are that the `l`/`L` suffixes are instead
