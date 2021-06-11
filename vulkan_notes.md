@@ -2375,6 +2375,8 @@ declared within a function definition, a loop body, a conditional
 expression, etc. We will describe these rules as we discuss the
 applicable concepts.
 
+### Qualifiers
+
 #### Storage qualifiers
 
 When declaring a variable, a single storage qualifier can be
