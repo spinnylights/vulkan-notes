@@ -2098,6 +2098,30 @@ is a multi-sampled signed integer subpass input, etc.
 
 More on fragment shaders and subpass inputs later.
 
+#### `struct`
+
+User-defined types can be created through use of the `struct`
+keyword. The syntax and semantics are similar to C, but not
+identical. Here is a basic example:
+
+```language-glsl
+struct shape {
+    vec4 position;
+    vec4 color;
+};
+```
+
+This defines a type called `shape` with members `position` and
+`color`. Member declarators can have precision qualifiers, but no
+other kinds of qualifiers. A struct must be declared with at
+least one member.
+
+Anonymous and nested struct definitions are not supported,
+although a struct is free to have a member of another struct type.
+
+Structs inherit all the restrictions on the use of any type or
+qualifier they contain.
+
 ## Shaders
 
 A shader is a computer program written in a shading language,
