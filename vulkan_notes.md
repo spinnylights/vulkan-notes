@@ -1857,6 +1857,13 @@ A statement can be:
 * a series of zero or more statements enclosed in braces (`{}`);
   this is a _compound statement_.
 
+### Shaders
+
+In the context of GLSL, a shader is a single translation unit,
+generally the contents of a source file. A valid shader contains
+declarations, function definitions, and semicolons, although
+nothing at all is technically valid.
+
 ### Types
 
 Okay! Now we're getting somewhere. GLSL has a significantly
