@@ -2301,6 +2301,70 @@ evaluates to must match the type of the variable being assigned
 to, unless there is an applicable implicit conversion (see
 "Implicit conversions between types" above).
 
+#### Initialization
+
+During variable declaration, you can supply an initial value for
+a variable by adding an `=` after the identifier and supplying an
+assignment expression (described above) before the semicolon.
+
+```language-glsl
+int    n        = 6;
+int    n_copy   = n;
+bool   never    = 1 == 0;
+bool   always   = true ? true : false;
+uint   max      = (1u + 1u) << 31;
+double after    = ++before;
+float  one      = cos(0);
+vec4   swizzled = face.xywz;
+```
+
+Vectors, matrices, arrays, and structs can also be initialized
+using an _initializer list_ (this is only permitted during
+initialization). As in C, the syntax is an open brace (`{`),
+assignment expressions or initializer lists separated by commas,
+and a close brace (`}`).
+
+```language-glsl
+ivec4 ns = { 0, 1, 2, 3 };
+
+float[][] nested = {
+    { 1.6, 2.5, 3.4 },
+    { 4.3, 5.2, 6.1 }
+};
+
+mat3x2 matching = {
+    { 1.6, 2.5, 3.4 },
+    { 4.3, 5.2, 6.1 }
+}
+
+struct mat {
+    vec4  color;
+    float metal;
+    float rough;
+} golden {
+    { 1.0, 0.766, 0.336, 1.0 },
+    0.5,
+    1.0
+};
+
+```
+
+When assigning the elements of the initializer list to the
+elements or fields they apply to, the rules described above in
+"Assignment" apply.
+
+It is worth noting that GLSL has a sequence operator (`,`) with
+similar behavior to C's. As a result, initializing multiple
+variables on one line has the same (rather beguiling) behavior:
+
+```language-glsl
+int a, b = 4;
+int c = a; // c's value is undefined
+```
+
+I advise sticking to one initialization per line to avoid this
+sort of confusion.
+
 ```
 
 This defines a struct `my_struct` _and_ declares a `my_struct`
