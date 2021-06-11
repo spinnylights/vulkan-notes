@@ -2122,6 +2122,22 @@ although a struct is free to have a member of another struct type.
 Structs inherit all the restrictions on the use of any type or
 qualifier they contain.
 
+#### Arrays
+
+GLSL supports C-esque arrays, with similar declaration syntax—
+the type name, an optional space and identifier, `[`, an optional
+size, and `]`, in that order. If the size is specified, it must
+be a constant integral expression (not necessarily a literal)
+greater than zero. If the space and identifier are included, a
+variable declaration is formed (`vec4 colors[];`); without them,
+a type specifier is formed (`float[5]`).
+
+Any type in the language can be used for the contents of an
+array. This includes array types, so arrays-of-arrays and so on
+can be declared (e.g. `float[5][3]`, meaning a 5-element array of
+`float[3]`). However, arrays are homogeneous; all elements must
+be the same type.
+
 ## Shaders
 
 A shader is a computer program written in a shading language,
