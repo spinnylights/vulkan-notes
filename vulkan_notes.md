@@ -2213,13 +2213,22 @@ you try to index into it outside its bounds.
 After a struct has been defined, struct variables can be declared
 in the same manner as with basic types (`my_struct
 my_struct_inst;`). However, it is also possible to define a
-struct and declare a variable of it in one go, like so:
+struct and declare one or more variables of it in one go, like so:
 
 ```lang-glsl
 struct my_struct {
     vec4 ns;
     bool flag;
-} my_struct_inst;
+} my_struct_inst, my_other_struct_inst;
+```
+
+This defines a struct `my_struct` _and_ declares `my_struct`
+variables `my_struct_inst` and `my_other_struct_inst`. All will
+be in scope from this point, so you will be able to declare other
+`my_struct` variables after this. That said, I think this syntax
+is a bit confusing if you're going to use the struct type in
+other declarations afterwards.
+
 ```
 
 This defines a struct `my_struct` _and_ declares a `my_struct`
