@@ -2277,7 +2277,7 @@ repeatedly re-assigned to. In this case, in addition to the
 regular assignment operator `=`, you can also use the arithmetic
 assignment operators, which correspond to their non-assignment
 operators in a manner akin to C's (`+=`, `-=`, `*=`, `/=`, `%=`,
-`<<=`, `>>=`, `&=`, `|=`, and `^=`).  There are also pre- and
+`<<=`, `>>=`, `&=`, `|=`, and `^=`). There are also pre- and
 post-decrement operators `++` and `--`, which are also akin to
 those in C, except that they can be used with floating-point
 variables (adding or subtracting `1.0`).
