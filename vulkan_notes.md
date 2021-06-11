@@ -2161,6 +2161,72 @@ When implicit conversion does occur, it follows the same rules as
 with explicit conversion. We'll cover that when we get to
 constructors.
 
+### Variables
+
+Variables in GLSL are similar to those in C. They're statically
+typed, named via an identifier, and can hold a value. As in C,
+variable declaration and initialization are separate
+concepts.
+
+#### Declaration
+
+##### Basic and opaque types
+
+Variables of one of the basic or opaque types are simply declared
+by writing the type name, an identifier, optionally one or more
+other identifiers separated by commas, and a semicolon.
+For example:
+
+```lang-glsl
+uint        count;
+vec4        color, position;
+mat4x4      rotation;
+samplerCube skybox;
+```
+
+Personally, I don't like declaring more than one variable per
+line, because I think it's too easy to make mistakes around and
+makes the code harder to read. But that's just my opinion.
+
+##### Arrays
+
+Array variables are generally declared as described in "Arrays"
+earlier (`vec4 positions[10];` and so on). You may recall that
+the size is optional.
+
+Array variables can be redeclared after their initial declaration
+with a different size than before. If an array is declared
+unsized, it must be redeclared with an explicit size before the
+array can be indexed with anything aside from a constant integral
+expression (although indexing an unsized array _with_ a constant
+integral expression is permitted). The compiler will throw an
+error if you try to redeclare an array with a size equal to or
+smaller than the largest number used to index into it thus far in
+the shader.
+
+Once an array has been sized, the compiler will throw an error if
+you try to index into it outside its bounds.
+
+##### Structs
+
+After a struct has been defined, struct variables can be declared
+in the same manner as with basic types (`my_struct
+my_struct_inst;`). However, it is also possible to define a
+struct and declare a variable of it in one go, like so:
+
+```lang-glsl
+struct my_struct {
+    vec4 ns;
+    bool flag;
+} my_struct_inst;
+```
+
+This defines a struct `my_struct` _and_ declares a `my_struct`
+variable `my_struct_inst`. Both will be in scope from this point,
+so you will be able to declare other `my_struct` variables after
+this. That said, I think this syntax is a bit confusing if you're
+going to use the struct type for other variables.
+
 ## Shaders
 
 A shader is a computer program written in a shading language,
