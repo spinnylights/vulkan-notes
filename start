@@ -22,8 +22,15 @@ body_f='body.html'
 footer_f='footer.html'
 html_f='vknotes.html'
 
-build="markdown -f fencedcode -o $body_f $md_f && cat $header_f $body_f $footer_f > $html_f"
+rb_code_start='code_start="\n\n```";'
+rb_add_lang='print $<.read.gsub(code_start, code_start + "language-")'
+rb_prog="$rb_code_start $rb_add_lang"
+
+build="\
+    ruby -e '$rb_prog' < $md_f | markdown -f fencedcode -o $body_f \
+    && cat $header_f $body_f $footer_f > $html_f"
 eval "$build"
+
 gvim "$md_f"
 firefox "$html_f" &
 do_on_save "$md_f" "$build"

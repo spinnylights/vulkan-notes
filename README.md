@@ -19,12 +19,13 @@ will also open the finished web page in Firefox, and launch
 [gVim](https://www.vim.org/) to edit the notes with. This is
 obviously kind of specific to my environment but it might be
 useful to you too if you have the various programs installed (in
-addition to Firefox and gVim you should have the markdown CLI and
+addition to Firefox and gVim you should have the markdown CLI,
 inotify-wait from
-[inotify-tools](https://github.com/inotify-tools/inotify-tools)
-availble on your `PATH`—check your distro's packages). `start`
-depends on the script `do_on_save` which I have in my personal
-bindir but I have included here for your convenience.
+[inotify-tools](https://github.com/inotify-tools/inotify-tools),
+and [Ruby](https://www.ruby-lang.org) available on your
+`PATH`—check your distro's packages). `start` depends on the
+script `do_on_save` which I have in my personal bindir but I have
+included here for your convenience.
 
 The notes themselves (`vulkan_notes.md`) are made available under
 the [CC BY-SA

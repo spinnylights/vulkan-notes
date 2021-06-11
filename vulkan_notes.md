@@ -1701,13 +1701,13 @@ enable and disable debug annotations. It is off by default.
 The `#extension` directive can be used to enable GLSL extensions.
 It can be specified as
 
-```language-glsl
+```glsl
 #extension <extension_name> : <behavior>
 ```
 
 where `<extension_name>` is the name of an extension, or as
 
-```language-glsl
+```glsl
 #extension all : <behavior>
 ```
 
@@ -1724,7 +1724,7 @@ The order of `#extension` directives is significant: later
 directives will override earlier ones to the extent that they
 apply. The compiler initially behaves as if
 
-```language-glsl
+```glsl
 #extension all : disable
 ```
 
@@ -1922,7 +1922,7 @@ type is used.
 A default precision qualifier for signed integers can be set via
 the statement
 
-```language-glsl
+```glsl
 precision <precision_qualifier> int;
 ```
 
@@ -1963,7 +1963,7 @@ the coarsest precision allowed for).
 As with signed integers, single-precision floating point values
 can be assigned a default precision via
 
-```language-glsl
+```glsl
 precision <precision_qualifier> float;
 ```
 
@@ -2105,7 +2105,7 @@ User-defined types can be created through use of the `struct`
 keyword. The syntax and semantics are similar to C, but not
 identical. Here is a basic example:
 
-```language-glsl
+```glsl
 struct shape {
     vec4 position;
     vec4 color;
@@ -2272,7 +2272,7 @@ valid to assign from.
 Here are some examples (presuming these variables have already
 been declared):
 
-```language-glsl
+```glsl
 n        = 6;
 n_copy   = n;
 never    = 1 == 0;
@@ -2307,7 +2307,7 @@ During variable declaration, you can supply an initial value for
 a variable by adding an `=` after the identifier and supplying an
 assignment expression (described above) before the semicolon.
 
-```language-glsl
+```glsl
 int    n        = 6;
 int    n_copy   = n;
 bool   never    = 1 == 0;
@@ -2324,7 +2324,7 @@ initialization). As in C, the syntax is an open brace (`{`),
 assignment expressions or initializer lists separated by commas,
 and a close brace (`}`).
 
-```language-glsl
+```glsl
 ivec4 ns = { 0, 1, 2, 3 };
 
 float[][] nested = {
@@ -2357,7 +2357,7 @@ It is worth noting that GLSL has a sequence operator (`,`) with
 similar behavior to C's. As a result, initializing multiple
 variables on one line has the same (rather beguiling) behavior:
 
-```language-glsl
+```glsl
 int a, b = 4;
 int c = a; // c's value is undefined
 ```
@@ -2387,7 +2387,7 @@ and mutable.
 If `const` is specified, the variable is local to the shader and
 immutable after initialization.
 
-```language-glsl
+```glsl
 const int n = 0;
 n = 1; // compiler error
 ```
@@ -2509,7 +2509,7 @@ That all sounds rather abstract and confusing, so let's consider
 an example. Say we have the following declaration in a GLSL
 vertex shader:
 
-```language-glsl
+```glsl
 layout(location = 1) in vec4 color;
 ```
 
@@ -2522,7 +2522,7 @@ vector with color information for each vertex (using
 [Eigen](https://eigen.tuxfamily.org/index.php?title=Main_Page)'s
 [`Vector4f`](https://eigen.tuxfamily.org/dox/group__matrixtypedefs.html)):
 
-```language-cpp
+```cpp
 // you can use SPIRV-Reflect
 // (https://github.com/KhronosGroup/SPIRV-Reflect)
 // to avoid the duplication here
@@ -2538,7 +2538,7 @@ and assume we've moved this data into a `VkBuffer` called
 `vert_colors_buff` and specified an offset into it for the draw
 call:
 
-```language-cpp
+```cpp
 VkBuffer vert_colors_buff;
 // copy vert_colors data into vert_colors_buff
 
@@ -2552,7 +2552,7 @@ the applicable vertex input binding. To make our color
 information available during vertex shading in this graphics
 pipeline, we can call
 
-```language-cpp
+```cpp
 vkCmdBindVertexBuffers(command_buff,
                        color_attr_n,         // the input binding to start with
                        1,                    // the number of bindings to update
