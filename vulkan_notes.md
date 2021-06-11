@@ -2243,6 +2243,64 @@ const struct ext_flags {
 This declares a `const` variable called `dog` of type
 `ext_flags`, in addition to defining the struct type `ext_flags`.
 
+#### Assignment
+
+Once a variable has been declared, a value can be assigned to it.
+Reading from a variable before it has been initialized or
+assigned to will return an undefined value.
+
+To assign a value to a variable, write the variable's name, `=`
+(the assignment operator), and an assignment expression, followed
+by a semicolon. An assignment expression can be one of the
+following:
+
+* a literal,
+* a variable identifier,
+* a Boolean expression,
+* a ternary selection expression,
+* a bit shift or arithmetic operation,
+* an increment/decrement expression,
+* a function call, or
+* a field selection or array indexing operation.
+
+Some of these concepts we haven't yet covered, but of course we
+will soon. Also, some of these expressions can be nested within
+each other; as long as the expression on the right side of the
+`=` ultimately evaluates to something in this list, it will be
+valid to assign from.
+
+Here are some examples (presuming these variables have already
+been declared):
+
+```language-glsl
+n        = 6;
+n_copy   = n;
+never    = 1 == 0;
+always   = true ? true : false;
+max      = (1u + 1u) << 31;
+after    = ++before;
+one      = cos(0);
+swizzled = face.xywz;
+```
+
+If a variable has not been declared as `const`, it can be
+repeatedly re-assigned to. In this case, in addition to the
+regular assignment operator `=`, you can also use the arithmetic
+assignment operators, which correspond to their non-assignment
+operators in a manner akin to C's (`+=`, `-=`, `*=`, `/=`, `%=`,
+`<<=`, `>>=`, `&=`, `|=`, and `^=`).  There are also pre- and
+post-decrement operators `++` and `--`, which are also akin to
+those in C, except that they can be used with floating-point
+variables (adding or subtracting `1.0`).
+
+You can also assign to array elements and vector and matrix
+fields; this is described below.
+
+As GLSL is statically typed, the value the assignment expression
+evaluates to must match the type of the variable being assigned
+to, unless there is an applicable implicit conversion (see
+"Implicit conversions between types" above).
+
 ```
 
 This defines a struct `my_struct` _and_ declares a `my_struct`
