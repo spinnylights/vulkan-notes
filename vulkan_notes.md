@@ -1871,16 +1871,18 @@ declarations must come with type declarations.
 GLSL is type-safe, although there are some implicit conversions
 between types.
 
-#### `void`
+#### Basic types
+
+##### `void`
 
 This can only be used for functions that do not return a value
 and in empty parameter lists.
 
-#### `bool`
+##### `bool`
 
 A Boolean type, having either the value `true` or `false`.
 
-#### `int` and `uint`
+##### `int` and `uint`
 
 32-bit signed and unsigned integers. Signed integers are two's
 complement.
@@ -1928,7 +1930,7 @@ where `<precision_qualifier>` is one of `lowp`, `mediump`, or
 declarations, so it can be applied e.g. just for the body of a
 single function.
 
-#### `float` and `double`
+##### `float` and `double`
 
 Single- and double-precision floating point scalars. (Remember
 that floating-point literals are single-precision unless
@@ -1978,7 +1980,7 @@ between types are accurately rounded.
 Double-precision operations have margins of error at least as
 small as their single-precision equivalents.
 
-#### Vectors
+##### Vectors
 
 GLSL provides 2-, 3-, and 4-component vector types for single-
 and double-precision floats, signed and unsigned integers, and
@@ -1997,7 +1999,7 @@ none   | `float`
 So, a `vec3` is a 3-component vector of single-precision floats,
 a `bvec2` is a 2-component vector of Booleans, etc.
 
-#### Matrices
+##### Matrices
 
 There are built-in matrix types as well, but only for floating
 point numbers. They are specified with an optional `d`, the
