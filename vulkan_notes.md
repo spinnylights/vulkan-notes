@@ -2178,7 +2178,7 @@ by writing the type name, an identifier, optionally one or more
 other identifiers separated by commas, and a semicolon.
 For example:
 
-```lang-glsl
+```glsl
 uint        count;
 vec4        color, position;
 mat4x4      rotation;
@@ -2215,7 +2215,7 @@ in the same manner as with basic types (`my_struct
 my_struct_inst;`). However, it is also possible to define a
 struct and declare one or more variables of it in one go, like so:
 
-```lang-glsl
+```glsl
 struct my_struct {
     vec4 ns;
     bool flag;
