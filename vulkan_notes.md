@@ -1846,6 +1846,17 @@ An expression evaluates to a value. Possible expressions are:
 All expressions have a type, which is equal to the type of the
 value they evaluate to.
 
+### Statements
+
+A statement can be:
+
+* a semicolon,
+* an expression followed by a semicolon,
+* a declaration,
+* a control flow construction, or
+* a series of zero or more statements enclosed in braces (`{}`);
+  this is a _compound statement_.
+
 ### Expressions, statements, and declarations
 
 Assignment, variable and function declarations, conditional
