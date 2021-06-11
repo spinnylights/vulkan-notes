@@ -2375,13 +2375,26 @@ declared within a function definition, a loop body, a conditional
 expression, etc. We will describe these rules as we discuss the
 applicable concepts.
 
+#### Storage qualifiers
+
+When declaring a variable, a single storage qualifier can be
+specified before the type name, which can determine aspects of
+the variable's mutability, linkage, and interpolation strategy.
+
+If no qualifier is specified, the variable is local to the shader
+and mutable.
+
+If `const` is specified, the variable is local to the shader and
+immutable after initialization.
+
+```language-glsl
+const int n = 0;
+n = 1; // compiler error
 ```
 
-This defines a struct `my_struct` _and_ declares a `my_struct`
-variable `my_struct_inst`. Both will be in scope from this point,
-so you will be able to declare other `my_struct` variables after
-this. That said, I think this syntax is a bit confusing if you're
-going to use the struct type for other variables.
+There are other storage qualifiers, but we will discuss them
+later on, as the applicable concepts come up.
+
 
 ## Shaders
 
