@@ -2138,6 +2138,29 @@ can be declared (e.g. `float[5][3]`, meaning a 5-element array of
 `float[3]`). However, arrays are homogeneous; all elements must
 be the same type.
 
+### Implicit conversions between types
+
+GLSL has a variety of implicit conversions that will be performed
+in some cases, such during assignment. You can view the complete
+list at [4.1.10 "Implicit
+Conversions"](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#basic-types)
+in the GLSL spec.
+
+If an operation occurs with a floating point operand and an
+integral operand, the integral operand is implicitly converted to
+match the type of the floating point operand. If an operation
+occurs with `int` and `uint` operands, the `int` is implicitly
+converted to a `uint`. If an operation occurs with `float` and
+`double` operands, the `float` is implicitly converted to a
+`double`.
+
+All the implicit conversions defined are for basic types. There
+aren't any for array or struct types.
+
+When implicit conversion does occur, it follows the same rules as
+with explicit conversion. We'll cover that when we get to
+constructors.
+
 ## Shaders
 
 A shader is a computer program written in a shading language,
