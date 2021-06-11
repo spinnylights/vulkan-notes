@@ -2544,6 +2544,117 @@ comma-separated list of such expressions, they are evaluated from
 left-to-right and the value of the rightmost expression is
 returned.
 
+### Control flow
+
+#### Conditional
+
+##### `if`-`else`
+
+GLSL supports a simple `if`-`else` construction, like C's:
+
+```glsl
+if (true) {
+    // always reached
+}
+
+if (false) {
+    // never reached
+} else if (true) {
+    // always reached
+} else {
+    // never reached
+}
+```
+
+Any Boolean expression can be used within the parentheses. The
+braces are optional (they're just the normal compound statement
+braces). I always use them for the sake of readability, though.
+
+##### `switch`
+
+GLSL also supports a `switch` statement akin to C's, with
+essentially identical syntax and semantics (fall-through,
+`break`, `default`, etc.). Here's an example just for kicks:
+
+```glsl
+switch(2) {
+case 1:
+    // never reached
+case 2:
+    // always reached
+case 3:
+    // always reached
+    break;
+case 4:
+    // never reached
+default:
+    // never reached
+}
+```
+
+In practice, this would not actually compile as written, as empty
+`case` branches are not permitted. The expression in parentheses
+and those for each `case` must evaluate to scalar integers, and
+the `case` expressions must be constant.
+
+#### Looping
+
+Just like in C, including the scoping rules.
+
+##### `for`
+
+```glsl
+vec4 v4;
+
+for (uint i = 0; i < v4.length(); ++i) {
+    v4[i] = i;
+}
+
+vec4 v4_2 = { 0.0, 1.0, 2.0, 3.0 };
+bool is_true = v4 == v4_2;
+```
+
+##### `while`
+
+```glsl
+while (int i = eventually_five()) {
+    if (++i == 6) {
+        break;
+    }
+}
+
+int i = 0; // `while`'s `i` is no longer in scope
+do {
+    if (++i == 6) {
+        break;
+    }
+} while (i = eventually_five());
+```
+
+Note that the conditional expression in the `do`-`while`
+statement cannot declare a variable.
+
+#### Jumping
+
+##### `continue`
+
+Used only in loops; skips the remainder of the body of the
+innermost loop in which it is found.
+
+##### `break`
+
+Used in loops and `switch` statements; immediately leaves the the
+innermost loop or `switch` statement in which it is found.
+
+##### `discard`
+
+This is used in fragment shaders to abandon the current fragment.
+We'll discuss it later on.
+
+##### `return`
+
+This is used to leave functions; we'll discuss it shortly.
+
 ### Qualifiers
 
 #### Storage qualifiers
