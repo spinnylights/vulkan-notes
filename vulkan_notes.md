@@ -2229,6 +2229,20 @@ be in scope from this point, so you will be able to declare other
 is a bit confusing if you're going to use the struct type in
 other declarations afterwards.
 
+If you want to apply qualifiers (decribed later) to variables
+declared this way, they go before `struct`:
+
+```glsl
+const struct ext_flags {
+    bool hairy;
+    bool shiny;
+    bool soft;
+} dog { true, true, true };
+```
+
+This declares a `const` variable called `dog` of type
+`ext_flags`, in addition to defining the struct type `ext_flags`.
+
 ```
 
 This defines a struct `my_struct` _and_ declares a `my_struct`
