@@ -2365,6 +2365,16 @@ int c = a; // c's value is undefined
 I advise sticking to one initialization per line to avoid this
 sort of confusion.
 
+#### Scope
+
+A variable's scope depends on where it is declared. If it is
+declared at the top level (i.e. outside of any function
+definition), it has global scope, and is available anywhere in
+the shader. However, its scope can be restricted if it is
+declared within a function definition, a loop body, a conditional
+expression, etc. We will describe these rules as we discuss the
+applicable concepts.
+
 ```
 
 This defines a struct `my_struct` _and_ declares a `my_struct`
