@@ -1828,6 +1828,24 @@ Identifiers can be up to 1024 characters long. Some
 implementations may allow them to be longer, but they are
 permitted to generate an error if this limit is crossed.
 
+### Expressions
+
+An expression evaluates to a value. Possible expressions are:
+
+* a literal,
+* a variable identifier,
+* a Boolean expression,
+* a ternary selection expression,
+* a bit shift or arithmetic operation,
+* an increment/decrement expression,
+* a function call,
+* a field selection or array indexing operation,
+* various nested combinations of the above, or,
+* a series of expressions separated by commas.
+
+All expressions have a type, which is equal to the type of the
+value they evaluate to.
+
 ### Expressions, statements, and declarations
 
 Assignment, variable and function declarations, conditional
@@ -2240,23 +2258,8 @@ assigned to will return an undefined value.
 
 To assign a value to a variable, write the variable's name, `=`
 (the assignment operator), and an assignment expression, followed
-by a semicolon. An assignment expression can be one of the
-following:
-
-* a literal,
-* a variable identifier,
-* a Boolean expression,
-* a ternary selection expression,
-* a bit shift or arithmetic operation,
-* an increment/decrement expression,
-* a function call, or
-* a field selection or array indexing operation.
-
-Some of these concepts we haven't yet covered, but of course we
-will soon. Also, some of these expressions can be nested within
-each other; as long as the expression on the right side of the
-`=` ultimately evaluates to something in this list, it will be
-valid to assign from.
+by a semicolon. An assignment expression can be any expression
+except a comma-separated list of expressions.
 
 Here are some examples (presuming these variables have already
 been declared):
