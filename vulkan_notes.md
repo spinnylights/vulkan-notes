@@ -1828,17 +1828,6 @@ Identifiers can be up to 1024 characters long. Some
 implementations may allow them to be longer, but they are
 permitted to generate an error if this limit is crossed.
 
-### Operators
-
-The operators are mostly the same as in C. The main differences
-are that there are no operators for working with pointers and no
-typecast operator, the `.` operator can be used to swizzle vector
-components and call methods, and the `()` operator can be used
-for construction. See [5.1
-"Operators"](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#operators)
-in the GLSL spec for the complete list, including precedence
-information.
-
 ### Expressions, statements, and declarations
 
 Assignment, variable and function declarations, conditional
@@ -2374,6 +2363,186 @@ the shader. However, its scope can be restricted if it is
 declared within a function definition, a loop body, a conditional
 expression, etc. We will describe these rules as we discuss the
 applicable concepts.
+
+### Operators
+
+The operators are largely the same as in C, with the exception of
+the address-of, dereference, and typecast operators, which
+naturally are missing. We'll explore them here, but see [5.1
+"Operators"](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#operators)
+in the GLSL spec for the complete list, including precedence and
+associativity information.
+
+#### `()` (expression grouping)
+
+Expressions can be grouped with parentheses as in C.
+Parenthesized expressions will be evaluated before expressions
+across parentheses.
+
+#### `()` (function call, constructor)
+
+Covered later in their own sections.
+
+#### `+`, `-`, `*`, `/`, `%`
+
+These are the usual arithmetic operators. With scalars, these
+work as you would expect based on C. However, they are also
+defined over vectors and matrices. In most cases, arithmetic
+operations involving vectors or matrices happens componentwise.
+This includes operations between a scalar and a vector or matrix.
+The exception is multiplication in which both the operands are a
+vector or matrix, in which case the operation proceeds as in
+linear algebra.
+
+#### `<<`, `>>`, `&`, `^`, `|`, `~`
+
+These are the usual bitwise operators. For integers, these work
+mostly like in C, except that they work with both signed and
+unsigned operands. A bitshifted signed integer will be
+sign-extended, and performing bitwise Boolean algebra on signed
+integers will taken into account the sign bit(s) (although you
+should note that such an operation between a signed and unsigned
+integer will cause the signed integer to be converted to an
+unsigned integer beforehand). They also work componentwise with
+integer vectors.
+
+#### `=`, `+=`, `++`, etc.
+
+The assignment operator, arithmetic and bitwise assignment
+operators, and increment/decrement operators are discussed under
+"Assignment".
+
+#### `&&`, `||`, `^^`, `!`
+
+The logical binary operators (`&&`, `||`, `^^`) operate only on
+Booleans. This is also true of the logical NOT (`!`). There is a
+built-in function `not()` that accepts a vector, however.
+
+#### `==`, `!=`
+
+The equality operators (which naturally return a Boolean) will
+only work with basic types. Both operands must be the same type
+and size; if operating on arrays, both arrays must be explicitly
+sized. For composite types, comparison is done componentwise.
+
+#### `<`, `>`, `<=`, `>=`
+
+The relational operators only operate on scalar expressions.
+Their types must match or support an implicit conversion. The
+result is a Boolean. For componentwise relational comparison of
+vectors, there are built-in functions `lessThan()`,
+`greaterThan()`, `lessThanEqual()`, and `greaterThanEqual()`.
+
+#### `?:`
+
+This is the ternary selection operator, akin to C's. It operates
+on three expressions, like so:
+
+```glsl
+bool_exp ? exp1 : exp2
+```
+
+`bool_exp` must be a Boolean expression. If it is `true`, the
+expression evaluates to `exp1`; if `false`, `exp2`. `exp1` and
+`exp2` can evaluate to any basic type including `void`; however,
+their types must match, or at least support an implicit
+conversion.
+
+#### `[]`
+
+This is the indexing operator, used to index into arrays with the
+same syntax as in C. Indices start at zero and go up to one less
+than the array's size, as you would expect. Both signed and
+unsigned integer expressions can be used to access elements, but
+subscripting an array with an index less than `0` is undefined,
+so you may want to stick to unsigned integers for this purpose.
+This operator can also be used to access the components of
+matrices and vectors, with the same syntax.
+
+#### `.` (component/field selector)
+
+The components of vectors and scalars and the fields of
+structures can be accesed with this operator. Accessing struct
+fields with it is the same as in C. In the case of vectors, each
+of the components has three predefined names, as follows:
+
+* `{ x, y, z, w }`, nice for points and normals;
+* `{ r, g, b, a }`, nice for colors;
+* `{ s, t, p, q }`, nice for textures.
+
+You can use whichever you like, but you can only pick from one
+set at a time. For example:
+
+```glsl
+vec4 v4;
+v4.rgba; // this is fine
+v4.xyzw; // so is this
+v4.sgzq; // this is not
+```
+
+For scalars and vectors of length less than four, their
+components are named in the same manner, as far as they can be.
+E.g.
+
+```glsl
+float n;
+n.s;
+
+vec3 v3;
+v3.xyz;
+```
+
+You can select a shorter vector from a longer one:
+
+```glsl
+vec4 v4;
+vec3 v3 = v4.stp;
+```
+
+Swizzling works as well:
+
+```glsl
+vec4 v4;
+vec4 swiz = v4.wwxy;
+```
+
+You can assign to multiple components of a vector at once using
+the same syntax:
+
+```glsl
+vec4 v4;
+vec2 v2;
+v4.zw = v2;
+```
+
+#### `.` (method call)
+
+There is a method call operator `.` with only one use,
+`length()`.  This can be called on both arrays and vectors. It
+returns an `int` equal to the number of elements in the array or
+vector.  Calling `length()` on an array that has not been
+explicitly sized or attained an implicit size will provoke a
+compiler error.
+
+```glsl
+int[5] ns;
+int ns_len = ns.length();
+bool is_true = ns_len == 5;
+
+vec4 v;
+bool also_true = v.length() == 4;
+
+int[] unsized;
+int unsized_len = unsized.length(); // error
+```
+
+#### `,`
+
+This is the sequence operator, like C's. It operates on
+basic-typed expressions (including `void`). If there is a
+comma-separated list of such expressions, they are evaluated from
+left-to-right and the value of the rightmost expression is
+returned.
 
 ### Qualifiers
 
