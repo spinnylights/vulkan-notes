@@ -1844,7 +1844,7 @@ An expression evaluates to a value. Possible expressions are:
 * a series of expressions separated by commas.
 
 All expressions have a type, which is equal to the type of the
-value they evaluate to.
+value they evaluate to. This can be `void`.
 
 ### Statements
 
