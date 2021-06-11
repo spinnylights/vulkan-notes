@@ -7,14 +7,48 @@ body {
     line-height: 1.5em;
 }
 
-code {
+a:link {
+    color: #109231;
+}
+
+a:visited {
+    color: #697272;
+}
+
+a:link > code {
+    color: #1021a2;
+}
+
+a:visited > code {
+    color: #691272;
+}
+
+
+:not(a) > code {
     color: #000;
 }
 
+
+:not(pre) > code, pre {
+    /*background-color: #eaf7ea !important;*/
+    background-color: #fff !important;
+    border: 1px solid #95bb95;
+}
+
+:not(pre) > code {
+    padding: 0.125em 0.25em;
+    margin: 0 0.125em;
+}
+
 pre {
-    padding-bottom: 0 !important;
-    line-height: 1.1em;
+    padding: 1em;
+    line-height: 1em !important;
     overflow: hidden !important;
+}
+
+code {
+    font-size: 0.75em !important;
+    font-family: 'Fira Code', monospace !important;
 }
 
 .toc-above > li:last-child {
@@ -55,14 +89,6 @@ figcaption {
 .ul-arrow ul > ul,
 .ul-arrow li > ul {
     list-style-type: "➢";
-}
-
-a:link {
-    color: #109231
-}
-
-a:visited {
-    color: #697272
 }
 
 h1, h2, h3, h4, h5, h6 {

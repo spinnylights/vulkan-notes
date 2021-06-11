@@ -1701,13 +1701,13 @@ enable and disable debug annotations. It is off by default.
 The `#extension` directive can be used to enable GLSL extensions.
 It can be specified as
 
-```glsl
+```language-glsl
 #extension <extension_name> : <behavior>
 ```
 
 where `<extension_name>` is the name of an extension, or as
 
-```glsl
+```language-glsl
 #extension all : <behavior>
 ```
 
@@ -1724,7 +1724,7 @@ The order of `#extension` directives is significant: later
 directives will override earlier ones to the extent that they
 apply. The compiler initially behaves as if
 
-```glsl
+```language-glsl
 #extension all : disable
 ```
 
@@ -1919,7 +1919,7 @@ type is used.
 A default precision qualifier for signed integers can be set via
 the statement
 
-```glsl
+```language-glsl
 precision <precision_qualifier> int;
 ```
 
@@ -1960,7 +1960,7 @@ the coarsest precision allowed for).
 As with signed integers, single-precision floating point values
 can be assigned a default precision via
 
-```glsl
+```language-glsl
 precision <precision_qualifier> float;
 ```
 
@@ -2209,7 +2209,7 @@ That all sounds rather abstract and confusing, so let's consider
 an example. Say we have the following declaration in a GLSL
 vertex shader:
 
-```glsl
+```language-glsl
 layout(location = 1) in vec4 color;
 ```
 
@@ -2222,7 +2222,7 @@ vector with color information for each vertex (using
 [Eigen](https://eigen.tuxfamily.org/index.php?title=Main_Page)'s
 [`Vector4f`](https://eigen.tuxfamily.org/dox/group__matrixtypedefs.html)):
 
-```cpp
+```language-cpp
 // you can use SPIRV-Reflect
 // (https://github.com/KhronosGroup/SPIRV-Reflect)
 // to avoid the duplication here
@@ -2238,7 +2238,7 @@ and assume we've moved this data into a `VkBuffer` called
 `vert_colors_buff` and specified an offset into it for the draw
 call:
 
-```cpp
+```language-cpp
 VkBuffer vert_colors_buff;
 // copy vert_colors data into vert_colors_buff
 
@@ -2252,7 +2252,7 @@ the applicable vertex input binding. To make our color
 information available during vertex shading in this graphics
 pipeline, we can call
 
-```cpp
+```language-cpp
 vkCmdBindVertexBuffers(command_buff,
                        color_attr_n,         // the input binding to start with
                        1,                    // the number of bindings to update
