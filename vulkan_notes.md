@@ -1864,6 +1864,12 @@ generally the contents of a source file. A valid shader contains
 declarations, function definitions, and semicolons, although
 nothing at all is technically valid.
 
+After compilation, shaders can be linked together into a _shader
+executable_. One shader in the set must define a function `void
+main()`, which is used as the entry point for the executable.
+This function should take no parameters (i.e. its prototype could
+also be written `void main(void)`).
+
 ### Types
 
 Okay! Now we're getting somewhere. GLSL has a significantly
