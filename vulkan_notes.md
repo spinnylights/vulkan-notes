@@ -1567,25 +1567,73 @@ intersection shader can be used if the geometry is made of
 triangles, and any-hit shaders can be omitted. Miss shaders are
 run for rays that don't intersect the geometry.
 
-## GLSL
+## Shaders: Vulkan and GLSL
 
-This is a detailed discussion of the [OpenGL Shading
+We've mentioned shaders here and there, but what actually _is_ a
+shader? Speaking in general, a shader is a computer program
+written in a shading language, which is a programming language
+used to write shaders. Tautological? You betcha. It's hard to
+give a rigorous general definition of the term "shader" these
+days because although shaders usually run on GPUs, they don't
+have to, and although they're often used in the production of
+visual imagery, they aren't always. One thing that does stand out
+about them compared to other kinds of programs is that they're
+mainly intended to be run with hundreds or thousands of
+invocations operating in parallel, and synchronization between
+these invocations is generally the programmer's responsibility.
+
+Of course, Vulkan is more specific about what a shader is. The
+spec describes shaders as "[specifications of] programmable
+operations that execute for each vertex, control point,
+tessellated vertex, primitive, fragment, or workgroup in the
+corresponding stage(s) of the graphics and compute pipelines"
+(see [9.
+"Shaders"](https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html#shaders)).
+So, a vertex shader in Vulkan would be run for every vertex
+submitted to a graphics pipeline (see "Drawing" under "Command
+Buffers").
+
+Vulkan primarily supports shaders written in a language called
+[SPIR-V](https://www.khronos.org/registry/spir-v/specs/unified1/SPIRV.html),
+which is in a binary format and not meant to be written directly
+by humans. One of the reasons for this is so people can write
+their shaders in various higher-level languages that compile to
+SPIR-V. We're going to focus on one of these languages: the
+[OpenGL Shading
 Language](https://www.khronos.org/opengl/wiki/OpenGL_Shading_Language),
-or GLSL, from the perspective of use with Vulkan. It does not
-assume prior graphics programming experience, although it does
-assume knowledge of C and C++. In addition to [the GLSL
-spec](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.pdf),
-it interleaves information from the Vulkan spec, the [GLSL Vulkan
-extension
-spec](https://github.com/KhronosGroup/GLSL/blob/master/extensions/khr/GL_KHR_vulkan_glsl.txt),
-and the [OpenGL
-spec](https://www.khronos.org/registry/OpenGL/specs/gl/glspec46.core.pdf).
+or GLSL, and in particular its
+[Vulkan-flavored](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.pdf)
+variant.
 
-GLSL largely resembles a simplified version of C. The rules for
-declaring variables, defining functions, etc. are mostly the
-same, although it lacks pointers. However, it has stronger
-support for graphics-specific types and operations, as you might
-expect.
+Why GLSL? For one, it's specified by an open standard maintained
+by a non-profit. Anyone is free to make suggestions, point out
+problems, submit revisions, etc. to the spec and the maintainers
+will listen. Development of both the spec and the associated
+language tooling happens out in the open, and the tools are all
+free software. What's more, the non-profit that maintains GLSL
+just so happens to be the same one that maintains Vulkan, so
+they've both been designed to play nice together.
+
+What follows is a comprehensive discussion of GLSL from the
+perspective of use with Vulkan. It does not assume prior graphics
+programming experience, GLSL or otherwise, although it does
+assume knowledge of C and C++. It mainly collates information
+from the GLSL spec, the Vulkan spec, the GLSL Vulkan extension,
+and [the OpenGL
+spec](https://www.khronos.org/registry/OpenGL/specs/gl/glspec46.core.pdf)
+where applicable.
+
+GLSL is kind of like C with a light dusting of C++ here and there
+and stronger built-in support for linear algebra. If you're
+comfortable with both C and C++, picking up GLSL will be a breeze
+for you. It has some ideas all its own, but like C it's a pretty
+small language, so you won't have very far to travel.
+
+As it happens, GLSL has its own definition of "shader". To GLSL,
+"shader" is another term for "translation unit". "A computer
+program written in a shading language, which is a programming
+language used to write shaders"—we're already back where we
+started. How's that for circular reasoning?
 
 ### Character set
 
@@ -2948,22 +2996,7 @@ n = 1; // compiler error
 There are other storage qualifiers, but we will discuss them
 later on, as the applicable concepts come up.
 
-
 ## Shaders
-
-A shader is a computer program written in a shading language,
-which is a programming language used to write shaders.
-Tautological? You betcha. It's hard to give a rigorous definition
-of the term "shader" these days because although shaders usually
-run on GPUs, they don't have to, and although they're often used
-in the production of visual imagery, they aren't always. One
-thing that does stand out about them is that they're generally
-parallel by default; they're intended to be run with many
-invocations operating at once, and synchronization between these
-invocations is the programmer's responsibility. Shading languages
-also tend to include more built-in support for linear algebra
-than other kinds of programming langauges, and they tend to be
-C-like.
 
 In the context of Vulkan, the spec describes shaders as
 "[specifications of] programmable operations that execute for
