@@ -2285,6 +2285,10 @@ concepts.
 
 #### Declaration
 
+Declaring a variable brings it into scope. With the exception of
+implicitly-sized arrays, a variable cannot be redeclared once it
+is in scope.
+
 ##### Basic and opaque types
 
 Variables of one of the basic or opaque types are simply declared
@@ -2309,18 +2313,19 @@ Array variables are generally declared as described in "Arrays"
 earlier (`vec4 positions[10];` and so on). You may recall that
 the size is optional.
 
-Array variables can be redeclared after their initial declaration
-with a different size than before. If an array is declared
-unsized, it must be redeclared with an explicit size before the
-array can be indexed with anything aside from a constant integral
-expression (although indexing an unsized array _with_ a constant
-integral expression is permitted). The compiler will throw an
-error if you try to redeclare an array with a size equal to or
-smaller than the largest number used to index into it thus far in
-the shader.
+Implicitly-sized array variables can be redeclared after their
+initial declaration. If an array is declared unsized, it must be
+redeclared with an explicit size before the array can be indexed
+with anything aside from a constant integral expression (although
+indexing an unsized array _with_ a constant integral expression
+is permitted). The compiler will throw an error if you try to
+redeclare an array with a size equal to or smaller than the
+largest number used to index into it thus far in the shader. Once
+redeclared with an explicit size, the array variable cannot be
+redeclared.
 
-Once an array has been sized, the compiler will throw an error if
-you try to index into it outside its bounds.
+The compiler will throw an error if you try to index into an
+explicitly-sized array outside its bounds.
 
 ##### Structs
 
@@ -2477,10 +2482,26 @@ sort of confusion.
 A variable's scope depends on where it is declared. If it is
 declared at the top level (i.e. outside of any function
 definition), it has global scope, and is available anywhere in
-the shader. However, its scope can be restricted if it is
-declared within a function definition, a loop body, a conditional
-expression, etc. We will describe these rules as we discuss the
-applicable concepts.
+the shader. It is also available immediately after being declared
+and no earlier, such that constructions like
+
+```glsl
+int x = 1, y = x;
+int two = x + y;
+
+struct meow {
+    float meow;
+}
+meow meow = meow(1000.0);
+```
+
+and the like are permissible.
+
+If a variable is declared within a compound statement, it is only
+available within that compound statement. Its scope can also be
+restricted if it is declared within a function definition, a loop
+body, a conditional expression, etc.; we will describe these
+rules as we discuss the applicable concepts.
 
 ### Operators
 
@@ -2688,6 +2709,8 @@ Any Boolean expression can be used within the parentheses. The
 braces are optional (they're just the normal compound statement
 braces). I always use them for the sake of readability, though.
 
+Each branch of a conditional construction has its own scope.
+
 ##### `switch`
 
 GLSL also supports a `switch` statement akin to C's, with
@@ -2714,6 +2737,10 @@ In practice, this would not actually compile as written, as empty
 `case` branches are not permitted. The expression in parentheses
 and those for each `case` must evaluate to scalar integers, and
 the `case` expressions must be constant.
+
+A `switch` statement forms a new scope. The `case` branches do
+not establish a new scope on their own, but of course they allow
+for compound statements if this is desired.
 
 #### Looping
 
@@ -2787,16 +2814,17 @@ their sleeve that C functions do not, however.
 #### Declaration and definition
 
 Like variables (and like C functions), functions can be declared
-and defined separately or together. A function declaration
-consists of its prototype followed by a semicolon. A function
-prototype consists of a type specifier, an identifier, `(`, zero
-or more parameter declarations separated by commas, and `)`, in
-that order. A parameter declaration consists of zero or more
-qualifiers, a type name, an optional identifier, and optional
-array brackets and sizes if applicable. A function definition
-consists of a function prototype, `{`, a list of statements, and
-`}`. That might seem like a lot to keep track of, but it's mostly
-the same as the C syntax.
+and defined separately or together. Both must be done at the top
+level (i.e. in the global scope for the shader). A function
+declaration consists of its prototype followed by a semicolon. A
+function prototype consists of a type specifier, an identifier,
+`(`, zero or more parameter declarations separated by commas, and
+`)`, in that order. A parameter declaration consists of zero or
+more qualifiers, a type name, an optional identifier, and
+optional array brackets and sizes if applicable. A function
+definition consists of a function prototype, `{`, a list of
+statements, and `}`. That might seem like a lot to keep track of,
+but it's mostly the same as the C syntax.
 
 ```glsl
 uint meow(const int, bool);
@@ -2870,11 +2898,11 @@ similar to C++'s (see [6.1 "Function
 Definitions"](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#function-definitions)
 in the GLSL spec if you want the exhaustive treatment).
 
-Like variables, functions can be redeclared and redefined. This
-includes built-in functions. If a shader redeclares a built-in
-function, the linker will only attempt to resolve calls to it
-within that shader and the set of shaders linked to it (i.e. it
-will not resolve the call to the built-in definition).
+Functions can be redeclared and redefined. This includes built-in
+functions. If a shader redeclares a built-in function, the linker
+will only attempt to resolve calls to it within that shader and
+the set of shaders linked to it (i.e. it will not resolve the
+call to the built-in definition).
 
 Recursion is not supported in any capacity, sadly.
 
