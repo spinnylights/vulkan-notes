@@ -2662,6 +2662,123 @@ We'll discuss it later on.
 
 This is used to leave functions; we'll discuss it shortly.
 
+### Functions
+
+At last!! We're really getting somewhere now.
+
+A function is essentially a list of statements that, when called,
+are evaluated as an expression. They can accept parameters that
+are treated like variables in the statement list and for which
+concrete values are substituted in at call time. In other words,
+they're quite similar to functions in C (although there are no
+function pointers, sadly…). They have a variety of tricks up
+their sleeve that C functions do not, however.
+
+#### Declaration and definition
+
+Like variables (and like C functions), functions can be declared
+and defined separately or together. A function declaration
+consists of its prototype followed by a semicolon. A function
+prototype consists of a type specifier, an identifier, `(`, zero
+or more parameter declarations separated by commas, and `)`, in
+that order. A parameter declaration consists of zero or more
+qualifiers, a type name, an optional identifier, and optional
+array brackets and sizes if applicable. A function definition
+consists of a function prototype, `{`, a list of statements, and
+`}`. That might seem like a lot to keep track of, but it's mostly
+the same as the C syntax.
+
+```glsl
+uint meow(const int, bool);
+
+uint meow(const uint count, bool cow)
+{
+    uint meows = 0;
+    for (; meows < count; ++meows) {
+        emit_meow();
+    }
+
+    if (cow) {
+        return 0;
+    } else {
+        return meows;
+    }
+}
+```
+
+As you can see, the function body can include the keyword
+`return`, which can be followed by a value. When the function is
+called, `return` causes the function to exit immediately and for
+the function call expression to evaluate to the returned value
+(if any). The value `return`ed should either match the type the
+function was declared with or have an implicit conversion to it.
+As in C, functions can be of `void` type, in which case they
+don't need to `return` (although they can if they want to exit
+early).
+
+You may recall from "Shaders" that one function in a shader
+executable must have a function with prototype `void main()`,
+which is used as the entry point for the executable. This
+function is allowed to use `return`, which will cause an early
+exit from the executable if encountered before the end of the
+function.
+
+As you may have noticed, arrays are both accepted as parameters
+and make for a valid return type. They must be explicitly sized
+in both cases, though. Structures are also allowed as both
+parameters and as a return type.
+
+Only a precision qualifier (like `lowp`) can be applied to the
+return type of a function. Function parameters can be specified
+with parameter, precision, and memory qualifiers.
+
+In place of pointers or references, the qualifiers `in`, `out`,
+and `inout` can be applied to parameters. Specifying `in` is the
+same as not specifying any of the three; it means the argument
+will be copied in but not out, i.e. pass-by-value. `inout` is
+similar to pass-by-reference; a local copy of the argument will
+be made for the body of the function and any changes to it will
+be written to the original variable when the function exits.
+`out` means that the passed-in value of the parameter is ignored,
+but its value at return time will be copied back into the
+variable in question; this is preferable to `inout` in efficiency
+terms if the initial value isn't needed.
+
+Overloads are supported. As in C++, the return type and function
+name must be the same, and the parameters must differ. The rules
+for finding a best match given a set of parameters are also
+similar to C++'s (see [6.1 "Function
+Definitions"](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#function-definitions)
+in the GLSL spec if you want the exhaustive treatment).
+
+Like variables, functions can be redeclared and redefined. This
+includes built-in functions. If a shader redeclares a built-in
+function, the linker will only attempt to resolve calls to it
+within that shader and the set of shaders linked to it (i.e. it
+will not resolve the call to the built-in definition).
+
+Recursion is not supported in any capacity, sadly.
+
+#### Calling
+
+The syntax for a function call is the function's name, `(`, zero
+or more assignment expressions (see "Assignment"), optionally
+`void` in place of any assignment expressions, and `)`, in that
+order.
+
+```glsl
+void fill_arr(out float[10]);
+
+float[] arr;
+
+fill_arr(arr);
+```
+
+Naturally, the assignment expressions will be used to assign a
+value to each corresponding parameter in the body of the
+function. As described above, a function call is an expression
+which evaluates to the value returned after the call is executed.
+
 ### Qualifiers
 
 #### Storage qualifiers
