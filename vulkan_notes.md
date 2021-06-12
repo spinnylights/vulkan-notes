@@ -2854,6 +2854,15 @@ but its value at return time will be copied back into the
 variable in question; this is preferable to `inout` in efficiency
 terms if the initial value isn't needed.
 
+```glsl
+void fill_arr(out float[10] arr)
+{
+    for (uint i = 0; i < arr.length(); ++i) {
+        arr[i] = i;
+    }
+}
+```
+
 Overloads are supported. As in C++, the return type and function
 name must be the same, and the parameters must differ. The rules
 for finding a best match given a set of parameters are also
