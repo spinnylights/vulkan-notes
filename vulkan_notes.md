@@ -2160,7 +2160,7 @@ in the SPIR-V spec).
 ### Implicit conversions between types
 
 GLSL has a variety of implicit conversions that will be performed
-in some cases, such during assignment. You can view the complete
+in some cases, such as during assignment. You can view the complete
 list at [4.1.10 "Implicit
 Conversions"](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#basic-types)
 in the GLSL spec.
