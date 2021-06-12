@@ -1839,6 +1839,7 @@ An expression evaluates to a value. Possible expressions are:
 * a bit shift or arithmetic operation,
 * an increment/decrement expression,
 * a function call,
+* the use of a constructor,
 * a field selection or array indexing operation,
 * various nested combinations of the above, or,
 * a series of expressions separated by commas.
@@ -2176,8 +2177,104 @@ All the implicit conversions defined are for basic types. There
 aren't any for array or struct types.
 
 When implicit conversion does occur, it follows the same rules as
-with explicit conversion. We'll cover that when we get to
+with explicit conversion via constructors.
+
+### Constructors
+
+Constructors provide for explicit type conversion and give a way
+to build up anonymous values on the fly, overlapping with some
+uses of both initializer lists and casts in C++. The syntax for
+using a constructor is a type specifier, `(`, one or more
+assignment expressions, and `)`, e.g. `int(1.0)` or
+`bool[4](true, false, true, false)`.
+
+#### Scalars
+
+The basic scalar types (`int`, `uint`, `float`, `double`, and
+`bool`) all support conversions between each other via
 constructors.
+
+When constructing an integer from a floating point value, the
+fractional part is dropped. Constructing a `uint` from a negative
+floating point value is undefined.
+
+Constructing a floating point value from an integer when the
+integer value has more bits of precision than allowed for by the
+mantissa of the floating point type in question will lose
+precision in the conversion, as is typical.
+
+Converting between `int` and `uint` will preserve the bit
+pattern, so the logical value will change accordingly.
+
+When constructing a bool from a value of any of the other scalar
+types, `0` and `0.0` produce `false`, and any other value
+produces `true`. Going the other direction, `false` produces `0`
+or `0.0`, and `true` produces `1` or `1.0`.
+
+Constructing a scalar from a vector or array will work with the
+first element of the argument.
+
+```glsl
+float(bvec2(true, false)) == 1.0;
+```
+
+#### Vectors and matrices
+
+Vectors and matrices can be constructed from a set of scalars,
+vectors, or matrices.
+
+When constructing a vector from a single scalar value, the value
+will be used to initialize every component of the vector.
+
+When constructing a matrix from a single scalar value, the value
+will be used to initialize every component on the matrix's
+diagonal, with the other components set to `0.0`.
+
+When constructing a vector from a list of scalars and/or vectors
+and/or matrices (they can be mixed), each component of each
+argument will be consumed from left-to-right (matrix components
+in column-major order) until the new vector is filled. This also
+works for constructing matrices, except that using matrices in
+the argument list is not allowed, and the number of components in
+the arguments must exactly match the number of components in the
+new matrix.
+
+When constructing a matrix from another matrix, each component in
+the argument that corresponds by row and column to a component in
+the new matrix will be used to initialize that component. Any
+remaining uninitialized components will be initialized from the
+identity matrix for the type of the new matrix.
+
+The scalar conversion rules above will be used to construct the
+individual components of the new vector or matrix if the types of
+the components in the arguments don't match theirs.
+
+#### Structures
+
+After a structure type has been named and defined, values of it
+can be made via a constructor. The rules for the arguments
+correspond to those for structure initializer lists.
+
+#### Arrays
+
+An array type specifier (such as `float[5]`) can be used as the
+name of a constructor to construct arrays of that type. The rules
+for the arguments correspond to those for array initializer
+lists.
+
+#### Texture-combined samplers
+
+Texture-combined samplers (e.g. `sampler2D`) can be constructed
+from a texture (e.g. `texture2D`) and a `sampler` or
+`samplerShadow`, in that order. However, there are significant
+limitations on their use: the new sampler can _only_ be used as
+an argument to a function, meaning it cannot be assigned to a
+variable or used in any control flow constructs. The
+dimensionality of the texture type of the first argument must
+correspond to that of the new sampler. Shadow mismatches are
+allowed between the second argument and the new constructor (i.e.
+`samplerCubeShadow(textureCube, sampler)` is a valid "constructor
+prototype").
 
 ### Variables
 
@@ -2275,14 +2372,15 @@ Here are some examples (presuming these variables have already
 been declared):
 
 ```glsl
-n        = 6;
-n_copy   = n;
-never    = 1 == 0;
-always   = true ? true : false;
-max      = (1u + 1u) << 31;
-after    = ++before;
-one      = cos(0);
-swizzled = face.xywz;
+n      = 6;
+n_copy = n;
+never  = 1 == 0;
+always = true ? true : false;
+max    = (1u + 1u) << 31;
+after  = ++before;
+one    = cos(0);
+green  = vec4(0.0, 1.0, 0.0, 1.0);
+red    = green.grba;
 ```
 
 If a variable has not been declared as `const`, it can be
@@ -2310,14 +2408,15 @@ a variable by adding an `=` after the identifier and supplying an
 assignment expression (described above) before the semicolon.
 
 ```glsl
-int    n        = 6;
-int    n_copy   = n;
-bool   never    = 1 == 0;
-bool   always   = true ? true : false;
-uint   max      = (1u + 1u) << 31;
-double after    = ++before;
-float  one      = cos(0);
-vec4   swizzled = face.xywz;
+int    n      = 6;
+int    n_copy = n;
+bool   never  = 1 == 0;
+bool   always = true ? true : false;
+uint   max    = (1u + 1u) << 31;
+double after  = ++before;
+float  one    = cos(0);
+vec4   green  = vec4(0.0, 1.0, 0.0, 1.0);
+vec4   red    = green.grba;
 ```
 
 Vectors, matrices, arrays, and structs can also be initialized
@@ -2400,7 +2499,7 @@ across parentheses.
 
 #### `()` (function call, constructor)
 
-Covered later in their own sections.
+Covered in their own sections.
 
 #### `+`, `-`, `*`, `/`, `%`
 
@@ -2629,8 +2728,7 @@ for (uint i = 0; i < v4.length(); ++i) {
     v4[i] = i;
 }
 
-vec4 v4_2 = { 0.0, 1.0, 2.0, 3.0 };
-bool is_true = v4 == v4_2;
+bool is_true = v4 == vec4(0.0, 1.0, 2.0, 3.0);
 ```
 
 ##### `while`
