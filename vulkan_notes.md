@@ -2533,9 +2533,9 @@ v4.zw = v2;
 There is a method call operator `.` with only one use,
 `length()`. This can be called on both arrays and vectors. It
 returns an `int` equal to the number of elements in the array or
-vector. Calling `length()` on an array that has not been
-explicitly sized or attained an implicit size will provoke a
-compiler error.
+vector (I have no idea why it does not return a `uint`). Calling
+`length()` on an array that has not been explicitly sized or
+attained an implicit size will provoke a compiler error.
 
 ```glsl
 int[5] ns;
