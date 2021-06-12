@@ -2150,6 +2150,12 @@ can be declared (e.g. `float[5][3]`, meaning a 5-element array of
 `float[3]`). However, arrays are homogeneous; all elements must
 be the same type.
 
+The maximum size of an array is implementation-defined; it is not
+formally restricted in any general sense (see "Array" under
+[2.2.2
+"Types"](https://www.khronos.org/registry/spir-v/specs/unified1/SPIRV.html#_types)
+in the SPIR-V spec).
+
 ### Implicit conversions between types
 
 GLSL has a variety of implicit conversions that will be performed
