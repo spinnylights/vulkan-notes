@@ -2321,10 +2321,9 @@ vec4   swizzled = face.xywz;
 ```
 
 Vectors, matrices, arrays, and structs can also be initialized
-using an _initializer list_ (this is only permitted during
-initialization). As in C, the syntax is an open brace (`{`),
-assignment expressions or initializer lists separated by commas,
-and a close brace (`}`).
+using an _initializer list_. As in C++, the syntax is an open
+brace (`{`), assignment expressions or initializer lists
+separated by commas, and a close brace (`}`).
 
 ```glsl
 ivec4 ns = { 0, 1, 2, 3 };
@@ -2354,6 +2353,13 @@ struct mat {
 When assigning the elements of the initializer list to the
 elements or fields they apply to, the rules described above in
 "Assignment" apply.
+
+In GLSL, initializer lists can _only_ be used in formal
+initialization (i.e. as part of a declaration statement). This of
+course stands in contrast to C++, where an initializer list can
+be used to initialize an unnamed temporary for a function argument
+or the like. Constructors in GLSL help to make up for this
+limitation (see "Constructors" below).
 
 It is worth noting that GLSL has a sequence operator (`,`) with
 similar behavior to C's. As a result, initializing multiple
