@@ -17,7 +17,7 @@ fairly _explicit_ API: its functions are precisely-defined and
 narrow in scope, by and large. However, much of its design comes
 from a relatively subjective place of trying to give graphics
 developers control over what they have voiced a desire to have
-control over.  The explicitness is perhaps not so much in the
+control over. The explicitness is perhaps not so much in the
 name of closely representing the design of graphics hardware as
 it is in making the behavior of Vulkan operations predictable to
 developers, especially in performance terms, and in letting them
@@ -105,7 +105,7 @@ initial setup:
    needs to be generated from any physical devices that need to
    be interacted with. A logical device is an abstract
    representation of a physical device that we can actually send
-   drawing commands to, allocate memory with, etc.  In order to
+   drawing commands to, allocate memory with, etc. In order to
    create a logical device, we need to specify what
    [queues](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#devsandqueues-queues)
    we are going to create along with it (see "Queues" below).
@@ -167,12 +167,12 @@ with the remaining steps constituting its "runtime".
    to an image, the application requests an image from the
    swapchain, queues up a set of drawing commands on a logical
    device queue, and then presents the image to the queue for
-   processing.  Swapchains facilitate synchronization with the
+   processing. Swapchains facilitate synchronization with the
    refresh rate of the display, and can be used to implement
    techniques like double and triple buffering.
 
    A swapchain will need to be set up at least once, but can be
-   long-lived under some circumstances.  However, because it is
+   long-lived under some circumstances. However, because it is
    associated with a surface, it needs to be reconstructed if the
    surface changes, such as during a window resize.
 
@@ -627,7 +627,7 @@ If a synchronization command **S** has synchronization scopes
 **S₁** and **S₂**, and is submitted just after a set of
 operations **A** and just before a set of operations **B**, it
 creates a dependency between the operations in **A∩S₁** and those
-in **B∩S₂**. Any other operations are not synchronized.  This
+in **B∩S₂**. Any other operations are not synchronized. This
 allows synchronization to be specified quite precisely, but also
 means that care must be taken to ensure that operations that need
 to be synchronous are actually run that way. The synchronization
@@ -727,7 +727,7 @@ by the wait operation.
 
 These properties allow a single timeline semaphore to track and
 appropriately synchronize the progress of an application through
-a complex chain of batches.  For this reason, the Khronos Group
+a complex chain of batches. For this reason, the Khronos Group
 [recommends](https://www.khronos.org/blog/vulkan-timeline-semaphores)
 that timeline semaphores be used "for all coarse-grained
 synchronization purposes" when possible as a single timeline
@@ -1215,7 +1215,7 @@ likewise.
 
 Vulkan pipelines represent a set of operations for the GPU to
 perform. They come in three variants: _graphics_, _compute_, and
-_ray tracing_.  They are where you attach your shaders, and where
+_ray tracing_. They are where you attach your shaders, and where
 you configure the interactions between shader invocations.
 
 From a certain perspective, the pipeline is the "heart" of
@@ -1230,7 +1230,7 @@ help bring everything into focus.
 ### Initialization
 
 The creation of each variant has unique aspects which we will
-cover separately. However, they also have aspects in common.  For
+cover separately. However, they also have aspects in common. For
 one, they all require a logical device and support custom
 allocation callbacks. Their other common aspects are more
 particular to pipelines.
@@ -1411,7 +1411,7 @@ GPUs excel at linear algebra, owing to their highly parallel
 nature and large number of cores. If you need to perform a
 relatively simple operation over a large matrix, doing it on the
 GPU with a compute shader may be faster than doing it on the CPU,
-even if the CPU code is properly multithreaded.  Furthermore, the
+even if the CPU code is properly multithreaded. Furthermore, the
 shader code needed to perform the desired operation may be much
 simpler to write than the equivalent CPU code; GPUs are intended
 for this particular use case, and their interfaces reflect this.
@@ -1521,7 +1521,7 @@ high-end GPUs.
 
 Ray tracing pipelines are designed for simulating the behavior of
 light at a high level of detail by tracing the paths of "beams"
-of light as they travel through a scene's geometry.  They are
+of light as they travel through a scene's geometry. They are
 created via
 [`vkCreateRayTracingPipelinesKHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateRayTracingPipelinesKHR.html).
 As you might guess from the suffix, they were introduced as a
@@ -1815,7 +1815,7 @@ There are no character or string literals.
 
 Identifiers are used to name variables, functions, and
 structures, and as field selectors for components of vectors and
-matricies.  They are formed from the alphanumeric and underscore
+matricies. They are formed from the alphanumeric and underscore
 characters, except that they cannot start with a digit.
 
 In general, identifiers starting with "`gl_`" are reserved, and
@@ -2056,7 +2056,7 @@ floating point 2D multisample texture, etc.
 These are handles for accessing images, i.e. all or a part of a
 single level of a texture. They are specified just like
 texture-combined samplers but with the string `image` substituted
-for `sampler`.  For example, `uimage2D` is for an unsigned
+for `sampler`. For example, `uimage2D` is for an unsigned
 integer 2D image.
 
 ##### Textures
@@ -2519,9 +2519,9 @@ v4.zw = v2;
 #### `.` (method call)
 
 There is a method call operator `.` with only one use,
-`length()`.  This can be called on both arrays and vectors. It
+`length()`. This can be called on both arrays and vectors. It
 returns an `int` equal to the number of elements in the array or
-vector.  Calling `length()` on an array that has not been
+vector. Calling `length()` on an array that has not been
 explicitly sized or attained an implicit size will provoke a
 compiler error.
 
