@@ -2540,16 +2540,11 @@ A variable's scope depends on where it is declared. If it is
 declared at the top level (i.e. outside of any function
 definition), it has global scope, and is available anywhere in
 the shader. It is also available immediately after being declared
-and no earlier, such that constructions like
+and no earlier, such that silly constructions like
 
 ```glsl
 int x = 1, y = x;
 int two = x + y;
-
-struct meow {
-    float meow;
-}
-meow meow = meow(1000.0);
 ```
 
 and the like are permissible.
