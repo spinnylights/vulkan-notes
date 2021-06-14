@@ -3159,6 +3159,60 @@ each, you can link them together into one module with `spirv-link`
 and select the right entry points from it for each pipeline stage
 during pipeline creation on the Vulkan side.
 
+### Vulkan shader linkage
+
+There are actually two different kinds of linkage at play when
+talking about GLSL and Vulkan. Thus far in our discussion of
+GLSL, we've mainly meant the kind of linkage we just discussed
+above—linking one or more shaders together into a shader
+executable, like what glslang does. However, Vulkan also uses the
+term "link" when talking about what happens when multiple shader
+executables are linked together in the context of a pipeline.
+That's what we're going to focus on for the rest of our
+discussion of GLSL. We keep referring to shaders taking in data
+from the outside world and passing it on afterwards—now we can
+explore how that actually happens.
+
+#### Modules
+
+Once you've got your shaders ready, you can get them into Vulkan
+via _shader modules_, represented by `VkShaderModule`. The
+function to create a shader module is
+[`vkCreateShaderModule()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateShaderModule.html).
+This utilizes a
+[`VkShaderModuleCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkShaderModuleCreateInfo.html),
+which mainly takes a pointer to the code and the size of the code
+in bytes. If you are using a validation cache, you can add it to
+this struct's `pNext` chain to make use of it with the module in
+question (see "Validation cache" below for the specifics).
+
+All the pipeline creation functions take at least one
+`VkPipelineShaderStageCreateInfo`. This is where you can put your
+`VkShaderModule` in order to join it to the appropriate pipeline
+stage. (See "Initialization" under "Pipelines" for more on this.)
+
+To destroy a shader module, use
+[`vkDestroyShaderModule()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroyShaderModule.html).
+It's okay to call this while pipelines created with the module in
+question are still in use.
+
+#### Passing data around
+
+Each pipeline establishes certain interfaces between the rest of
+Vulkan and the pipeline, by which data can travel in and out.
+They also establish ways that shader invocations can pass data
+around between each other. The shaders themselves also have ways
+of defining interfaces between their interior and the larger
+world, as we've mentioned. Finally, pipelines need to be joined
+to a command buffer for you to make use of them, possibly within
+a render pass, and this process provides various ways of getting
+other Vulkan objects into the same context as the pipeline so
+that its shaders can ultimately work with them. All of these
+domains need to collaborate, so even though we're going to get
+back to GLSL from here on out, we'll take frequent trips over to
+the Vulkan side to talk about how to set things up appropriately
+over there based on what you might be doing in your shaders.
+
 ### Qualifiers
 
 #### Storage qualifiers
