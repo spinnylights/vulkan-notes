@@ -2472,6 +2472,15 @@ vec4   green  = vec4(0.0, 1.0, 0.0, 1.0);
 vec4   red    = green.grba;
 ```
 
+Variables are mutable by default. However, they can be made
+immutable after initialization by adding the storage qualifier
+`const` before the type name:
+
+```glsl
+const int n = 0;
+n = 1; // compiler error
+```
+
 Vectors, matrices, arrays, and structs can also be initialized
 using an _initializer list_. As in C++, the syntax is an open
 brace (`{`), assignment expressions or initializer lists
