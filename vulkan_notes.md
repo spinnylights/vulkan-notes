@@ -2229,11 +2229,11 @@ with explicit conversion via constructors.
 
 ### Constructors
 
-Constructors provide for explicit type conversion and give a way
-to build up anonymous values on the fly, overlapping with some
-uses of both initializer lists and casts in C++. The syntax for
-using a constructor is a type specifier, `(`, one or more
-assignment expressions, and `)`, e.g. `int(1.0)` or
+Constructors provide for explicit, well-behaved type conversion
+and give a way to build up anonymous values on the fly,
+overlapping with some uses of both initializer lists and casts in
+C++. The syntax for using a constructor is a type specifier, `(`,
+one or more assignment expressions, and `)`, e.g. `int(1.0)` or
 `bool[4](true, false, true, false)`.
 
 #### Scalars
