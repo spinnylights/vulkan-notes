@@ -3215,25 +3215,103 @@ over there based on what you might be doing in your shaders.
 
 ### Qualifiers
 
+Qualifiers are keywords used in declarations before the type name
+that have some effect on how the subject of the declaration is or
+can be handled. We've already encountered some of them, like
+`lowp` and `inout`. However, we've delayed a comprehensive
+discussion of them until now because they play a major role
+in how your shader interfaces with the outside world. Since we've
+laid the groundwork, we can now discuss them.
+
 #### Storage qualifiers
 
 When declaring a variable, a single storage qualifier can be
 specified before the type name, which can determine aspects of
 the variable's mutability, linkage, and interpolation strategy.
+There are also a few auxiliary storage qualifiers that can be
+specified along with a storage qualifier.
 
-If no qualifier is specified, the variable is local to the shader
-and mutable.
+As we've already discussed, if no qualifier is specified, the
+variable is local to the shader and mutable. If `const` is
+specified, the variable is local to the shader and immutable
+after initialization. The rest of the storage qualifiers are new
+to us.
 
-If `const` is specified, the variable is local to the shader and
-immutable after initialization.
+##### Input variables
 
-```glsl
-const int n = 0;
-n = 1; // compiler error
-```
+Global variables can be declared with the storage qualifier `in`.
+This indicates that the variable will get its value from outside,
+such as from a previous pipeline stage. The compiler will throw
+an error if you try to write to a variable declared this way.
 
-There are other storage qualifiers, but we will discuss them
-later on, as the applicable concepts come up.
+You can declare an input variable that doesn't actually get
+written to by anything as long as you don't try to read from it.
+If you do try to read from it and a prior stage hasn't declared
+it, you will get a link-time error; if a prior stage has declared
+it but hasn't written to it, its contents will be undefined.
+
+###### In the vertex shader
+
+Vertex shader inputs are all per-vertex, and the vertex data has
+to be passed in from the Vulkan side. We'll talk about this in
+more detail when we discuss the qualifier `layout`.
+
+Vertex shader inputs cannot be or contain a value of Boolean,
+opaque, or structure type.
+
+Graphics hardware tends to only support a relatively small number
+of vertex inputs. You can query the exact number via
+`VkPhysicalDeviceLimits`; my graphics card supports 32 of them,
+as an example. Scalars and vectors count against this limit
+equally, so you may want to pack unrelated scalars into a vector
+before sending them into the vertex shader. Matrices count
+multiple times, once for each column.
+
+###### In the tessellation control, evaluation, and geometry shaders
+
+Each of these shaders in turn receives per-vertex values written
+by the prior stage. Since they all operate on sets of vertices,
+each (non-`patch`) input should be an array; each element will
+correspond to one of the vertices. It is permitted, but not
+required, to set an explicit size for these arrays. The geometry
+shader's inputs will be sized according to the type of primitive
+it receives.
+
+The tessellation evaluation shader can use the auxiliary storage
+qualifier `patch` on its inputs. This indicates that the input
+will be set per-patch instead of per-vertex, and thus is not
+required to be an array. The matching outputs of the tessellation
+control shader must be declared in the same way.
+
+These stages cannot have inputs of or containing a value of
+Boolean or opaque type.
+
+###### In the fragment shader
+
+Fragment shader inputs are per-fragment. They are typically
+interpolated from the outputs of the previous stage, and support
+the interpolation qualifiers `flat`, `noperspective`, and
+`smooth`, in addition to the auxiliary storage qualifiers
+`centroid` and `sample`. We'll discuss all of this in more detail
+in the section "Interpolation qualifiers".
+
+A fragment shader cannot have inputs of or containing a value of
+Boolean or opaque type.
+
+Fragment shaders receive their inputs from the last active vertex
+processing stage (vertex, tessellation evaluation, or geometry).
+Therefore, whichever stage this is should match its outputs with
+the inputs of the fragment shader. There is no need for the
+previous stages to match the interpolation or auxiliary storage
+qualifiers of the fragment shader's inputs, though.
+
+###### In the compute shader
+
+Compute shaders don't support input variables (except for the
+ones they have built-in). They have to get their data through
+other means.
+
+
 
 ## Shaders
 
