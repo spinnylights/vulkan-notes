@@ -2520,7 +2520,7 @@ initialization (i.e. as part of a declaration statement). This of
 course stands in contrast to C++, where an initializer list can
 be used to initialize an unnamed temporary for a function argument
 or the like. Constructors in GLSL help to make up for this
-limitation (see "Constructors" below).
+limitation (see "Constructors").
 
 It is worth noting that GLSL has a sequence operator (`,`) with
 similar behavior to C's. As a result, initializing multiple
