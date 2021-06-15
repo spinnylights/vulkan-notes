@@ -3361,6 +3361,36 @@ Since uniform variables all exist in a single global namespace at
 link time, they need to be declared with the same name, type,
 etc. in any shader that makes use of them.
 
+##### Shared variables
+
+Compute shaders can use the storage qualifier `shared` to declare
+global variables that have shared storage across all invocations
+in the same workgroup.
+
+`shared` variables should not be declared with an initializer; as
+such, their contents are undefined at the time of declaration.
+Any data written to them after that point will be visible to
+the other invocaitons.
+
+Access to these variables is coherent across invocations.
+However, it is not inherently synchronous; access to them should
+be synchronized with `barrier()` if needed.
+
+There is a limit to how much memory can be allocated for shared
+variables on a given device. This is specified in bytes in
+`VkPhysicalDeviceLimits` under `maxComputeSharedMemorySize`. On
+my run-of-the-mill graphics card, this is ~50kB. For shared
+variables declared in a uniform block, you can determine their
+layout in memory by the rules in [15.6.4 "Offset and Stride
+Assignment"](https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/chap15.html#interfaces-resources-layout)
+in the Vulkan spec. The amount of storage consumed by shared
+variables not declared in a block is implementation-dependent,
+but cannot be more than would be consumed if all the non-block
+shared variables were laid out in a block with the smallest
+possible valid offset following the [standard buffer
+layout](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#interfaces-resources-standard-layout)
+rules in "Offset and Stride Assignment".
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
