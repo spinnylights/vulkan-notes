@@ -3347,7 +3347,19 @@ Compute shaders don't support input or output variables (except
 for a few built-in inputs). They have to interface with the
 outside world through other means.
 
+##### Uniform variables
 
+Variables declared in a block can take the storage qualifier
+`uniform` to indicate that they are initialized from the Vulkan
+side. Such variables are read-only and will have the same value
+across every invocation interacting with the same primitive.
+
+`uniform` can be used with variables of basic or structure type,
+or arrays of these types.
+
+Since uniform variables all exist in a single global namespace at
+link time, they need to be declared with the same name, type,
+etc. in any shader that makes use of them.
 
 ## Shaders
 
