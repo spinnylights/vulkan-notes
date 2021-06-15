@@ -256,6 +256,61 @@ with the remaining steps constituting its "runtime".
    [`VkCommandBuffer`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCommandBuffer.html)s;
    see below.
 
+## Loading function pointers
+
+If you're dynamically loading the Vulkan library, you'll need to
+retrieve pointers to its functions at runtime. This is not a bad
+idea, [for both compatability and performance
+reasons](https://gpuopen.com/learn/reducing-vulkan-api-call-overhead/).
+Even if you link to Vulkan, though, functions enabled by
+extensions may not be immediately available; you may need to get
+pointers to them after you've enabled the relevant extension.
+
+There are two different functions used for this purpose,
+[`vkGetInstanceProcAddr()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetInstanceProcAddr.html)
+and
+[`vkGetDeviceProcAddr()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetDeviceProcAddr.html).
+`vkGetInstanceProcAddr()` is used to load functions that take a
+`VkInstance` as their first argument, whereas
+`vkGetDeviceProcAddr()` is used to load functions that take a
+`VkDevice` as their first argument.  You can actually use
+`vkGetInstanceProcAddr()` for everything, but using
+`vkGetDeviceProcAddr()` for the relevant functions avoids some
+overhead.
+
+You might worry that there's a chicken-and-egg problem with
+`vkGetInstanceProcAddr()`. After all, if it requires a
+`VkInstance`, how will you get a pointer to `vkCreateInstance()`
+so you can make one first? Luckily, `vkGetInstanceProcAddr()`
+will still return pointers to a few functions even if `instance`
+is null, and `vkCreateInstance()` is one of them.
+`vkEnumerateInstanceLayerProperties()` and
+`vkEnumerateInstanceExtensionProperties()` are too, which is
+handy, as we'll see shortly (check the spec for the full list).
+
+Pointers returned by the `*ProcAddr()` functions are of type
+`PFN_vkVoidFunction`, and must be cast to the right function
+pointer type before use. In C++, this regrettably requires
+`reinterpret_cast` (one argument in favor of using
+[`Vulkan-Hpp`](https://github.com/KhronosGroup/Vulkan-Hpp)). To
+save you the trouble of typing out the right function pointer
+type, the Vulkan headers define `PFN_*` types for all the
+functions in the API (i.e. `vkCreateInstance()`'s would be
+`PFN_vkCreateInstance`). Very nice of them!
+
+Depending on how you dynamically load Vulkan, you may not have
+`vkGetInstanceProcAddr()` right away. If you're using SDL, after
+either calling
+[`SDL_Vulkan_LoadLibrary()`](https://wiki.libsdl.org/SDL_Vulkan_LoadLibrary)
+or creating a window with the `SDL_WINDOW_VULKAN` flag, you can
+use
+[`SDL_Vulkan_GetVkGetInstanceProcAddr()`](https://wiki.libsdl.org/SDL_Vulkan_GetVkInstanceProcAddr)
+to get a pointer to it. If you're using GLFW,
+[`glfwGetInstanceProcAddress()`](https://www.glfw.org/docs/3.3/group__vulkan.html#gadf228fac94c5fd8f12423ec9af9ff1e9)
+provides an interface to `vkGetInstanceProcAddr()`. You can also
+use a library made specifically for this purpose such as
+[volk](https://github.com/zeux/volk).
+
 ## Queues
 
 In order to actually do work on a device with Vulkan, commands
