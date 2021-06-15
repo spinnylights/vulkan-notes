@@ -346,6 +346,114 @@ To destroy an instance, use
 Everything created with the instance must have been destroyed
 first.
 
+## Physical devices
+
+In the context of Vulkan, a physical device is a single complete
+Vulkan implementation visible to the host. This generally
+corresponds to a piece of hardware, such as a graphics card or a
+CPU with integrated graphics, presented by a Vulkan-capable
+driver. There is little than can be done in Vulkan without going
+through one somehow. They are represented through
+[`VkPhysicalDevice`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPhysicalDevice.html)
+handles, and don't need to be created or destroyed.
+
+In order to select a physical device, the available devices need
+to be enumerated via
+[`vkEnumeratePhysicalDevices()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkEnumeratePhysicalDevices.html).
+This involves a little song-and-dance in which you first pass
+a null pointer for the array of devices, which causes the device
+count to be set to the right number, which then allows you to
+call the function again with an array of the right length.
+
+Once you've done this, you can use
+[`vkGetPhysicalDeviceProperties()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetPhysicalDeviceProperties.html)
+on each device in the array; this populates a
+[`VkPhysicalDeviceProperties`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPhysicalDeviceProperties.html)
+with the device's name, vendor, capabilities, etc. You can also
+use
+[`vkGetPhysicalDeviceProperties2()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetPhysicalDeviceProperties2.html),
+which takes a pointer to a
+[`VkPhysicalDeviceProperties2`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPhysicalDeviceProperties2.html);
+you can use the `pNext` field of that struct to get extra
+information about the device beyond what
+`VkPhysicalDeviceProperties` expresses (see the spec for
+details).
+
+You can get a _lot_ of information about a device this way, and
+it can be a bit challenging to figure out what you should look
+out for. Unfortunately, it's hard to give any hard-and-fast rules
+about, because every application has different requirements.
+Early on in development, you may not have a good idea of what
+those are, so you don't need to stress about it too much. You
+could pick based on
+[`VkPhysicalDeviceType`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPhysicalDeviceType.html)
+if you would prefer a discrete graphics device over integrated
+graphics. You could also use
+[`vkPhysicalDeviceMemoryProperties2()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPhysicalDeviceMemoryProperties2.html)
+to get a sense of how much video memory the device has, or how
+heavily it's already being used, and pick based on that. You
+could also develop a more complicated heuristic that took both of
+these and other things into account, or you could just pick at
+random. In any case, sooner or later it's a good idea to give the
+user an interface to switch devices manually if they want, since
+they may know things your algorithm doesn't consider.
+
+As your application develops, it will become clearer what its
+hard and soft requirements are in graphical terms. If you want to
+have different levels of graphics quality, the data here will
+help you pick a default setting for a given device. Some devices
+may also not make the cut at all even as far as the bare minimum
+goes, and you can rule them out here—that's much better than
+having the application crash later because the device in use
+couldn't do something it needed. If the user doesn't have any
+available devices that satisfy your most basic requirements, you
+can let them know here gracefuly, ideally informing them
+specifically where their devices don't measure up.
+
+### Queue families
+
+Most of the things you might want to do with Vulkan are done by
+submitting _commands_ to a _queue_. We cover both of those
+concepts elsewhere. What's important right now is that a physical
+device has _queue families_ from which queues can be selected,
+and you need to investigate them if you ultimately want to have
+some queues to work with. This is done with
+[`vkGetPhysicalDeviceQueueFamilyProperties()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetPhysicalDeviceQueueFamilyProperties.html)
+or
+[`vkGetPhysicalDeviceQueueFamilyProperties2()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetPhysicalDeviceQueueFamilyProperties2KHR.html);
+the latter allows you to get some extra info (see the spec for
+details).
+
+A particularly important member of the
+[`VkQueueFamilyProperties`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkQueueFamilyProperties.html)
+struct you fill for each queue family is `queueFlags`, a bitmask
+of
+[`VkQueueFlagBits`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkQueueFlagBits.html).
+This tells you if the queues in the family support graphics
+operations (kinda self-explanatory), compute operations (doing
+"general" computation on the GPU), and/or transfer operations
+(moving stuff around in memory). Each of these correspond to
+different sets of commands. If you want your application to
+display graphics in a platform window, you also need
+[`vkGetPhysicalDeviceSurfaceSupportKHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetPhysicalDeviceSurfaceSupportKHR.html),
+which will tell you if queues in the given family support
+presentation to the given surface
+([`vkQueuePresentKHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueuePresentKHR.html)).
+A mature game will generally need to do all of these things.
+
+In any case, this is the time to pick which queue families you're
+going to use for which sorts of operations. It's generally a good
+idea to pick the queue family that's most specialized for the
+type of operations in question (i.e. has the least other
+capabilities), because that queue is most likely to be optimized
+for those operations. When you actually create the queues you
+want, you'll refer to the queue families by index. Note that a
+queue family which supports graphics or compute operations always
+has support for transfer operations as well, even if it doesn't
+say so; it may still be worth making a special transfer queue if
+there's a queue family that's specialized for this purpose, but
+otherwise you can have a queue do double-duty.
+
 ## Queues
 
 In order to actually do work on a device with Vulkan, commands
