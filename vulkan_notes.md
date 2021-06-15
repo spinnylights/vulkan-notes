@@ -311,6 +311,41 @@ provides an interface to `vkGetInstanceProcAddr()`. You can also
 use a library made specifically for this purpose such as
 [volk](https://github.com/zeux/volk).
 
+## Instances
+
+There's no global state in Vulkan, so a
+[`VkInstance`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkInstance.html)
+is your first stop on the way to building up a nicely purring
+Vulkan environment. It's created via
+[`vkCreateInstance()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateInstance.html).
+
+There are a few different aspects to this. In theory, you can
+fill the
+[`vkInstanceCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkInstanceCreateInfo.html)
+out with nulls and get a valid `vkInstance` back, but you
+probably don't want to do this in all cases as you won't be able
+to load any extensions or enable any layers. You also may want
+to fill out a
+[`VkApplicationInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkApplicationInfo.html)
+in order to specify things like the name and version number of your
+application and the version of the Vulkan API you're depending
+on; if your application becomes popular, graphics driver vendors
+may build special cases for it into their drivers.
+
+As we'll see shortly, you will probably want to enable at least
+one extension and sometimes enable at least one layer. You can
+use
+[`vkEnumerateInstanceLayerProperties()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkEnumerateInstanceLayerProperties.html)
+and
+[`vkEnumerateInstanceExtensionProperties()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkEnumerateInstanceExtensionProperties.html)
+to query for the supported layers and extensions given the
+current environment. You can do this even without a `VkInstance`.
+
+To destroy an instance, use
+[`vkDestroyInstance()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroyInstance.html).
+Everything created with the instance must have been destroyed
+first.
+
 ## Queues
 
 In order to actually do work on a device with Vulkan, commands
