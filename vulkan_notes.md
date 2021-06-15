@@ -454,11 +454,72 @@ say so; it may still be worth making a special transfer queue if
 there's a queue family that's specialized for this purpose, but
 otherwise you can have a queue do double-duty.
 
+## Logical devices
+
+Once you've picked out a physical device and combed through its
+queue families, you need to make what's called a _logical device_
+from it in order to actually make use of it. The process of
+creating the logical device also creates the queues you need, so
+once you've done this you can starting submitting commands to
+them and making things happen.
+
+The separation of concerns between a logical and a physical
+device might seem a bit strange. Why wouldn't Vulkan just have
+you make your queues and do the other work you need to do with
+the physical device directly?  Well, there's not a 1:1
+relationship between a physical device and a logical device—a
+single logical device can be made from multiple physical devices
+if they're sufficiently similar (like a bunch of identical cards
+in a render farm) and multiple logical devices can be made from
+the same physical device (like if a Vulkan application depends on
+a library or loads a plugin that also uses Vulkan internally). If
+you're writing a game engine, you're probably not too worried
+about the former use case, but Vulkan is designed to serve a lot
+of different crowds. It also just provides a rather handy
+interface—you can specify your device extensions and desired
+queues in one go and get a nice object to carry around the
+resulting context in.
+
+To create a logical device from a physical device, you want
+[`vkCreateDevice()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateDevice.html).
+You've pretty much already done the necessary work to call this
+properly—just specify the queue families and how many queues you
+want along with the device extensions and features you need. Note
+that there's usually not much of a reason to make more than one
+queue from the same family if you're writing a regular desktop
+application; the most efficient way to submit work to a queue is
+to group it all into a single large batch beforehand as much as
+possible, since queue submission is an expensive process and
+queues run commands as asynchronously as they can.
+
+To destroy a logical device, use
+[`vkDestroyDevice()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroyDevice.html)—pretty
+straightforward. The one thing to keep in mind is that all the
+objects that were made with the device need to be destroyed
+beforehand. You can use
+[`vkDeviceWaitIdle()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDeviceWaitIdle.html)
+to make sure that you're not destroying a device with anything
+still pending on it, but this will block indefinitely if you
+haven't destroyed those other objects first.
+
+It's possible for a logical device to become _lost_ for various
+reasons, such as execution timeout, memory exhaustion, driver
+bugs, etc. If this occurs, relevant commands will return
+`VK_ERROR_DEVICE_LOST`, and a new logical device will need to be
+made before the application can continue. In some cases, the
+physical device will _also_ be lost, in which case trying to
+create a new logical device will return `VK_ERROR_DEVICE_LOST` as
+well. This generally indicates a serious underlying problem such
+as disconnected or malfunctioning graphics hardware. If these
+problems have not brought down the operating system and your
+application is still alive, you may be able to recover if you can
+make use of an alternate physical device.
+
 ## Queues
 
 In order to actually do work on a device with Vulkan, commands
 need to be submitted to it. These commands are submitted through
-Vulkan objects called _queues_.
+Vulkan objects called queues.
 
 The reason it is done this way, rather than calling commands on
 the device directly, is mainly a matter of performance. For one,
