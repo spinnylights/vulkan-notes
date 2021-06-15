@@ -3361,6 +3361,12 @@ Since uniform variables all exist in a single global namespace at
 link time, they need to be declared with the same name, type,
 etc. in any shader that makes use of them.
 
+##### Buffer variables
+
+The storage qualifier `buffer` indicates variables that are
+accessed through a `VkBuffer` bound to the pipeline the shaders
+are attached to. It must be used to qualify a block.
+
 ##### Shared variables
 
 Compute shaders can use the storage qualifier `shared` to declare
