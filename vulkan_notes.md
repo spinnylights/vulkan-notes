@@ -3397,6 +3397,77 @@ possible valid offset following the [standard buffer
 layout](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#interfaces-resources-standard-layout)
 rules in "Offset and Stride Assignment".
 
+##### Interface blocks
+
+Global variables can be grouped together into named _interface
+blocks_ that can be qualified with `in`, `out`, `buffer`, or
+`uniform`, and which also support the auxiliary qualifier `patch`
+for `in` and `out` blocks. Input and output blocks define
+interfaces between shader stages similarly to input and output
+variables. `buffer` and `uniform` blocks represent an interface
+to a `VkBuffer` bound to the current pipeline.
+
+Blocks with `uniform` are called _uniform blocks_, whereas blocks
+with `buffer` are called _storage blocks_. Uniform blocks can
+only be read from within a shader, whereas storage blocks can
+both be read from and written to.
+
+The syntax for declaring an interface block is an optional layout
+qualifier, the storage qualifier(s), an identifier, `{`, one or
+more uninitialized variable declarations not paired with a struct
+definition, `}`, an optional identifier or array specifier, and
+`;`. Here is an example:
+
+```glsl
+layout(binding=0, set=0) uniform material {
+    flat int ndx;
+    float rough;
+    float metal;
+} mats[5];
+```
+
+This declares a uniform block called `material` which groups
+together three uniforms, `ndx`, `rough`, and `metal`. The
+optional identifier after the block is called its _instance
+name_, and if included the members are scoped into a namespace
+under it. For instance, `mats[2].ndx` would be in scope after
+this, but not plain `ndx`. However, if we had declared `material`
+this way:
+
+```glsl
+layout(binding=0, set=0) uniform material {
+    flat int ndx;
+    float rough;
+    float metal;
+};
+```
+
+then `ndx`, `rough`, and `metal` would be globally scoped and
+thus accessible anywhere in the shader.
+
+A block member is allowed to be qualified with the same storage
+qualifier used in its block; for instance, `ndx` above could have
+been declared as `flat uniform int ndx;` with the same outcome.
+This accomplishes nothing, though.
+
+In `VkPhysicalDeviceLimits`,
+`maxPerStageDescriptorUniformBuffers` and
+`maxPerStageDescriptorStorageBuffers` indicate the maximum number
+of uniform and storage buffers that can be made available to a
+single shading stage, whereas `maxDescriptorSetUniformBuffers`
+and `maxDescriptorSetStorageBuffers` indicate the maximum number
+of uniform and storage buffers that can be included in a whole
+pipeline layout. My graphics card supports 15 uniform buffers and
+1,048,576 storage buffers per stage, and 180 uniform buffers and
+1,048,576 storage buffers per pipeline layout. However, it only
+supports 15 dynamic uniform buffers and 16 dynamic storage
+buffers per stage (dynamic buffers can have an offset specified
+at binding time).
+
+A _shader interface_ consists of all the uniform blocks and
+variables and storage blocks declared in the shader as well as
+inputs/outputs at the boundary between two shading stages.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
