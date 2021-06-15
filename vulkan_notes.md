@@ -3237,18 +3237,26 @@ specified, the variable is local to the shader and immutable
 after initialization. The rest of the storage qualifiers are new
 to us.
 
-##### Input variables
+##### Input and output variables
 
-Global variables can be declared with the storage qualifier `in`.
-This indicates that the variable will get its value from outside,
-such as from a previous pipeline stage. The compiler will throw
-an error if you try to write to a variable declared this way.
+Global variables can be declared with the storage qualifiers `in`
+and `out`. `in` indicates that the variable will get its value
+from outside, such as from a previous pipeline stage. `out`
+establishes an output interface between the current shader and
+subsequent pipeline stages.
 
-You can declare an input variable that doesn't actually get
-written to by anything as long as you don't try to read from it.
-If you do try to read from it and a prior stage hasn't declared
-it, you will get a link-time error; if a prior stage has declared
-it but hasn't written to it, its contents will be undefined.
+The compiler will throw an error if you try to write to a
+variable declared with `in`. Also, there is no `inout` storage
+qualifier for variables, nor is it permitted to qualify a
+variable with both `in` and `out`.
+
+You can declare an output variable and not write to it as long as
+the subequent stages don't make use of it; similarly, an input
+variable that doesn't actually get written to by anything is okay
+as long as you don't try to read from it. If you do try to read
+from an input variable and a prior stage hasn't declared it, you
+will get a link-time error; if a prior stage has declared it but
+hasn't written to it, its contents will be undefined.
 
 ###### In the vertex shader
 
@@ -3272,31 +3280,54 @@ multiple times, once for each column.
 Each of these shaders in turn receives per-vertex values written
 by the prior stage. Since they all operate on sets of vertices,
 each (non-`patch`) input should be an array; each element will
-correspond to one of the vertices. It is permitted, but not
-required, to set an explicit size for these arrays. The geometry
-shader's inputs will be sized according to the type of primitive
-it receives.
+correspond to one of the vertices. The tessellation control
+shader must also declare its non-`patch` outputs as arrays.
 
-The tessellation evaluation shader can use the auxiliary storage
-qualifier `patch` on its inputs. This indicates that the input
-will be set per-patch instead of per-vertex, and thus is not
-required to be an array. The matching outputs of the tessellation
-control shader must be declared in the same way.
+It is permitted, but not required, to set an explicit size for
+these arrays; if explicitly sized, the size must match the size
+that would be otherwise used by the implementation. For this
+reason, the shaders will be easier to maintain if the
+input/output arrays are left implicitly sized.
 
-These stages cannot have inputs of or containing a value of
-Boolean or opaque type.
+The geometry shader's inputs will be sized according to the type
+of primitive it receives.
+
+The tessellation control shader can use the auxiliary storage
+qualifier `patch` on its outputs; the tessellation evaluation
+shader should qualify its matching inputs in the same manner.
+This indicates that the variable will be set per-patch instead of
+per-vertex by the implementation, and thus is not required to be
+an array.
+
+A tessellation control shader invocation operates on a single
+vertex in a patch. It has a built-in output variable `struct
+gl_PerVertex gl_out[]` containing data for every vertex in the
+patch. Each invocation must only assign to fields in the
+structure at index `gl_InvocationID` in `gl_out[]`, which
+corresponds to the data for the current vertex.
+
+Tessellation control shader invocations for the same patch
+operate in an undefined order relative to each other unless the
+function `barrier()` is used, which can create a synchronization
+point between them. The start and end of the shader can also be
+seen as synchronization points; you can think of the activity of
+the invocations as filling in `gl_out[]` in parallel. This
+implies that, sans `barrier()`, elements in `gl_out[]` may be
+undefined for a given invocation during execution.
+
+The inputs and outputs of these stages cannot be or contain a
+value of Boolean or opaque type.
 
 ###### In the fragment shader
 
-Fragment shader inputs are per-fragment. They are typically
-interpolated from the outputs of the previous stage, and support
-the interpolation qualifiers `flat`, `noperspective`, and
-`smooth`, in addition to the auxiliary storage qualifiers
-`centroid` and `sample`. We'll discuss all of this in more detail
-in the section "Interpolation qualifiers".
-
-A fragment shader cannot have inputs of or containing a value of
-Boolean or opaque type.
+Fragment shader inputs and outputs are per-fragment. The inputs
+are typically interpolated from the outputs of the previous
+stage, and support the interpolation qualifiers `flat`,
+`noperspective`, and `smooth`, in addition to the auxiliary
+storage qualifiers `centroid` and `sample`. We'll discuss all of
+this in more detail in the section "Interpolation qualifiers".
+The outputs should not be qualified with any auxiliary storage or
+interpolation qualifiers.
 
 Fragment shaders receive their inputs from the last active vertex
 processing stage (vertex, tessellation evaluation, or geometry).
@@ -3305,11 +3336,16 @@ the inputs of the fragment shader. There is no need for the
 previous stages to match the interpolation or auxiliary storage
 qualifiers of the fragment shader's inputs, though.
 
+The inputs of a fragment shader cannot be or contain
+a value of Boolean or opaque type, and its outputs cannot be or
+contain a value of Boolean, double-precision scalar or vector,
+opaque, matrix, or structure type.
+
 ###### In the compute shader
 
-Compute shaders don't support input variables (except for the
-ones they have built-in). They have to get their data through
-other means.
+Compute shaders don't support input or output variables (except
+for a few built-in inputs). They have to interface with the
+outside world through other means.
 
 
 
