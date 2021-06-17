@@ -326,6 +326,37 @@ specific host. See ["Architecture of the Vulkan Loader
 Interfaces"](https://vulkan.lunarg.com/doc/sdk/1.2.176.1/linux/loader_and_layer_interface.html)
 in the Vulkan SDK docs for the specifics.
 
+## Extensions
+
+Extensions are Vulkan add-ons that define new commands and types.
+Some of them are _registered_, meaning they have been
+incorporated into Khronos' [specification
+repository](https://www.khronos.org/registry/vulkan/#repo-docs);
+these are defined in Vulkan's core headers, although support for
+them depends on the graphics driver. Extensions can also be
+provided by layers, though, so you can write your own extensions
+if you want.
+
+There are two kinds of extensions, instance and device
+extensions. Instance extensions are enabled when creating an
+instance by adding their names to the `ppEnabledExtensionNames`
+field of
+[`vkInstanceCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkInstanceCreateInfo.html);
+device extensions are enabled
+when creating a logical device by adding their names to the
+`ppEnabledExtensionNames` field of
+[`VkDeviceCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDeviceCreateInfo.html).
+
+In both cases, it's advisable to check for the presence of the
+extensions you want to enable first. Instance extensions are
+checked for via
+[`vkEnumerateInstanceExtensionProperties()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkEnumerateInstanceExtensionProperties.html),
+while device extensions are checked for via
+[`vkEnumerateDeviceExtensionProperties`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkEnumerateInstanceExtensionProperties.html)
+(the latter takes a physical device to query). In both cases, you
+can provide the name of a layer, in case the extensions you're
+looking for are made available that way.
+
 ## Instances
 
 There's no global state in Vulkan, so a
