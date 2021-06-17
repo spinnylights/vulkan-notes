@@ -357,6 +357,114 @@ while device extensions are checked for via
 can provide the name of a layer, in case the extensions you're
 looking for are made available that way.
 
+## Validations
+
+The most commonly-used layer is probably the [validation
+layer](https://github.com/KhronosGroup/Vulkan-ValidationLayers/blob/master/docs/khronos_validation_layer.md),
+which is included in the Vulkan SDK and performs automatic error
+checking. Vulkan does very little error checking on its own since
+it's designed to be lean and performant. That can make for
+frustrating debugging, though, and it also means you don't get
+much feedback if you're doing something technically permissible
+but less-than-ideal. The validation layer can take care of both
+of these, so it's a good idea to have it turned on in
+development.
+
+At the time of writing, the name of the validation layer is
+`VK_LAYER_KHRONOS_validation`. All you have to do to enable it is
+add this name to `ppEnabledLayerNames` when creating your
+instance (provided it's available). However, you may wish to
+configure its behavior. By default, it performs
+
+* [shader
+  validation](https://github.com/KhronosGroup/Vulkan-ValidationLayers/blob/master/docs/core_checks.md#shader-validation-functionality)
+  (mostly simple checks for shader interface consistency),
+* shader validation caching (although you probably need to create
+  a
+  [`VkValidationCacheEXT`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkValidationCacheEXT.html)
+  to take advantage of this…I'm not sure if this is required or
+  not though),
+* [thread safety
+  validation](https://github.com/KhronosGroup/Vulkan-ValidationLayers/blob/master/docs/thread_safety.md)
+  (checks for properly-synchronized access to Vulkan objects from
+  multiple threads),
+* [stateless parameter
+  validation](https://github.com/KhronosGroup/Vulkan-ValidationLayers/blob/master/docs/stateless_validation.md)
+  (proper use of Vulkan structs and enums, null pointer checks,
+  etc.),
+* [object lifetime
+  validation](https://github.com/KhronosGroup/Vulkan-ValidationLayers/blob/master/docs/object_lifetimes.md)
+  (checks for valid references, correct freeing/destroying, etc.),
+* [various "core"
+  validations](https://github.com/KhronosGroup/Vulkan-ValidationLayers/blob/master/docs/core_checks.md)
+  (checks for proper pipeline setup, valid command buffers,
+  memory availability, etc.),
+  and
+* [protection against duplicate non-dispatchable object
+  handles](https://github.com/KhronosGroup/Vulkan-ValidationLayers/blob/master/docs/handle_wrapping.md)
+  (ensures that duplicate object handles are managed correctly by
+  the validation layers; some systems do not return unique
+  identifiers for handles),
+
+and does not perform
+
+* [GPU-assisted
+  validation](https://github.com/KhronosGroup/Vulkan-ValidationLayers/blob/master/docs/gpu_validation.md) (provides additional diagnostic info
+  from shaders),
+* [reservation of a descriptor set binding slot for use in
+  performing GPU-assisted
+  validation](https://github.com/KhronosGroup/Vulkan-ValidationLayers/blob/master/docs/gpu_validation.md#gpu-assisted-validation-options)
+  (modifies `VkPhysicalDeviceLimits::maxBoundDescriptorSets` to
+  return a number 1 less than it otherwise would, in order to
+  ensure there is a free descriptor set binding slot available
+  for GPU-assisted validation to use; it needs to have one),
+* [debug printing from
+  shaders](https://github.com/KhronosGroup/Vulkan-ValidationLayers/blob/master/docs/debug_printf.md)
+  (provides a `printf()`-like function in GLSL in concert with
+  [`GL_EXT_debug_printf`](https://github.com/KhronosGroup/GLSL/blob/master/extensions/ext/GLSL_EXT_debug_printf.txt)),
+* [best-practices
+  validation](https://github.com/KhronosGroup/Vulkan-ValidationLayers/blob/master/docs/best_practices.md)
+  (checks for stuff that is permitted but not advisable), and
+* [synchronization
+  validation](https://github.com/KhronosGroup/Vulkan-ValidationLayers/blob/master/docs/synchronization.md)
+  (checks for missing or incorrect synchronization between
+  commands that perform memory accesses).
+
+The disabled-by-default features are computationally-intensive;
+you can enable them all-at-once if you like but your application
+may become sluggish. Khronos
+[advises](https://github.com/KhronosGroup/Vulkan-ValidationLayers/blob/master/docs/khronos_validation_layer.md#vk_layer_khronos_validation)
+that you enable them piecemeal for this reason.
+
+You can configure which of these features are and aren't enabled
+in a variety of ways: a graphical program, a config file, a set
+of environment variables, or a programmatic interface. See
+["Layers Overview and
+Configuration"](https://github.com/KhronosGroup/Vulkan-ValidationLayers/blob/master/LAYER_CONFIGURATION.md)
+for everything but the programmatic interface. The programmatic
+approach is to add a
+[`VkValidationFeaturesEXT`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkValidationFeaturesEXT.html)
+to the `pNext` chain of your `VkCreateInstanceInfo` when creating
+your instance. This requires the extension
+[`VK_EXT_validation_features`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VK_EXT_validation_features.html)
+to be enabled.
+
+By default, messages from the validation layer are written to the
+standard output stream. This might be fine for your use case, but
+you might prefer to have them talk to your own logging interface,
+produce a stack trace, drop into a debugger, etc. In that case,
+you can enable the
+[`VK_EXT_debug_utils`](https://github.com/KhronosGroup/Vulkan-ValidationLayers/blob/master/docs/khronos_validation_layer.md#debugutils)
+extension, which allows you to register callbacks that can
+receive messages from the validation layer. You can also control
+what sorts of messages you would like to receive.
+
+Both of these extensions have convenient macros for their names
+defined in the Vulkan core headers. The debug utils extension
+name is given by `VK_EXT_DEBUG_UTILS_EXTENSION_NAME`, and the
+validation features extension name is given by
+`VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME`.
+
 ## Instances
 
 There's no global state in Vulkan, so a
