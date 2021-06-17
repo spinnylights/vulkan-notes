@@ -311,6 +311,21 @@ provides an interface to `vkGetInstanceProcAddr()`. You can also
 use a library made specifically for this purpose such as
 [volk](https://github.com/zeux/volk).
 
+## Layers
+
+Layers are optional parts of the Vulkan call chain which can be
+enabled when creating an instance. You put the layers you want to
+enable into the `ppEnabledLayerNames` field of the
+[`vkInstanceCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkInstanceCreateInfo.html),
+although of course it's a good idea to
+check for their presence in the host environment first with
+[`vkEnumerateInstanceLayerProperties()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkEnumerateInstanceLayerProperties.html).
+
+Anyone can write a new Vulkan layer and make it available on a
+specific host. See ["Architecture of the Vulkan Loader
+Interfaces"](https://vulkan.lunarg.com/doc/sdk/1.2.176.1/linux/loader_and_layer_interface.html)
+in the Vulkan SDK docs for the specifics.
+
 ## Instances
 
 There's no global state in Vulkan, so a
