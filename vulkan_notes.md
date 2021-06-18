@@ -1257,6 +1257,38 @@ Perhaps more significantly, the dimensionality of an image
 dictates what you can do with it; for example, only 2D images can
 be drawn to the screen (as you might expect).
 
+##### MIP levels
+
+The field `uint32_t mipLevels` in
+[`VkImageCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageCreateInfo.html)
+describes how many "slots" should be made available in the image
+for storing [MIP maps](https://en.wikipedia.org/wiki/Mipmap). It
+must be at least `1`, and at most
+⌊log<sub>2</sub>(max(`extent.width`, `extent.height`,
+`extent.depth`))⌋ + 1.
+
+As an example, for a 2D 3840x2160 image, we have
+
+⌊log<sub>2</sub>(max(`extent.width`, `extent.height`, `extent.depth`))⌋ + 1 =<br>
+⌊log<sub>2</sub>(max(3840, 2160, 1))⌋ + 1 =<br>
+⌊log<sub>2</sub>(3840)⌋ + 1 ≃<br>
+⌊11.90689⌋ + 1 =<br>
+11 + 1 =<br>
+12.
+
+This is because the dimensions of each successive MIP map are
+found by max(⌊dimension/2⌋,1).
+
+It should be noted that all specifying `mipLevels` does is create
+_space_ for the MIP maps. It's up to you to actually supply them.
+You can copy your MIP maps into the right "slots" using
+[`vkCmdCopyImage()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdCopyImage.html)
+(see "Simple copying" under "Command buffers");
+[`VkImageCopy`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageCopy.html)
+has
+[`VkImageSubresourceLayers`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageSubresourceLayers.html)
+fields, which allow you to specify a MIP level.
+
 ### Sharing mode
 
 One thing worth noting about both buffers and images is that
