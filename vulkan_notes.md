@@ -1412,6 +1412,11 @@ The others cover niche features, things based on
 not-always-present device features or extensions, etc.; check the
 spec for the details.
 
+#### Image subresources
+
+An image subresource is a single layer and MIP map. An image
+subresource range is a set of contiguous layers and MIP maps.
+
 ### Sharing mode
 
 One thing worth noting about both buffers and images is that
