@@ -15,11 +15,11 @@ a:visited {
     color: #697272;
 }
 
-a:link > code {
+a:link > code, code > a:link {
     color: #1021a2;
 }
 
-a:visited > code {
+a:visited > code, code > a:visited {
     color: #691272;
 }
 
