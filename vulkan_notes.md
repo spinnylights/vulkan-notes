@@ -1067,6 +1067,23 @@ sense of their personality in the context of Vulkan. They provide
 a means to ferry "arbitrary" data around that needs to play some
 role on the device but doesn't need the `VkImage` treatment.
 
+### Images
+
+The image, represented by `VkImage`, is a data type designed to
+hold information you might find in a texture, like color or depth
+values. It has a fixed format, dimensionality (1–3 dimensions),
+tiling, layers, and MIP levels, on top of the sorts of usage and
+general flags etc. parameters that buffers have.
+
+Images are created via
+[`vkCreateImage()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateImage.html),
+which takes a
+[`VkImageCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageCreateInfo.html).
+Like buffers, it's enlightening to examine the fields of
+`VkImageCreateInfo` if you want to get a sense of what images are
+all about, but there are a lot more fields to mull over there
+than buffers have.
+
 ### Sharing mode
 
 One thing worth noting about both buffers and images is that
