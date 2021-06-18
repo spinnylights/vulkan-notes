@@ -1289,6 +1289,36 @@ has
 [`VkImageSubresourceLayers`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageSubresourceLayers.html)
 fields, which allow you to specify a MIP level.
 
+##### Layers
+
+A `VkImage` can actually function as an _array_ of image data
+sets instead of just a container for a single image's data. If
+you want this, you can specify the number of elements, called
+_layers_, that your image should contain with the field `uint32_t
+arrayLayers` in
+[`VkImageCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageCreateInfo.html).
+`arrayLayers` must be at least `1` in all cases, but can be a
+maximum of <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPhysicalDeviceLimits.html">VkPhysicalDeviceLimits</a>::maxImageArrayLayers</code> (`2048` on my hardware).
+
+There are a variety of reasons why you might want to do this. One
+of the most common is to make a [cube
+map](https://en.wikipedia.org/wiki/Cube_mapping). You do this by
+setting `imageType` to `VK_IMAGE_TYPE_2D`, enabling
+`VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT` in `flags`, setting
+`samples` to `VK_SAMPLE_COUNT_1_BIT`, making `extent.width` and
+`extent.height` equal, and finally setting `arrayLayers` equal to
+or greater than `6` (greater than allows you to make a cube
+array). You can then make a cube or cube array image view to it
+(see "Image views").
+
+An image can have more than one layer and more than one MIP
+level. Each layer then has its own MIP maps—or perhaps each MIP
+map has its own layers…a question for the ages (or for driver
+developers depending on your level of whimsy). You can specify
+each separately in
+[`VkImageSubresourceLayers`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageSubresourceLayers.html).
+
 ### Sharing mode
 
 One thing worth noting about both buffers and images is that
