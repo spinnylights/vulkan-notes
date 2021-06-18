@@ -1019,7 +1019,7 @@ There are two main types Vulkan uses to keep track of data. One
 of them is `VkBuffer`, which is relatively similar to a plain
 array, and the other is `VkImage`, which is basically a fancy
 container for
-[texels](https://en.wikipedia.org/wiki/Texel_(graphics).
+[texels](https://en.wikipedia.org/wiki/Texel_(graphics\)).
 
 Of note, these two types are the main tools you have for
 interacting with device memory in the API. When you call
