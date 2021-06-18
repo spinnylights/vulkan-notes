@@ -1385,8 +1385,8 @@ With all these limitations, why would you ever want to use a
 linearly-tiled image? Well, if you think about it, you have no
 other choice if you want to access a host-mapped image through a
 pointer. As a side note, you should probably set `initialLayout`
-to `VK_IMAGE_LAYOUT_PREINITIALIZED` if you're doing this, as
-you'll see in the next section.
+to `VK_IMAGE_LAYOUT_PREINITIALIZED` if you're writing to an image
+this way, as you'll see in the next section.
 
 ##### Initial layout
 
