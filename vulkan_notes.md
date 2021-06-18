@@ -1374,7 +1374,7 @@ is laid out in row-major order, padding as necessary.
 
 Linearly-tiled images have various restrictions on their use. In
 particular, an image with `tiling` set to
-`VK_IMAGE_TILING_OPTIMAL` must have `imagetype` set to
+`VK_IMAGE_TILING_LINEAR` must have `imagetype` set to
 `VK_IMAGE_TYPE_2D`, `format` not set to any depth/stencil format,
 `mipLevels` set to `1`, `arrayLayers` set to `1`, `samples` set
 to `VK_SAMPLE_COUNT_1_BIT`, and `usage` set to only
