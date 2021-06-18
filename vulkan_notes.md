@@ -1084,6 +1084,145 @@ Like buffers, it's enlightening to examine the fields of
 all about, but there are a lot more fields to mull over there
 than buffers have.
 
+#### Creation
+
+##### Format
+
+The `VkImageCreateInfo` field <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkFormat.html">VkFormat</a>
+format</code> describes the binary format of the image data. Not
+all formats are compatible with all types of memory, as we'll see
+in more detail in the "Memory management" section.
+
+As you'll see if you check out the `VkFormat` spec section,
+there's a huge number of possible formats that can seem rather
+mystifying to stare at initially. Luckily, we have a few places
+we can look to get our bearings.
+
+One helpful place to look is [43.3 "Required Format
+Support"](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/chap43.html#features-required-format-support)
+in the Vulkan spec. This tells you which features are required to
+be supported for which image formats, which gives you a sense of
+what you might want to use a given format for. There's still a
+lot of formats to look over there, though, so maybe we can narrow
+the list down further.
+
+Another interesting thing to consider is the behavior of
+[`vulkaninfo`](https://vulkan.lunarg.com/doc/view/latest/linux/vulkaninfo.html)
+when it's examining the available memory types. It displays which
+image formats each type of memory supports, and it only examines
+a small subset of the possible formats. Since `vulkaninfo` is an
+official Khronos utility, they probably know a thing or two about
+which formats are particularly commonplace. `vulkaninfo` is [free
+software](https://www.gnu.org/philosophy/free-sw.html) (thanks
+Khronos!!), so let's check out the format list it uses:
+
+([`Vulkan-Tools/vulkaninfo/vulkaninfo.h:1548`](https://github.com/KhronosGroup/Vulkan-Tools/blob/a680671d95bf7b3846cb20f1cbfc1c405db0511b/vulkaninfo/vulkaninfo.h#L1548))
+
+```cpp
+const std::array<VkFormat, 8> formats = {
+    color_format,
+    VK_FORMAT_D16_UNORM,
+    VK_FORMAT_X8_D24_UNORM_PACK32,
+    VK_FORMAT_D32_SFLOAT,
+    VK_FORMAT_S8_UINT,
+    VK_FORMAT_D16_UNORM_S8_UINT,
+    VK_FORMAT_D24_UNORM_S8_UINT,
+    VK_FORMAT_D32_SFLOAT_S8_UINT,
+};
+```
+
+([`Vulkan-Tools/vulkaninfo/vulkaninfo.h:1350`](https://github.com/KhronosGroup/Vulkan-Tools/blob/a680671d95bf7b3846cb20f1cbfc1c405db0511b/vulkaninfo/vulkaninfo.h#L1350))
+
+```cpp
+const VkFormat color_format = VK_FORMAT_R8G8B8A8_UNORM;
+```
+
+`VK_FORMAT_R8G8B8A8_UNORM` is your bog-standard 8-bit RGBA color
+format. It's unsigned (that's the meaning of `U`) and
+normalized (that's the meaning of `NORM`). It's also in a [linear
+color
+space](https://developer.nvidia.com/gpugems/gpugems3/part-iv-image-effects/chapter-24-importance-being-linear),
+which is handy for rendering but not necessarily ideal for
+display—humans don't perceive color in a linear fashion.
+
+For this reason, there's also `VK_FORMAT_R8G8B8A8_SRGB`. sRGB is
+a color space designed in the '90s for computer graphics
+purposes. I'd love to link to the spec for it, but it's behind a
+stupid paywall just like the IEEE 754 (floating point
+arithmetic), C, and C++ standards. When will the world come to
+its senses?! Anyway, you can at least read a [minorly-wrong
+version](https://www.w3.org/Graphics/Color/sRGB.html) and shake
+your fist at the W3C, the IEC, and society in general in the
+meantime. The gist of sRGB is that it's designed to work nicely
+with both the way CRT monitors display color and the way humans
+tend to perceive color in a relatively dim, diffusely-lit room
+like someone might watch a movie in. Even though it's old and
+almost nobody uses CRTs anymore, it's still the most common color
+space used for computer graphics as of 2021, and Vulkan
+accordingly requires every implementation to support
+`VK_FORMAT_R8G8B8A8_SRGB` as a format for swap chain images
+(which are what actually get drawn to the platform window). When
+`VK_FORMAT_R8G8B8A8_SRGB` is used as the swap chain image format,
+color data written to a swap chain image from the fragment shader
+is converted to sRGB beforehand, preparing it to be displayed on
+a monitor. sRGB isn't perfect, and Vulkan can support other color
+spaces if the device provides for it (see
+[`VkColorSpaceKHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkColorSpaceKHR.html)
+in the spec), but sRGB is the only one you can count on universal
+support for as far as realtime graphics are concerned.
+
+Anyway, this leaves
+
+* `VK_FORMAT_D16_UNORM`,
+* `VK_FORMAT_X8_D24_UNORM_PACK32`,
+* `VK_FORMAT_D32_SFLOAT`,
+* `VK_FORMAT_S8_UINT`,
+* `VK_FORMAT_D16_UNORM_S8_UINT`,
+* `VK_FORMAT_D24_UNORM_S8_UINT`, and
+* `VK_FORMAT_D32_SFLOAT_S8_UINT`.
+
+Looking at the "Required Format Support" charts, we can see that
+all of these appear to be intended for depth/stencil use (storing
+things like [depth
+maps](https://en.wikipedia.org/wiki/Depth_map), [stencil
+buffers](https://en.wikipedia.org/wiki/Stencil_buffer), etc).
+Returning to the `VkFormat` spec, we can note that `D` is for
+"depth component", so `VK_FORMAT_D16_UNORM` is a format with only
+a 16-bit unsigned normalized depth component. `S` is for "stencil
+component", so `VK_FORMAT_S8_UINT` is a format with only an 8-bit
+unsigned integer stencil component. Some of the formats have
+both, such as `VK_FORMAT_D16_UNORM_S8_UINT`, a 24-bit,
+two-component format that combines the previous two formats.
+`VK_FORMAT_X8_D24_UNORM_PACK32` is a two-component format with
+its 8 MSBs "unformatted" and the remaining 24 bits representing
+an unsigned normalized depth value (see [43.1.4 "Representation
+and Texel Block
+Size"](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#texel-block-size)
+in the Vulkan spec). `SFLOAT` is for "signed floating-point", as
+you might expect; `VK_FORMAT_D32_SFLOAT` is a one-component
+format with a 32-bit signed floating point depth component.
+
+Which of these you might use depends on the circumstances, of
+course, but are any of them particularly significant? ["Required
+Format
+Support"](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/chap43.html#features-required-format-support)
+indicates that `VK_FORMAT_D16_UNORM` must be supported for use as
+a depth/stencil attachment, along with at least one of
+`VK_FORMAT_X8_D24_UNORM_PACK32` and `VK_FORMAT_D32_SFLOAT`, and
+at least one of `VK_FORMAT_D24_UNORM_S8_UINT` and
+`VK_FORMAT_D32_SFLOAT_S8_UINT`. `VK_FORMAT_D16_UNORM` and
+`VK_FORMAT_D32_SFLOAT` are also guaranteed to be samplable (see
+"Samplers") and usable as a blitting source (see "'Sprite-style'
+copying" under "Command buffers"). `VK_FORMAT_D16_UNORM` appears
+to be the common denominator among these, but it doesn't have a
+stencil component and lacks the precision of the alternatives.
+It's possibly worth testing at device creation time to see which
+of the other possible depth/stencil attachment formats you can
+make use of, depending on your application's needs (you can do
+this with
+[`vkGetPhysicalDeviceFormatProperties()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetPhysicalDeviceFormatProperties.html)).
+
 ### Sharing mode
 
 One thing worth noting about both buffers and images is that
