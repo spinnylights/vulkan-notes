@@ -1338,6 +1338,35 @@ this. `imageType` must be `VK_IMAGE_TYPE_2D`, `flags` must not
 contain `VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT`, `mipLevels` must
 be `1`, and `tiling` must be `VK_IMAGE_TILING_OPTIMAL`.
 
+##### Tiling
+
+<code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageTiling.html">VkImageTiling</a>
+tiling</code> in
+[`VkImageCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageCreateInfo.html)
+is used to control how the texel blocks of the image are laid out
+in memory. It has two possible values, `VK_IMAGE_TILING_OPTIMAL`
+and `VK_IMAGE_TILING_LINEAR`. An optimally-tiled image is laid
+out in memory in an implementation-defined way that is
+(hopefully) efficient to access, whereas a linearly-tiled image
+is laid out in row-major order, padding as necessary.
+
+Linearly-tiled images have various restrictions on their use. In
+particular, an image with `tiling` set to
+`VK_IMAGE_TILING_OPTIMAL` must have `imagetype` set to
+`VK_IMAGE_TYPE_2D`, `format` not set to any depth/stencil format,
+`mipLevels` set to `1`, `arrayLayers` set to `1`, `samples` set
+to `VK_SAMPLE_COUNT_1_BIT`, and `usage` set to only
+`VK_IMAGE_USAGE_TRANSFER_SRC_BIT` and/or
+`VK_IMAGE_USAGE_TRANSFER_DST_BIT`.
+
+With all these limitations, why would you ever want to use a
+linearly-tiled image? Well, if you think about it, you have no
+other choice if you want to access a host-mapped image through a
+pointer. As a side note, you should probably set `initialLayout`
+to `VK_IMAGE_LAYOUT_PREINITIALIZED` if you're doing this, as
+you'll see in the next section.
+
 ### Sharing mode
 
 One thing worth noting about both buffers and images is that
