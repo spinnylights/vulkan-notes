@@ -560,6 +560,15 @@ available devices that satisfy your most basic requirements, you
 can let them know here gracefuly, ideally informing them
 specifically where their devices don't measure up.
 
+Also, a couple things you might want to note—it's worth keeping
+track of the information in `VkPhysicalDeviceMemoryProperties`,
+because you'll need it later (you'll find out why in "Memory
+management"). You might also want to take a gander at "Images"
+under "Resources", and then use
+[`vkGetPhysicalDeviceFormatProperties()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetPhysicalDeviceFormatProperties.html)
+to store feature support info for the image formats you're
+interested in.
+
 ### Queue families
 
 Most of the things you might want to do with Vulkan are done by
@@ -664,6 +673,18 @@ as disconnected or malfunctioning graphics hardware. If these
 problems have not brought down the operating system and your
 application is still alive, you may be able to recover if you can
 make use of an alternate physical device.
+
+Also, just another tip, along the lines of those in "Physical
+devices"—once you've got a logical device, you can create images,
+which means you can use
+[`vkGetImageMemoryRequirements()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetImageMemoryRequirements.html)
+to figure out which memory types support which image formats on
+the physical device (see "Images" under "Resources" for more on
+images). If you saved the memory type and image format support
+information when choosing a physical device, you can cycle
+through the supported formats here, create an image for each
+format, and query its memory requirements. This will be handy
+information to have cached, as you'll see in "Memory management".
 
 ## Queues
 
