@@ -1067,6 +1067,25 @@ sense of their personality in the context of Vulkan. They provide
 a means to ferry "arbitrary" data around that needs to play some
 role on the device but doesn't need the `VkImage` treatment.
 
+### Sharing mode
+
+One thing worth noting about both buffers and images is that
+their `*CreateInfo`s have a
+[`VkSharingMode`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSharingMode.html)
+field that says whether or not the resource in question can be
+accessed from more than one queue at a time. If you pick
+`VK_SHARING_MODE_EXCLUSIVE`, you'll need to perform a queue
+family ownership transfer (see "Queue family ownership transfer"
+under "Memory barriers") in order to give access to a queue that
+doesn't currently have it. If you pick
+`VK_SHARING_MODE_CONCURRENT`, you won't have to worry about this,
+but queue-based access to the resource is likely to be slower
+than if `VK_SHARING_MODE_EXCLUSIVE` was used. Also, you'll need
+to supply an array of queue indices corresponding to each queue
+that needs to access the resource (`pQueueFamilyIndices` in the
+`*CreateInfo`), which you can ignore if you pick
+`VK_SHARING_MODE_EXCLUSIVE`.
+
 ## Synchronization
 
 Execution of commands is highly concurrent, and ordering of
