@@ -1223,6 +1223,17 @@ make use of, depending on your application's needs (you can do
 this with
 [`vkGetPhysicalDeviceFormatProperties()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetPhysicalDeviceFormatProperties.html)).
 
+##### Usage
+
+Images have a <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageUsageFlagBits.html">VkImageUsageFlags</a>
+usage</code> field in
+[`VkImageCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageCreateInfo.html)
+similar to the equivalent field for buffers. In addition to the
+same transfer source and destination flags, the major flags
+involve the usage of the image as a color, depth/stencil, or
+input attachment.
+
 ### Sharing mode
 
 One thing worth noting about both buffers and images is that
