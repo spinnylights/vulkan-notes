@@ -1086,6 +1086,187 @@ that needs to access the resource (`pQueueFamilyIndices` in the
 `*CreateInfo`), which you can ignore if you pick
 `VK_SHARING_MODE_EXCLUSIVE`.
 
+## Memory management
+
+This is a rather subtle and intricate part of the API—there's
+more to it than meets the eye at first. We'll discuss the
+important functions and then talk tactics.
+
+The type `VkDeviceMemory` is an opaque handle used by Vulkan to
+represent a block of memory on the graphics device. You can use
+it to allocate device memory via
+[`vkAllocateMemory()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkAllocateMemory.html),
+which takes a logical device to allocate memory on, a pointer to
+a `VkDeviceMemory`, and a
+[`VkMemoryAllocateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkMemoryAllocateInfo.html), 
+which says how much memory to allocate in the form of a
+`VkDeviceSize` and which _type_ of device memory to allocate from.
+
+You might remember waaaaaay back in "Physical devices" when we
+mentioned using
+[`vkPhysicalDeviceMemoryProperties2()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPhysicalDeviceMemoryProperties2.html)
+to get a sense of how much physical memory a device has, or how
+much of it is in use at the moment. Well, this is that function's
+time to shine. It will tell you which types of memory are
+available on the physical device you're using. Let's take a look
+at what
+[`vulkaninfo`](https://vulkan.lunarg.com/doc/view/latest/windows/vulkaninfo.html)
+says about that for my card:
+
+```
+VkPhysicalDeviceMemoryProperties:
+=================================
+...
+memoryTypes: count = 11
+    memoryTypes[0]:
+        heapIndex     = 1
+        propertyFlags = 0x0000: count = 0
+            None
+        usable for:
+            IMAGE_TILING_OPTIMAL:
+                None
+            IMAGE_TILING_LINEAR:
+                color images
+                (non-transient)
+    memoryTypes[1]:
+        heapIndex     = 1
+        propertyFlags = 0x0000: count = 0
+            None
+        usable for:
+            IMAGE_TILING_OPTIMAL:
+                color images
+            IMAGE_TILING_LINEAR:
+                None
+    memoryTypes[2]:
+        heapIndex     = 1
+        propertyFlags = 0x0000: count = 0
+            None
+        usable for:
+            IMAGE_TILING_OPTIMAL:
+                FORMAT_D16_UNORM
+            IMAGE_TILING_LINEAR:
+                None
+    memoryTypes[3]:
+        heapIndex     = 1
+        propertyFlags = 0x0000: count = 0
+            None
+        usable for:
+            IMAGE_TILING_OPTIMAL:
+                FORMAT_X8_D24_UNORM_PACK32
+                FORMAT_D24_UNORM_S8_UINT
+            IMAGE_TILING_LINEAR:
+                None
+    memoryTypes[4]:
+        heapIndex     = 1
+        propertyFlags = 0x0000: count = 0
+            None
+        usable for:
+            IMAGE_TILING_OPTIMAL:
+                FORMAT_D32_SFLOAT
+            IMAGE_TILING_LINEAR:
+                None
+    memoryTypes[5]:
+        heapIndex     = 1
+        propertyFlags = 0x0000: count = 0
+            None
+        usable for:
+            IMAGE_TILING_OPTIMAL:
+                FORMAT_D32_SFLOAT_S8_UINT
+            IMAGE_TILING_LINEAR:
+                None
+    memoryTypes[6]:
+        heapIndex     = 1
+        propertyFlags = 0x0000: count = 0
+            None
+        usable for:
+            IMAGE_TILING_OPTIMAL:
+                FORMAT_S8_UINT
+            IMAGE_TILING_LINEAR:
+                None
+    memoryTypes[7]:
+        heapIndex     = 0
+        propertyFlags = 0x0001: count = 1
+            MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+        usable for:
+            IMAGE_TILING_OPTIMAL:
+                color images
+                FORMAT_D16_UNORM
+                FORMAT_X8_D24_UNORM_PACK32
+                FORMAT_D32_SFLOAT
+                FORMAT_S8_UINT
+                FORMAT_D24_UNORM_S8_UINT
+                FORMAT_D32_SFLOAT_S8_UINT
+            IMAGE_TILING_LINEAR:
+                color images
+                (non-transient)
+    memoryTypes[8]:
+        heapIndex     = 1
+        propertyFlags = 0x0006: count = 2
+            MEMORY_PROPERTY_HOST_VISIBLE_BIT
+            MEMORY_PROPERTY_HOST_COHERENT_BIT
+        usable for:
+            IMAGE_TILING_OPTIMAL:
+                None
+            IMAGE_TILING_LINEAR:
+                color images
+                (non-transient)
+    memoryTypes[9]:
+        heapIndex     = 1
+        propertyFlags = 0x000e: count = 3
+            MEMORY_PROPERTY_HOST_VISIBLE_BIT
+            MEMORY_PROPERTY_HOST_COHERENT_BIT
+            MEMORY_PROPERTY_HOST_CACHED_BIT
+        usable for:
+            IMAGE_TILING_OPTIMAL:
+                None
+            IMAGE_TILING_LINEAR:
+                color images
+                (non-transient)
+    memoryTypes[10]:
+        heapIndex     = 2
+        propertyFlags = 0x0007: count = 3
+            MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+            MEMORY_PROPERTY_HOST_VISIBLE_BIT
+            MEMORY_PROPERTY_HOST_COHERENT_BIT
+        usable for:
+            IMAGE_TILING_OPTIMAL:
+                None
+            IMAGE_TILING_LINEAR:
+                color images
+                (non-transient)
+```
+
+Good grief!! Now you're starting to see what I mean. Doesn't
+`malloc()` seem like a waltz through the roses right now?
+
+It gets crazier. You might think that once you've got all this
+sorted out you can just allocate memory willy-nilly as you
+please. Welp, that would be awful nice, but as it happens you're
+recommend to
+[suballocate](https://github.com/KhronosGroup/Vulkan-Guide/blob/master/chapters/memory_allocation.md#sub-allocation)
+memory rather than just plain allocating it. That's for two
+reasons—some platforms have very small values for
+[`maxMemoryAllocationCount`](https://www.khronos.org/registry/vulkan/specs/1.2/html/vkspec.html#limits-maxMemoryAllocationCount)
+(like,
+[4096](https://vulkan.gpuinfo.org/displaydevicelimit.php?name=maxMemoryAllocationCount&platform=windows)
+for most devices on
+Windows—[4294970000](https://vulkan.gpuinfo.org/displaydevicelimit.php?name=maxMemoryAllocationCount&platform=linux)
+on Linux though), and because (de)allocating memory is likely to
+be really slow in the driver.
+
+Okay. Before we dive into this madness I have to mention that AMD
+was nice enough to put out an MIT-licensed [Vulkan memory
+management
+library](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator)
+that takes care of some of the busywork for you. It may or many
+not be the ideal tool for your use case, and it's important to
+understand the nitty-gritty stuff about this topic even if you do
+use it, but just know that if this seems like a dizzying amount
+of work to tackle for one small part of the API there is some
+help out there. We'll come back to it later.
+
+All right, pull up yer sleeves folks!!
+
 ## Synchronization
 
 Execution of commands is highly concurrent, and ordering of
