@@ -1251,9 +1251,11 @@ href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkIm
 usage</code> field in
 [`VkImageCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageCreateInfo.html)
 similar to the equivalent field for buffers. In addition to the
-same transfer source and destination flags, the major flags
-involve the usage of the image as a color, depth/stencil, or
-input attachment.
+same transfer source and destination flags, the major flags allow
+the usage of the image as a color or resolve
+(`VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT`), depth/stencil
+(`VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT`), or input
+(`VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT`) attachment.
 
 ##### Dimensionality
 
