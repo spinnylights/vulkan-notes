@@ -1380,6 +1380,38 @@ meant to be used for linearly-tiled images destined to be
 directly written to by the host; it tells the driver that nothing
 needs to be done to the data before writing it to device memory.
 
+##### Flags
+
+<code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageCreateFlagBits.html">VkImageCreateFlags</a>
+flags</code> is a sort of catchall parameter in
+[`VkImageCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageCreateInfo.html)
+for things that aren't covered elsewhere.
+
+`VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT` indicates that the image
+can be viewed as a cube or a cube array, and
+`VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT` indicates that the
+image can be viewed as a 2D or 2D array image. We'll talk about
+those more in "Image views".
+
+`VK_IMAGE_CREATE_ALIAS_BIT`, when applied to two images created
+with the same parameters and aliased to the same memory,
+indicates that both images can interpret this memory consistently
+with each other if the rules of memory aliasing are followed (see
+"Memory management").
+
+`VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT` indicates that the image can
+be used to create an image view with a different format from the
+image. `VK_IMAGE_CREATE_EXTENDED_USAGE_BIT` indicates that the
+image can be created with usage flags that are not supported for
+its format but are supported for a format that views created
+from it can have. These are particularly relevant to swapchains
+(see "Swapchains").
+
+The others cover niche features, things based on
+not-always-present device features or extensions, etc.; check the
+spec for the details.
+
 ### Sharing mode
 
 One thing worth noting about both buffers and images is that
