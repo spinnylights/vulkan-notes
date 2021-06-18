@@ -1460,7 +1460,7 @@ much of it is in use at the moment. Well, this is that function's
 time to shine. It will tell you which types of memory are
 available on the physical device you're using. Let's take a look
 at what
-[`vulkaninfo`](https://vulkan.lunarg.com/doc/view/latest/windows/vulkaninfo.html)
+[`vulkaninfo`](https://vulkan.lunarg.com/doc/view/latest/linux/vulkaninfo.html)
 says about that for my card:
 
 ```
