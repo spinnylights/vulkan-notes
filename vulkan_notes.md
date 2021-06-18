@@ -1234,6 +1234,29 @@ same transfer source and destination flags, the major flags
 involve the usage of the image as a color, depth/stencil, or
 input attachment.
 
+##### Dimensionality
+
+The dimensionality of an image is expressed by two fields in
+[`VkImageCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageCreateInfo.html)—<code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageType.html">VkImageType</a>
+imageType</code> and <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkExtent3D.html">VkExtent3D</a>
+extent</code>. `imageType` can be `VK_IMAGE_TYPE_1D`, `*2D`, or
+`*3D`, and `extent` has `uint32_t` fields `width`, `height`, and
+`depth`. The fields of `extent` describe how many [_texel
+blocks_](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#texel-block-size)
+are found in each dimension of the image.  `width` corresponds to
+the first dimension, `height` to the second, and `depth` to the
+third. Accordingly, if `imageType` is `VK_IMAGE_TYPE_1D`,
+`extent.height` and `extent.depth` must be `1`; if it's
+`VK_IMAGE_TYPE_2D`, just `extent.depth` must be `1`.
+
+What the dimensionality actually means in terms of how the image
+data is laid out in memory depends on the tiling (see "Tiling").
+Perhaps more significantly, the dimensionality of an image
+dictates what you can do with it; for example, only 2D images can
+be drawn to the screen (as you might expect).
+
 ### Sharing mode
 
 One thing worth noting about both buffers and images is that
