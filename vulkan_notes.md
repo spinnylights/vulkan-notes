@@ -1367,6 +1367,19 @@ pointer. As a side note, you should probably set `initialLayout`
 to `VK_IMAGE_LAYOUT_PREINITIALIZED` if you're doing this, as
 you'll see in the next section.
 
+##### Initial layout
+
+There is a field <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageTiling.html">VkImageTiling</a>
+initialLayout</code> in
+[`VkImageCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageCreateInfo.html)
+with two possible values: `VK_IMAGE_LAYOUT_UNDEFINED` and
+`VK_IMAGE_LAYOUT_PREINITIALIZED`. `VK_IMAGE_LAYOUT_UNDEFINED` is
+the general-purpose option. `VK_IMAGE_LAYOUT_PREINITIALIZED` is
+meant to be used for linearly-tiled images destined to be
+directly written to by the host; it tells the driver that nothing
+needs to be done to the data before writing it to device memory.
+
 ### Sharing mode
 
 One thing worth noting about both buffers and images is that
