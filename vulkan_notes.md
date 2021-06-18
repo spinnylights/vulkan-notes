@@ -1257,6 +1257,13 @@ the usage of the image as a color or resolve
 (`VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT`), or input
 (`VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT`) attachment.
 
+There's also `VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT`, which
+means that memory allocated for the image will use the
+`VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT` flag (see "Memory
+management"). Any image can be created with this flag as long as
+it can be used to create a view suitable for use as a color,
+resolve, depth/stencil, or input attachment.
+
 ##### Dimensionality
 
 The dimensionality of an image is expressed by two fields in
