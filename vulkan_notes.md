@@ -1319,6 +1319,25 @@ developers depending on your level of whimsy). You can specify
 each separately in
 [`VkImageSubresourceLayers`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageSubresourceLayers.html).
 
+##### Samples
+
+Vulkan supports
+[multisampling](https://en.wikipedia.org/wiki/Multisample_anti-aliasing),
+an anti-aliasing technique used in rasterization in which each
+primitive is sampled in several different nearby places for each
+pixel, with all the resulting data being used to determine that
+pixel's value. You can set up an image for this by setting
+<code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSampleCountFlagBits.html">VkSampleCountFlagBits</a>
+samples</code> to a value other than `VK_SAMPLE_COUNT_1_BIT` in
+[`VkImageCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageCreateInfo.html)
+(see "Multisampling" for the details).
+
+Note that there are a variety of limitations in place when doing
+this. `imageType` must be `VK_IMAGE_TYPE_2D`, `flags` must not
+contain `VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT`, `mipLevels` must
+be `1`, and `tiling` must be `VK_IMAGE_TILING_OPTIMAL`.
+
 ### Sharing mode
 
 One thing worth noting about both buffers and images is that
