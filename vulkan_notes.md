@@ -1647,6 +1647,439 @@ help out there. We'll come back to it later.
 
 All right, pull up yer sleeves folks!!
 
+### Memory types
+
+Haha, I can't believe we're doing this. Anyway, when you call
+[`vkPhysicalDeviceMemoryProperties2()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPhysicalDeviceMemoryProperties2.html)
+(or
+[`vkPhysicalDeviceMemoryProperties()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPhysicalDeviceMemoryProperties.html),
+w/e), you get an array of
+[`VkMemoryType`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkMemoryType.html)s, which tell you about
+the types of memory available on the device (surprise, surprise).
+These have the index of the memory heap the memory type in
+question corresponds to, and also a bitmask of
+[`VkMemoryPropertyFlagBits`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkMemoryPropertyFlagBits.html)
+which gives you a sense of what the memory type is good for.
+
+Oh wait, we didn't even mention memory heaps! Haha, okay. _Memory
+heaps_ are areas of memory visible to the device in question.
+They may be _device local_ (in the actual physical memory on the
+device) or _host local_ (in RAM or w/e, you know)—what makes them
+"memory heaps" to Vulkan is that the device can see them. Vulkan
+also knows about which of the memory heaps the host can see, so
+all in total we have three posibilities:
+
+* _Device local_ memory that the host cannot see,
+* _Device local, host visible_ memory, which is what you would
+  think, and
+* _host local, host visible_ memory which is host memory the
+  device can see.
+
+Not all three types exist on all devices. Some may have only one
+(if the CPU is the device, for example).
+
+Anyway, this is part of what a memory type tells us about. It
+also tells us if the memory is
+
+* _host coherent_, meaning that it isn't necessary to flush host
+  writes to this area of memory or make device writes to it
+  visible to the host,
+* _host cached_, meaning that the memory's cache is stored in
+  host memory, and
+* _lazily allocated_, meaning that only the device can access the
+  memory.
+
+There's some other stuff from not-always-present features and
+extensions and things but those are the main points.
+
+Let's return to that `vulkaninfo` output but sans the "usable
+for" stuff and plus the contents of `memoryHeaps`:
+
+```
+VkPhysicalDeviceMemoryProperties:
+=================================
+memoryHeaps: count = 3
+    memoryHeaps[0]:
+            size   = 6442450944 (0x180000000) (6.00 GiB)
+            budget = 3044737024 (0xb57b0000) (2.84 GiB)
+            usage  = 0 (0x00000000) (0.00 B)
+            flags: count = 1
+                    MEMORY_HEAP_DEVICE_LOCAL_BIT
+    memoryHeaps[1]:
+            size   = 50523119616 (0xbc369a000) (47.05 GiB)
+            budget = 50523119616 (0xbc369a000) (47.05 GiB)
+            usage  = 0 (0x00000000) (0.00 B)
+            flags: count = 0
+                    None
+    memoryHeaps[2]:
+            size   = 257949696 (0x0f600000) (246.00 MiB)
+            budget = 245170176 (0x0e9d0000) (233.81 MiB)
+            usage  = 12779520 (0x00c30000) (12.19 MiB)
+            flags: count = 1
+                    MEMORY_HEAP_DEVICE_LOCAL_BIT
+memoryTypes: count = 11
+    memoryTypes[0–6]:
+        heapIndex     = 1
+        propertyFlags =
+            None
+    memoryTypes[7]:
+        heapIndex     = 0
+        propertyFlags =
+            MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    memoryTypes[8]:
+        heapIndex     = 1
+        propertyFlags =
+            MEMORY_PROPERTY_HOST_VISIBLE_BIT
+            MEMORY_PROPERTY_HOST_COHERENT_BIT
+    memoryTypes[9]:
+        heapIndex     = 1
+        propertyFlags =
+            MEMORY_PROPERTY_HOST_VISIBLE_BIT
+            MEMORY_PROPERTY_HOST_COHERENT_BIT
+            MEMORY_PROPERTY_HOST_CACHED_BIT
+    memoryTypes[10]:
+        heapIndex     = 2
+        propertyFlags =
+            MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+            MEMORY_PROPERTY_HOST_VISIBLE_BIT
+            MEMORY_PROPERTY_HOST_COHERENT_BIT
+```
+
+Excusing my rather untoward reveal of my hardware's
+characterstics, we can see that heap 1 is host memory, heap 0 is
+the main block of device memory, and heap 2 is a relatively small
+staging area of sorts in device memory that is visible to the
+host. Keep in mind that your hardware may be different—try
+running
+[`vulkaninfo`](https://github.com/KhronosGroup/Vulkan-Tools/blob/master/vulkaninfo/vulkaninfo.md#running-vulkan-info)
+and see.
+
+You might be curious as to why the elements of `memoryTypes[]`
+are ordered the way they are. As it happens, there is a specific
+reason, or rather set of reasons. They're ordered from least to
+most featureful, and from fastest to slowest aside from that,
+more or less. Being precise, if:
+
+* memory type __X__ has a smaller number of `propertyFlags`
+  than memory type __Y__, or
+* __X__ and __Y__ have the same number of `propertyFlags` but
+  __X__ belongs to a faster heap, or
+* __Y__ is _device coherent_ or _device uncached_ (i.e.  it's
+  slow) and __X__ is not,
+
+then __X__ is given a smaller index than __Y__.
+
+The basic idea here is that, when you need to store something in
+memory, you can loop through `memoryTypes[]` from the beginning
+looking for a type that fits your requirements and you'll get the
+fastest type that supports them as exactly as possible.
+
+Let's consider an example. Say we have a device of some sort and
+a buffer of some sort:
+
+```cpp
+VkDevice device;
+VkBuffer buffer;
+```
+
+We'd like this buffer to represent a block of device memory.
+First, we need to call `vkGetBufferMemoryRequirements()` for it:
+
+```cpp
+VkMemoryRequirements buf_mem_reqs;
+vkGetBufferMemoryRequirements(device, buffer, &buf_mem_reqs);
+```
+
+`buf_mem_reqs` has a bitmask field `memoryTypeBits` that has a
+bit set for each index of `memoryTypes[]` corresponding to a
+memory type that can support our `buffer`.
+
+Let's see what happens if we just look for a device local memory
+type:
+
+```cpp
+// in practice we would have done this part long ago, but
+// just for demonstration...
+VkPhysicalDevice phys_dev; // the device in use
+VkPhysicalDeviceMemoryProperties phys_dev_mem_props;
+vkGetPhysicalDeviceMemoryProperties(phys_dev, &phys_dev_mem_props);
+
+std::optional<uint32_t> find_mem_type(uint32_t supported_types,
+                                      VkMemoryPropertyFlags reqs)
+{
+    for (uint32_t i = 0; i < phys_dev_mem_props.memoryTypeCount; ++i) {
+        bool type_supported = (1 << i) & supported_types;
+        bool fits_reqs = (memoryTypes[i].propertyFlags & reqs) == reqs;
+
+        if (type_supported && fits_reqs) {
+            return i;
+        }
+    }
+
+    return std::nullopt;
+}
+
+auto type_ndx = find_mem_type(buf_mem_reqs.memoryTypeBits,
+                              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+```
+
+If you glance back up at `memoryTypes`, you'll see that
+`type_ndx.value()` will be `7`, corresponding to `memoryHeap[0]`,
+provided that it supports our `buffer`. That heap is purely
+device local—in other words, it's not host visible. That means we
+can't map it to host memory, so we can't write to it directly
+from the host. That may or may not matter; if it does matter, we
+could try adding `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT` to our
+requirements:
+
+```cpp
+VkMemoryPropertyFlags reqs = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+                             | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+type_ndx = find_mem_type(buf_mem_reqs.memoryTypeBits, reqs);
+```
+
+This time, provided it supports our `buffer`, we'll get `10` for
+`type_ndx.value()`, corresponding to `memoryHeaps[2]`. That's the
+relatively small "staging area" on the graphics card.
+
+Also note that if we had just specified
+`VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT`, we would get
+`memoryTypes[8]`, corresponding to `memoryHeaps[1]`, host memory.
+However, `memoryTypes[8]` is not cached on the host. If it was,
+host accesses to it would be faster, so we could specify
+`VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+VK_MEMORY_PROPERTY_HOST_CACHED_BIT` and we would get
+`memoryTypes[9]` instead.
+
+You can see that what makes the most sense is to first specify
+the ideal characteristics of the memory type you want and see if
+you get anything back. If not, you can try trimming them down
+until you do get what you want. This allows you to get the best
+possible memory type in the lowest number of steps.
+
+```cpp
+std::array desired_props_list {
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+    | VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
+
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+    | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+};
+
+for (auto&& props : desired_props_list) {
+    type_ndx = find_mem_type(buf_mem_reqs.memoryTypeBits, props);
+
+    if (type_ndx.has_value()) {
+        break;
+    }
+}
+
+// first pass:
+//     !type_ndx.has_value()
+// second pass:
+//     type_ndx.value() == 10
+```
+
+You may be feeling anxious at this point about the possibility of
+not being able to find a memory type that fits even your minimum
+requirements at some point in time. Luckily, there are some
+guarantees. You are promised at least one memory type with both
+`VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT` and
+`VK_MEMORY_PROPERTY_HOST_COHERENT_BIT` set, and at least one
+memory type with `VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT` set.
+That's why `VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT` by itself came
+last in `desired_props_list` just now.
+
+A plain, unqualified `VkBuffer` is likely to be compatible with
+any of the available memory types. However, the same is not
+necessarily true of `VkImage`s, which tend to only be compatible
+with certain types of memory based on their tiling and format.
+That's what was being shown in that "usable for" section
+earlier—let's bring that back:
+
+```
+memoryHeaps: count = 3
+    memoryHeaps[0]:
+            size   = 6442450944 (0x180000000) (6.00 GiB)
+            budget = 3044737024 (0xb57b0000) (2.84 GiB)
+            usage  = 0 (0x00000000) (0.00 B)
+            flags: count = 1
+                    MEMORY_HEAP_DEVICE_LOCAL_BIT
+    memoryHeaps[1]:
+            size   = 50523119616 (0xbc369a000) (47.05 GiB)
+            budget = 50523119616 (0xbc369a000) (47.05 GiB)
+            usage  = 0 (0x00000000) (0.00 B)
+            flags: count = 0
+                    None
+    memoryHeaps[2]:
+            size   = 257949696 (0x0f600000) (246.00 MiB)
+            budget = 245170176 (0x0e9d0000) (233.81 MiB)
+            usage  = 12779520 (0x00c30000) (12.19 MiB)
+            flags: count = 1
+                    MEMORY_HEAP_DEVICE_LOCAL_BIT
+memoryTypes: count = 11
+    memoryTypes[0]:
+        heapIndex     = 1
+        propertyFlags =
+            None
+        usable for:
+            IMAGE_TILING_OPTIMAL:
+                None
+            IMAGE_TILING_LINEAR:
+                color images
+                (non-transient)
+    memoryTypes[1]:
+        heapIndex     = 1
+        propertyFlags =
+            None
+        usable for:
+            IMAGE_TILING_OPTIMAL:
+                color images
+            IMAGE_TILING_LINEAR:
+                None
+    memoryTypes[2]:
+        heapIndex     = 1
+        propertyFlags =
+            None
+        usable for:
+            IMAGE_TILING_OPTIMAL:
+                FORMAT_D16_UNORM
+            IMAGE_TILING_LINEAR:
+                None
+    memoryTypes[3]:
+        heapIndex     = 1
+        propertyFlags =
+            None
+        usable for:
+            IMAGE_TILING_OPTIMAL:
+                FORMAT_X8_D24_UNORM_PACK32
+                FORMAT_D24_UNORM_S8_UINT
+            IMAGE_TILING_LINEAR:
+                None
+    memoryTypes[4]:
+        heapIndex     = 1
+        propertyFlags =
+            None
+        usable for:
+            IMAGE_TILING_OPTIMAL:
+                FORMAT_D32_SFLOAT
+            IMAGE_TILING_LINEAR:
+                None
+    memoryTypes[5]:
+        heapIndex     = 1
+        propertyFlags =
+            None
+        usable for:
+            IMAGE_TILING_OPTIMAL:
+                FORMAT_D32_SFLOAT_S8_UINT
+            IMAGE_TILING_LINEAR:
+                None
+    memoryTypes[6]:
+        heapIndex     = 1
+        propertyFlags =
+            None
+        usable for:
+            IMAGE_TILING_OPTIMAL:
+                FORMAT_S8_UINT
+            IMAGE_TILING_LINEAR:
+                None
+    memoryTypes[7]:
+        heapIndex     = 0
+        propertyFlags =
+            MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+        usable for:
+            IMAGE_TILING_OPTIMAL:
+                color images
+                FORMAT_D16_UNORM
+                FORMAT_X8_D24_UNORM_PACK32
+                FORMAT_D32_SFLOAT
+                FORMAT_S8_UINT
+                FORMAT_D24_UNORM_S8_UINT
+                FORMAT_D32_SFLOAT_S8_UINT
+            IMAGE_TILING_LINEAR:
+                color images
+                (non-transient)
+    memoryTypes[8]:
+        heapIndex     = 1
+        propertyFlags =
+            MEMORY_PROPERTY_HOST_VISIBLE_BIT
+            MEMORY_PROPERTY_HOST_COHERENT_BIT
+        usable for:
+            IMAGE_TILING_OPTIMAL:
+                None
+            IMAGE_TILING_LINEAR:
+                color images
+                (non-transient)
+    memoryTypes[9]:
+        heapIndex     = 1
+        propertyFlags =
+            MEMORY_PROPERTY_HOST_VISIBLE_BIT
+            MEMORY_PROPERTY_HOST_COHERENT_BIT
+            MEMORY_PROPERTY_HOST_CACHED_BIT
+        usable for:
+            IMAGE_TILING_OPTIMAL:
+                None
+            IMAGE_TILING_LINEAR:
+                color images
+                (non-transient)
+    memoryTypes[10]:
+        heapIndex     = 2
+        propertyFlags =
+            MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+            MEMORY_PROPERTY_HOST_VISIBLE_BIT
+            MEMORY_PROPERTY_HOST_COHERENT_BIT
+        usable for:
+            IMAGE_TILING_OPTIMAL:
+                None
+            IMAGE_TILING_LINEAR:
+                color images
+                (non-transient)
+```
+
+So if you look back at "Formats" under "Images" you might recall
+us talking through these formats back there. Perhaps you even
+recall allusions to the fact that not all types of memory support
+all image formats. Well, here it is, in all it's "glory"
+(horror?).
+
+Oh, and you might also recall from there that "color images" in
+this chart is `VK_FORMAT_R8G8B8A8_UNORM`.
+
+You might note also that the formats are split up by tiling
+(check out "Tiling" under "Images" if you're not sure what this
+is about). This helps to clarify the role of
+`memoryTypes[0`–`6]`—with the exception of `memoryTypes[0]`
+(which seems rather pointless in the face of `memoryTypes[9]`,
+but go figure), these are for storing images with optimal tiling
+(as in, optimal for the device) in host memory. Since they're not
+host visible, you would need a rather special reason to use them
+(perhaps if you run out of device memory?) but they're there if
+you do.
+
+Unsurprisingly, also, all the types that _are_ host visible only
+support linearly-tiled images. This figures, for the same reason
+that it wouldn't make sense to host-map an optimally-tiled
+image—you wouldn't be able to make heads or tails of it, at least
+not naïvely.
+
+The "non-transient" stuff means that images with the applicable
+tiling can't have `VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT` set,
+i.e. their memory can't be lazily allocated. It's not surprising
+that this would be specified for linearly-tiled images, as
+lazily-allocated memory has to be both device visible and not
+host visible. Also, since this would mean that the device would
+allocate and write to the image's memory as needed, it wouldn't
+make sense for the image to be linearly-tiled, as that's mainly
+meant for images that need to be accessed directly by the host.
+
+As we mentioned back in "Logical devices", you can use
+[`vkGetImageMemoryRequirements()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetImageMemoryRequirements.html)
+to gather this data yourself. Of course, if you followed the plan
+we outlined there, you'll already have it cached.
+
 ## Synchronization
 
 Execution of commands is highly concurrent, and ordering of
