@@ -1013,6 +1013,23 @@ starting and managing render passes and subpasses, binding
 resources like pipelines and buffers to the command buffer,
 and making draw calls on the associated device.
 
+## Resources
+
+There are two main types Vulkan uses to keep track of data. One
+of them is `VkBuffer`, which is relatively similar to a plain
+array, and the other is `VkImage`, which is basically a fancy
+container for
+[texels](https://en.wikipedia.org/wiki/Texel_(graphics).
+
+Of note, these two types are the main tools you have for
+interacting with device memory in the API. When you call
+[`VkAllocateMemory()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkAllocateMemory.html),
+all you end up with is an opaque handle
+[`VkDeviceMemory`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDeviceMemory.html),
+which you have to bind to a `VkBuffer` or `VkImage` to make use
+of. Concomitant with this, they are the main way of getting data
+through the API into your shader code.
+
 ## Synchronization
 
 Execution of commands is highly concurrent, and ordering of
