@@ -1030,6 +1030,43 @@ which you have to bind to a `VkBuffer` or `VkImage` to make use
 of. Concomitant with this, they are the main way of getting data
 through the API into your shader code.
 
+### Buffers
+
+The buffer, represented by `VkBuffer`, is a data type that's kind of
+like a C array with some extra context. They're created via
+[`vkCreateBuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateBuffer.html),
+which takes a
+[`VkBufferCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkBufferCreateInfo.html).
+It's rather enlightening to take a brief look at a couple of that
+struct's fields:
+
+* `VkDeviceSize size`: this is the size of the `VkBuffer` in the
+  C array sense; it's currently a [typedef of
+  `uint64_t`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDeviceSize.html);
+* `VkBufferUsageFlags usage`: these set what the buffer can be
+  used for; among other things, they include:
+  * `VK_BUFFER_USAGE_TRANSFER_SRC_BIT` and
+    `VK_BUFFER_USAGE_TRANSFER_DST_BIT`, which say the buffer
+    can be the source or destination of a transfer command (see
+    "Copying images and buffers"),
+  * `VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT`,
+    `VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT`,
+    `VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT`, and
+    `VK_BUFFER_USAGE_STORAGE_BUFFER_BIT`, all of which
+    basically say the buffer can occupy a descriptor set slot, in
+    various ways (see "Resource descriptors"),
+  * `VK_BUFFER_USAGE_INDEX_BUFFER_BIT`, and
+    `VK_BUFFER_USAGE_VERTEX_BUFFER_BIT`, both of which have to
+    do with getting vertices into a graphics pipeline, and
+  * `VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT`, which basically says
+    the buffer can be used to pass parameters at runtime to
+    various commands.
+
+There's a bit more to buffers than this, but that gives you a
+sense of their personality in the context of Vulkan. They provide
+a means to ferry "arbitrary" data around that needs to play some
+role on the device but doesn't need the `VkImage` treatment.
+
 ## Synchronization
 
 Execution of commands is highly concurrent, and ordering of
