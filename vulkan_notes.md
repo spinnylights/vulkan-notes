@@ -2052,19 +2052,19 @@ this chart is `VK_FORMAT_R8G8B8A8_UNORM`.
 You might note also that the formats are split up by tiling
 (check out "Tiling" under "Images" if you're not sure what this
 is about). This helps to clarify the role of
-`memoryTypes[0`–`6]`—with the exception of `memoryTypes[0]`
-(which seems rather pointless in the face of `memoryTypes[9]`,
-but go figure), these are for storing images with optimal tiling
-(as in, optimal for the device) in host memory. Since they're not
-host visible, you would need a rather special reason to use them
-(perhaps if you run out of device memory?) but they're there if
-you do.
+`memoryTypes[0`–`6]`—these are for storing non-host-visible
+buffers and optimally-tiled images in host memory. If you guessed
+that these are for the device to use as "overflow" memory if
+device memory is exhuasted, [you're
+correct!](https://developer.nvidia.com/what%E2%80%99s-your-vulkan-memory-type)
+(Of course, actually making that happen is your job in Vulkan,
+just like most everything else.)
 
 Unsurprisingly, also, all the types that _are_ host visible only
-support linearly-tiled images. This figures, for the same reason
-that it wouldn't make sense to host-map an optimally-tiled
-image—you wouldn't be able to make heads or tails of it, at least
-not naïvely.
+support buffers and linearly-tiled images. This figures, for the
+same reason that it wouldn't make sense to host-map an
+optimally-tiled image—you wouldn't be able to make heads or tails
+of it, at least not naïvely.
 
 The "non-transient" stuff means that images with the applicable
 tiling can't have `VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT` set,
