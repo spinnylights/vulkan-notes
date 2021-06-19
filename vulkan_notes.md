@@ -1339,7 +1339,8 @@ setting `imageType` to `VK_IMAGE_TYPE_2D`, enabling
 `samples` to `VK_SAMPLE_COUNT_1_BIT`, making `extent.width` and
 `extent.height` equal, and finally setting `arrayLayers` equal to
 or greater than `6` (greater than allows you to make a cube
-array). You can then make a cube or cube array image view to it
+array—note that only multiples of 6 will actually specify cube
+maps). You can then make a cube or cube array image view to it
 (see "Image views").
 
 An image can have more than one layer and more than one MIP
