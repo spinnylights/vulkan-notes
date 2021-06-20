@@ -2108,6 +2108,88 @@ may not truly be relinquished by the device until the associated
 resources are destroyed, so keep that in mind if you're not
 getting your bytes back when you call `vkFreeMemory`.
 
+### Mapping memory
+
+The memory wrapped by `VkDeviceMemory` objects is not directly
+accessible by the host after allocation. You can make it directly
+accessible in some cases with
+[`vkMapMemory()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkMapMemory.html).
+This has you to specify both an offset and a range of bytes to
+map within the memory object (you can specify `VK_WHOLE_SIZE` for
+the range to map from the offset to the end of the allocation),
+and it sets up a regular ol' pointer you can use to access the
+memory through.
+
+If you're wondering what I mean by "in some cases," you may
+recall from the previous discussion of memory types that if a
+memory type does not have `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT`
+set then memory allocated from it cannot be used with
+`vkMapMemory()`. You might also recall that host visible memory
+can't hold optimally-tiled images, and that in my environment
+there's only a smallish block of host-visible device memory (246
+MiB out of the whole 6 GiB).
+
+All of this means that getting data on and off the device isn't
+necessarily as straightforward as just mapping some device memory
+to the host and accessing it. AMD
+[recommends](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/usage_patterns.html)
+(for graphics hardware in general) that host-visible device
+memory be used for resources that will be updated frequently by
+the host and read frequently by the device (like every frame).
+They also recommend that this memory be written to using
+`memcpy()` from the host and also that it not be randomly
+accessed (as this is likely to be very slow).  Furthermore, if
+there is memory written to by the device that needs to be read
+afterwards by the host, they recommend that the device write to
+both host-visible and host-cached memory (which in my environment
+would end up being host memory). For resources written by the
+host and read by the device that are too large to fit comfortably
+in host-visible device memory, they recommend writing them in
+host memory and transferring them into the main block of device
+memory separately. Of course, none of this applies to integrated
+graphics—you can do everything in host memory in that case
+because there is no real device memory. In short, when to use
+`vkMapMemory()` depends on your application's needs and the
+hardware it's running on, like many things in Vulkan.
+
+`vkMapMemory()` does not check to see if the memory is currently
+in use before providing the pointer to it. You need to take care
+of that yourself—see "Synchronization" for more on this. Same
+goes for access to the memory while it is mapped.
+
+Naturally, while a memory object is host-mapped, you shouldn't
+call `vkMapMemory()` on it again while it's still mapped.
+
+To unmap mapped memory, use
+[`vkUnmapMemory()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkUnmapMemory.html).
+You might be wondering here if you can leave some memory
+persistently mapped for the lifetime of your application. The
+answer is yes, but with the
+[caveat](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/memory_mapping.html#memory_mapping_persistently_mapped_memory)
+that on Windows <10 the contents of device-local host-mapped
+memory may be migrated to host memory when `vkQueueSubmit()` or
+`vkQueuePresentKHR()` are called, which is obviously bad for
+performance. If you need to support Windows 7 or 8, you may want
+to map device-local memory only as long as you need to on those
+OSes.
+
+If the mapped memory comes from a memory type without
+`VK_MEMORY_PROPERTY_HOST_COHERENT_BIT` set, flushing and
+invalidating the memory also needs to be managed by the host to
+ensure that accesses to it are visible to both the host and
+device. There are two functions provided for this purpose,
+[`vkFlushMappedMemoryRanges()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkFlushMappedMemoryRanges.html)
+and
+[`vkInvalidateMappedMemoryRanges()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkInvalidateMappedMemoryRanges.html).
+`vkFlushMappedMemoryRanges()` ensures that host writes to the
+specified memory ranges are made visible to the device, while
+`vkInvalidateMappedMemoryRanges()` ensures that device writes to
+the specified memory ranges are made visible to the host. It's
+worth noting that unmapping non-host-coherent memory does not
+flush it, nor does mapping non-host-coherent memory automatically
+invalidate it—you have to take care of these things while you're
+mapping and unmapping the memory.
+
 ## Synchronization
 
 Execution of commands is highly concurrent, and ordering of
