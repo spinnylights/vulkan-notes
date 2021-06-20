@@ -2081,6 +2081,33 @@ As we mentioned back in "Logical devices", you can use
 to gather this data yourself. Of course, if you followed the plan
 we outlined there, you'll already have it cached.
 
+### Allocating memory
+
+This part is relatively simple by comparison. The main way to
+allocate device memory in Vulkan is with the function
+[`vkAllocateMemory()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkAllocateMemory.html).
+This takes parameters in a
+[`VkMemoryAllocateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkMemoryAllocateInfo.html),
+which specifies the number of bytes to allocate and the index of
+a memory type to allocate memory from (see above).
+
+The memory itself is represented by an opaque handle of type
+[`VkDeviceMemory`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDeviceMemory.html).
+By itself, this is a kind of vague bag o' bits somewhere you
+can't do much with. You have to bind, map, etc. the memory in
+order to work with it.
+
+To free memory, use
+[`vkFreeMemory()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkFreeMemory.html).
+You have to ensure that the memory is not still in use by the
+device (e.g. by being attached to a pending command buffer).
+However, it's okay to free memory that is still bound to a
+resource as long as you won't make any use of those resources
+afterwards. If there are still resources bound to it, the memory
+may not truly be relinquished by the device until the associated
+resources are destroyed, so keep that in mind if you're not
+getting your bytes back when you call `vkFreeMemory`.
+
 ## Synchronization
 
 Execution of commands is highly concurrent, and ordering of
