@@ -2468,15 +2468,15 @@ allocations"](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/h
 in the VMA docs for more info.
 
 So, should you use it? That's a call you have to make. One of the
-biggest complaints you might have about it is that it doesn't
-necessarily save you _that_ much work on top of what Vulkan has
-you do, and there are always costs associated with bringing in
-any dependency. On the other hand, much of what it does do are
-things that the average Vulkan application would end up
-implementing in largely the same way, and it's very flexible, so
-you can probably get it to work close to how your code would have
-done in the places where you do use it (unless your application
-is very unusual).
+biggest complaints you might have about it is that you still have
+to think about memory management in a lot of depth even if you
+you do use it, and there are always costs associated with
+bringing in any dependency. On the other hand, much of what it
+does do are things that the average Vulkan application would end
+up implementing in largely the same way, and it's very flexible,
+so you can probably get it to work close to how your code would
+have done in the places where you do use it (unless your
+application is very unusual).
 
 My hunch is that rather "middleweight" Vulkan applications will
 get the most out of it—those that have a fair bit of data flying
