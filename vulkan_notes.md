@@ -1650,15 +1650,15 @@ All right, pull up yer sleeves folks!!
 
 ### Memory types
 
-Haha, I can't believe we're doing this. Anyway, when you call
+When you call
 [`vkPhysicalDeviceMemoryProperties2()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPhysicalDeviceMemoryProperties2.html)
 (or
 [`vkPhysicalDeviceMemoryProperties()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPhysicalDeviceMemoryProperties.html),
 w/e), you get an array of
-[`VkMemoryType`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkMemoryType.html)s, which tell you about
-the types of memory available on the device (surprise, surprise).
-These have the index of the memory heap the memory type in
-question corresponds to, and also a bitmask of
+[`VkMemoryType`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkMemoryType.html)s,
+which tell you about the types of memory available on the device
+(surprise, surprise). These have the index of the memory heap the
+memory type in question corresponds to, and also a bitmask of
 [`VkMemoryPropertyFlagBits`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkMemoryPropertyFlagBits.html)
 which gives you a sense of what the memory type is good for.
 
