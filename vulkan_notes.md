@@ -2190,6 +2190,40 @@ flush it, nor does mapping non-host-coherent memory automatically
 invalidate it—you have to take care of these things while you're
 mapping and unmapping the memory.
 
+### Binding resources to memory
+
+Resources (images and buffers) are not immediately associated
+with an actual block of memory when they're first created. Before
+they can be used to create views, update descriptor sets, or
+record commands in a command buffer, they need to be contiguously
+_bound_ to a memory object (it's a bit different with sparse
+resources but we'll talk about that elsewhere since it's not a
+universal feature).
+
+To bind a resource, you have a couple options. The first is to
+use
+[`vkBindBufferMemory()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkBindBufferMemory.html)
+or
+[`vkBindImageMemory()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkBindImageMemory.html),
+both of which just require you to specify an offset into the
+memory at which to start binding the resource. However, you can
+also use
+[`vkBindBufferMemory2()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkBindBufferMemory2.html)
+and
+[`vkBindImageMemory2()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkBindImageMemory2.html),
+which allow you to perform multiple bindings in one call; this is
+likely to be more efficient when you have the opportunity.
+
+Once bound, a resource cannot be unbound without destroying it.
+
+You might recall our brief explorations of the functions
+[`vkGetImageMemoryRequirements()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetImageMemoryRequirements.html)
+and
+[`vkGetBufferMemoryRequirements()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetBufferMemoryRequirements.html).
+You can use these to determine the type, size, and alignment
+requirements of the resource to guide you in determining where in
+memory to bind them.
+
 ## Synchronization
 
 Execution of commands is highly concurrent, and ordering of
