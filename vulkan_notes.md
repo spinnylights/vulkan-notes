@@ -1489,6 +1489,40 @@ layout relating to the accessed component needs to match (e.g.
 `VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL` would both be okay for
 accessing just the depth component).
 
+### Resource views
+
+Views are a mechanism allowing access to texel-holding resources
+from within shaders. There are different types for buffers and
+images.
+
+#### Buffer views
+
+Buffer views are only supported for buffers created with the
+`VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT` and/or
+`VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT` usage flags. The view
+specifies both the range and format of the data within the buffer
+to access.
+
+A buffer view is represented by a
+[`VkBufferView`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkBufferView.html)
+handle. These are created via
+[`vkCreateBufferView()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateBufferView.html),
+which takes a
+[`VkBufferViewCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkBufferViewCreateInfo.html).
+As was just alluded to, this specifies a range and offset for the
+buffer data and a
+[`VkFormat`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkFormat.html)
+describing the texel format. The range can be given as
+`VK_WHOLE_SIZE` to go from the offset to the end of the buffer;
+if the resulting range is not a multiple of the format's block
+size, the nearest smaller multiple will be used, so you may end
+up short a texel from what you were expecting in that case.
+
+To destroy a buffer view, use
+[`vkDestroyBufferView()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroyBufferView.html).
+Any submitted commands that refer to the buffer in question must
+have completed execution before you call this.
+
 ### Sharing mode
 
 One thing worth noting about both buffers and images is that
