@@ -2253,9 +2253,10 @@ OSes.
 
 If the mapped memory comes from a memory type without
 `VK_MEMORY_PROPERTY_HOST_COHERENT_BIT` set, flushing and
-invalidating the memory also needs to be managed by the host to
-ensure that accesses to it are visible to both the host and
-device. There are two functions provided for this purpose,
+invalidating the relevant host cache range also needs to be
+managed by the host to ensure that accesses to it are visible to
+both the host and device. There are two functions provided for
+this purpose,
 [`vkFlushMappedMemoryRanges()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkFlushMappedMemoryRanges.html)
 and
 [`vkInvalidateMappedMemoryRanges()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkInvalidateMappedMemoryRanges.html).
@@ -2264,9 +2265,9 @@ specified memory ranges are made visible to the device, while
 `vkInvalidateMappedMemoryRanges()` ensures that device writes to
 the specified memory ranges are made visible to the host. It's
 worth noting that unmapping non-host-coherent memory does not
-flush it, nor does mapping non-host-coherent memory automatically
-invalidate it—you have to take care of these things while you're
-mapping and unmapping the memory.
+flush the cache, nor does mapping non-host-coherent memory
+automatically invalidate it—you have to take care of these things
+while you're mapping and unmapping the memory.
 
 ### Binding resources to memory
 
@@ -2413,8 +2414,9 @@ following guidelines:
       into your video memory pool.
 * If it's data that the device writes and the host reads, have
   the device write it to the same pool you use for
-  frequently-updated host-written data. Remember the flushing and
-  invalidating stuff if the memory is not host-coherent.
+  frequently-updated host-written data. Remember flushing and
+  invalidating the host cache ranges if the memory is not
+  host-coherent.
 * If it's data the device reads and writes and the host accesses
   little or not at all, work with it entirely in your video
   memory pool.
@@ -2506,8 +2508,8 @@ that different from the Vulkan interface, but they're a bit safer
 on an already-mapped memory object, for instance). It does take
 care of basic synchronization and has a flag you can set if you
 want to map the memory persistently, but you still need to take
-care of flushing and invalidating the memory if it's not
-host-coherent. See ["Memory
+care of flushing and invalidating the host cache ranges if it's
+not host-coherent. See ["Memory
 mapping"](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/memory_mapping.html)
 in the VMA docs for more info.
 
