@@ -1448,6 +1448,48 @@ spec for the details.
 An image subresource is a single layer and MIP map. An image
 subresource range is a set of contiguous layers and MIP maps.
 
+#### Image layouts
+
+An image's layout describes how its data is arranged in memory at
+a high level. We've touched on this a little bit already with
+`VK_IMAGE_LAYOUT_UNDEFINED` and `VK_IMAGE_LAYOUT_PREINITIALIZED`.
+Image subresources can have a lot of other layouts aside from
+just those two, but they have to be _transitioned_ into them
+post-initialization. This is done as part of a memory dependency
+(see "Image layout transition" under "Memory barriers"). Places
+where this can occur include the execution of a pipeline barrier
+command (see "Recording" under "Pipeline barriers"), waiting on
+an event (see "Device operations" under "Events"), or as part of
+a subpass dependency (see "Render pass"). As a general rule,
+image layout transitions are an optimization mechanism, as the
+different layouts are mainly specified in terms of which usage
+they are optimal for.
+
+The layouts are enumerated in
+[`VkImageLayout`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageLayout.html).
+In core Vulkan, aside from the layouts we've already discussed,
+images can be laid out optimally for use as a color or
+depth/stencil attachment (including various combinations of
+optimized read-only vs. read-write access for components of a
+depth/stencil attachment), read-only sampled image for shader
+access, and transfer source or destination. `VK_KHR_swapchain`
+also provides a layout optimized for presentation.
+
+In general, different subresources of the same image can have
+different layouts. The only exception is that depth/stencil
+aspects of a given image subresource must always be in the same
+layout.
+
+When accessing an image in Vulkan, the available mechanisms can't
+detect which layout an image subresource is in, so you have to
+keep track of this information and provide it as needed. The
+rules are slightly relaxed when accessing just the depth or
+stencil components of a subresource, in which case only the
+layout relating to the accessed component needs to match (e.g.
+`VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL` and
+`VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL` would both be okay for
+accessing just the depth component).
+
 ### Sharing mode
 
 One thing worth noting about both buffers and images is that
@@ -3089,7 +3131,8 @@ specification of both the old layout and the new layout.
 In order for the image contents to be preserved, the old layout
 specified must match that of the image prior to the transition.
 Otherwise, it must be set to `VK_IMAGE_LAYOUT_UNDEFINED`, in
-which case the contents may be discarded.
+which case the contents may be discarded. (See "Image layouts"
+under "Images" for more on the layouts themselves.)
 
 The memory bound to an image subresource range must be made
 available prior to an image layout transition operation on it, as
