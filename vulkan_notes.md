@@ -2509,7 +2509,7 @@ still available. See ["Lost
 allocations"](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/lost_allocations.html)
 in the VMA docs for more info.
 
-So, should you use it? That's a call you have to make. One of the
+So, should you use VMA? That's a call you have to make. One of the
 biggest complaints you might have about it is that you still have
 to think about memory management in a lot of depth even if you
 you do use it, and there are always costs associated with
