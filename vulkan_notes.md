@@ -2490,6 +2490,11 @@ much memory they'll need and where and thus won't need a lot of
 complicated logic around memory management (although they may
 still be able to save on boilerplate by using VMA). These are all
 just guesses on my part, though—you know your application best.
+VMA is designed such that you can use it in a kind of piecemeal
+fashion, so if you start out using it and later begin to feel
+that it's an obstacle somewhere you can probably change just that
+part of your codebase without having to pull out the library
+entirely.
 
 ## Synchronization
 
