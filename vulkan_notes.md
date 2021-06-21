@@ -1469,11 +1469,11 @@ The layouts are enumerated in
 [`VkImageLayout`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageLayout.html).
 In core Vulkan, aside from the layouts we've already discussed,
 images can be laid out optimally for use as a color or
-depth/stencil attachment (including various combinations of
-optimized read-only vs. read-write access for components of a
-depth/stencil attachment), read-only sampled image for shader
-access, and transfer source or destination. `VK_KHR_swapchain`
-also provides a layout optimized for presentation.
+depth/stencil attachment, read-only sampled image for shader
+access, or transfer source or destination. Various combinations
+of optimized read-only vs. read-write access for components of a
+depth/stencil attachment are supported. `VK_KHR_swapchain` also
+provides a layout optimized for presentation.
 
 In general, different subresources of the same image can have
 different layouts. The only exception is that depth/stencil
