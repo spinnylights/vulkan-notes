@@ -1715,11 +1715,13 @@ was nice enough to put out an MIT-licensed [Vulkan memory
 management
 library](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator)
 that takes care of some of the busywork for you. It may or many
-not be the ideal tool for your use case, and it's important to
-understand the nitty-gritty stuff about this topic even if you do
-use it, but just know that if this seems like a dizzying amount
-of work to tackle for one small part of the API there is some
-help out there. We'll come back to it later.
+not be the ideal tool for your use case, and you have to
+understand the nitty-gritty stuff about this topic in order to
+get how to use it, but just know that if this seems like a
+dizzying amount of work to tackle for one small part of the API
+there is some help out there. We'll come back to it later after
+we've explored memory management from the pure Vulkan
+perspective.
 
 All right, pull up yer sleeves folks!!
 
