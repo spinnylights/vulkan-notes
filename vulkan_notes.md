@@ -2470,8 +2470,9 @@ which is the main object in the library. You create it in
 conjunction with a
 [`VmaAllocatorCreateInfo`](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/struct_vma_allocator_create_info.html);
 this allows you to set the maximum number of bytes to allocate
-from a given heap and how many frames you need to keep track of
-resources for, among other things.
+from a given heap if you want, how many frames you need to keep
+track of resources for if you're using the lost allocations
+feature, etc.
 
 VMA provides its own functions for creating and destroying
 resources,
