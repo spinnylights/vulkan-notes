@@ -2224,6 +2224,40 @@ You can use these to determine the type, size, and alignment
 requirements of the resource to guide you in determining where in
 memory to bind them.
 
+### Sub-allocating
+
+As we touched on briefly, it's
+[recommended](https://github.com/KhronosGroup/Vulkan-Guide/blob/master/chapters/memory_allocation.md#sub-allocation)
+that you sub-allocate memory for most resources rather than
+performing a unique allocation for each one. AMD's Adam Sawicki
+[recommends](https://ubm-twvideo01.s3.amazonaws.com/o1/vault/gdc2018/presentations/Sawicki_Adam_Memory%20management%20in%20Vulkan.pdf)
+allocating memory in 256 MiB blocks unless the heap is <= 1 GiB,
+in which case he recommends using a block size of heap size / 8.
+He also recommends not performing allocations in the main loop at
+all if possible, and in a background thread if you absolutely
+need to, because of how slow it is.
+
+It should be fairly easy to see how you would do this after
+everything we've covered. After allocating a block of memory, you
+can bind multiple resources to it by keeping track of their sizes
+and offsets.
+
+Note that there is a value
+`VkPhysicalDeviceLimits::bufferImageGranularity` that specifies
+the granularity at which linear and non-linear (e.g.
+optimally-tiled) resources need to be placed in memory to avoid
+aliasing. It's specified in bytes and is always a power of 2 (in
+my environment it's 1 KiB).
+
+While you're at it, it's not _exactly_ sub-allocation, but Nvidia
+[recommends](https://developer.nvidia.com/vulkan-memory-management)
+that you make small numbers of large buffers and store different
+kinds of data in them by offset, rather than creating many small
+buffers for different uses. In other words, you should apply the
+same pattern to buffer management that you do to memory
+management. This helps to avoid overhead on the host from having
+tons of small objects around.
+
 ## Synchronization
 
 Execution of commands is highly concurrent, and ordering of
