@@ -2959,6 +2959,21 @@ See
 and [7.3.2 Importing Fence Payloads](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#synchronization-fences-importing) for more on this.
 -->
 
+As an alternative to waiting on a fence, you can also use
+[`vkQueueWaitIdle()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueWaitIdle.html)
+or
+[`vkDeviceWaitIdle()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDeviceWaitIdle.html),
+which are kind of like shorthands for fence operations.
+[`vkQueueWaitIdle()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueWaitIdle.html)
+just takes a queue to wait on, and is equivalent to submitting a
+fence to that queue and waiting indefinitely for the fence to be
+signaled.
+[`vkDeviceWaitIdle()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDeviceWaitIdle.html)
+just takes a device, and is equivalent to calling
+[`vkQueueWaitIdle()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueWaitIdle.html)
+on every queue created with the device.
+
+
 ### Events
 
 Events are a fine-grained synchronization mechanism—they can be
