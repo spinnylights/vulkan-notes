@@ -658,8 +658,7 @@ objects that were made with the device need to be destroyed
 beforehand. You can use
 [`vkDeviceWaitIdle()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDeviceWaitIdle.html)
 to make sure that you're not destroying a device with anything
-still pending on it, but this will block indefinitely if you
-haven't destroyed those other objects first.
+still pending on it.
 
 It's possible for a logical device to become _lost_ for various
 reasons, such as execution timeout, memory exhaustion, driver
