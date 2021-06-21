@@ -2455,13 +2455,15 @@ question while defragmentation is happening, there might not
 be much useful work you can do in parallel depending on your
 application.
 
-It has a concept called "lost allocations" that can automatically
-"abandon" resources that are guaranteed not to be needed anymore.
-This can help ensure that available memory is not exhausted. It
-does this based on how many frames have passed since the resource
-was last accessed. You have to tell it when a new frame starts,
-mark resources as "losable," and query resources at the start of
-each frame to see if they're still available. See ["Lost
+It has a feature called "lost allocations" in which it can
+automatically free the memory of resources that are guaranteed
+not to be needed anymore. This can help ensure that available
+memory is not exhausted. It does this based on how many frames
+have passed since the resource was last accessed. You have to
+configure how many frames resources should stay valid for, tell
+it when a new frame starts, mark resources as "losable," and
+query resources at the start of each frame to see if they're
+still available. See ["Lost
 allocations"](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/lost_allocations.html)
 in the VMA docs for more info.
 
