@@ -2461,7 +2461,7 @@ uses. You can also specify the
 [`VmaPool`](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/struct_vma_pool.html)
 manually if you want. It also provides `vmaBind*` functions that
 you can use to bind resources you've created through the Vulkan
-API.
+API, if you want to sidestep `vmaCreate*`/`vmaDestroy*`.
 
 It has some convenience functions for mapping memory. They're not
 that different from the Vulkan interface, but they're a bit safer
