@@ -2258,6 +2258,107 @@ same pattern to buffer management that you do to memory
 management. This helps to avoid overhead on the host from having
 tons of small objects around.
 
+### Putting it all together
+
+Okay!! We pretty much have all the information we need here to
+write a good Vulkan allocator. We've covered a lot of ground,
+though, so I thought it might be nice to sum it all up.
+
+There are a couple of fundamental guiding principles you can
+apply to figure out how to make the best decisions when designing
+your allocator. One is that the host and device are fast at
+accessing their own memory and slow at accessing each other's
+memory (assuming the system has discrete graphics). The other is
+that allocating memory is always slow.
+
+Anyway, you first want to identify the largest memory heap with
+`VK_MEMORY_HEAP_DEVICE_LOCAL_BIT` set, and then look for the most
+versatile memory type that corresponds to that heap. By
+"versatile," I don't mean the one with the most property flags
+set, but rather the one that supports the widest variety of
+formats. Your main pool of video memory will come from here.
+
+Allocate one or more large blocks of memory from this memory
+type. "Large" probably means 256 MiB, unless the heap in question
+is <= 1 GiB, in which case "large" means heap size / 8. If you
+know how much memory your application will use over its whole
+run, you can allocate all that you'll need here, which will save
+you from having to perform allocations from the main loop. Also,
+you don't _have_ to allocate 256 MiB of memory if you know for
+sure that your application needs less—that's just a good rule of
+thumb.
+
+If you have data that the host needs to write and the device
+needs to read that changes often, like every frame, look for a
+memory type with `VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT` and
+`VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT` set. If you don't find such
+a type, look for one that has both
+`VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT` and
+`VK_MEMORY_PROPERTY_HOST_CACHED_BIT`, and failing that,
+`VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT` and
+`VK_MEMORY_PROPERTY_HOST_COHERENT_BIT` (which is guaranteed to be
+there). Once you've picked a type, allocate a block of memory
+from it if it's a different type than the one you used for your
+main pool (using the same guidelines from the previous
+paragraph). Bind a buffer to it, whatever size makes sense. Also,
+map it, unless it's in device memory and you're on Windows <10.
+
+If you have data written by the host and read by the device that
+only needs to change occasionally or not at all, look for a
+memory type with `VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT` and
+`VK_MEMORY_PROPERTY_HOST_CACHED_BIT`, and failing that,
+`VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT` and
+`VK_MEMORY_PROPERTY_HOST_COHERENT_BIT`. If you haven't already
+allocated memory from this type, allocate a block of memory from
+it (again, same guidelines). You'll use this to stage large
+resources for transference into your video memory pool. If some
+of this is non-image data, bind a buffer to part of this
+allocation for it, leaving space for images.
+
+When you need to start moving things around in memory, use the
+following guidelines:
+
+* If it's data that the host writes and the device reads…
+    * …if it needs to be updated frequently, mark out space for
+      it in the buffer you reserved for this purpose and write it
+      through a mapped pointer (map and unmap the memory as
+      needed if you're on Windows <10). If the buffer's memory is
+      device-local, have the device read directly from this
+      buffer instead of transferring the data elsewhere. If it's
+      host-local and you have a large set of data (like if you're
+      working with a texture), transfer it from the buffer into
+      your main video memory pool before having the device use
+      it.
+    * …if it doesn't need to be updated frequently, write it to
+      your host-local "staging pool", creating and binding an
+      image resource if needed. Then schedule a transfer for it
+      into your video memory pool.
+* If it's data that the device writes and the host reads, have
+  the device write it to the same pool you use for
+  frequently-updated host-written data. Remember the flushing and
+  invalidating stuff if the memory is not host-coherent.
+* If it's data the device reads and writes and the host accesses
+  little or not at all, work with it entirely in your video
+  memory pool.
+
+Query resources for their size and alignment requirements before
+binding them, and keep track of where they are in the pools using
+that information. At some point, you may run out of usable memory
+somewhere; you can then allocate another block for that pool in a
+background thread. Try to stick to having 20–30% of device memory
+free (remember other applications need it too). If you run out of
+device memory, you can use your host-side memory pool as
+"overflow" video memory (just note that this may cause
+performance degredation). Defragmenting a pool may help free up
+larger blocks of memory (and you may be able to do it in a
+background thread if you're strategic about it, or do this in
+small ways as you go so the problem never gets out of hand).
+
+Obviously, implementing all this is not exactly a walk in the
+park, so you may want to use AMD's [Vulkan Memory
+Allocator](https://gpuopen.com/vulkan-memory-allocator/) to save
+yourself some work. We'll talk about that next.
+
 ## Synchronization
 
 Execution of commands is highly concurrent, and ordering of
