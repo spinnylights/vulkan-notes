@@ -2639,9 +2639,36 @@ order will mean that memory writes in **Am∩Sm₁** will be made
 available, and that available memory writes in **Am∩Sm₁** will be
 made visible to **Bm∩Sm₂**.
 
-### The device and the host
+### Memory access synchronization between device and host
 
-Synchronization can be necessary
+Direct host access to memory that is not host-coherent generally
+needs to be managed in conjunction with flushing and invalidating
+the relevant parts of the host caches if the device also accesses
+it. See "Memory types" and "Mapping memory" under "Memory
+management" for more on these topics. These operations can be
+synchronized appropriately by the use of memory barriers (see
+"Memory barriers" below). Explicit synchronization is not
+necessary in the following case, however.
+
+If you write to device memory through a host-mapped pointer, then
+submit a batch of command buffers, the device will be able to
+read the changes the host made before submission, and if the
+device writes to that memory during execution of the commands,
+the host will be able to see the changes made by the device
+afterwards. This is assuming that host caching behavior has been
+managed appropriately if the memory is not host-coherent.
+
+To be precise, when batches of command buffers are submitted to a
+queue, a memory dependency is defined between host operations
+that took place before the submission and the execution of the
+submitted commands. The first synchronization scope for this
+dependency is defined in part by the host execution model; it
+includes the `vkQueueSubmit()` call and anything that happened
+prior according to the host. The second synchronization scope
+includes all the submitted commands and any commands submitted
+afterwards. The first access scope includes all host writes to
+mapped device memory, and the second access scope includes all
+memory accesses performed by the device.
 
 ### Mechanisms
 
