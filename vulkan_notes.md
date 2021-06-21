@@ -1791,9 +1791,10 @@ VkMemoryRequirements buf_mem_reqs;
 vkGetBufferMemoryRequirements(device, buffer, &buf_mem_reqs);
 ```
 
-`buf_mem_reqs` has a bitmask field `memoryTypeBits` that has a
-bit set for each index of `memoryTypes[]` corresponding to a
-memory type that can support our `buffer`.
+Our `VkMemoryRequirements buf_mem_reqs` has a bitmask field
+`memoryTypeBits` that has a bit set for each index of
+`memoryTypes[]` corresponding to a memory type that can support
+our `buffer`.
 
 Let's see what happens if we just look for a device local memory
 type:
