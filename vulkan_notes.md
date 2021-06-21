@@ -2359,6 +2359,135 @@ park, so you may want to use AMD's [Vulkan Memory
 Allocator](https://gpuopen.com/vulkan-memory-allocator/) to save
 yourself some work. We'll talk about that next.
 
+### AMD's Vulkan Memory Allocator
+
+AMD has a free (MIT-licensed) library available called Vulkan
+Memory Allocator (VMA). It doesn't do _everything_ memory-related
+for you, but it lets you manage memory at a bit of a higher level
+than Vulkan has you doing out-of-the-box. Here's the [source
+repo](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator)
+and
+[documentation](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/).
+We'll talk broadly about how it works and whether or not you
+might want to use it.
+
+It comes as a header-only library. Thankfully it has no
+dependencies aside from Vulkan. It's written in C++ but exposes a
+C interface, although this does mean that you need to use a C++
+compiler to compile the part of your code where you include the
+full implementation of the library (you could also just compile
+it into a regular, non-header-only library if you're writing a C
+application and need to use a C compiler). It assumes by default
+that you're statically linking with Vulkan, but you can configure
+it otherwise and also hand it the function pointers it needs if
+you're loading Vulkan functions at runtime. (See
+[here](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/quick_start.html)
+and
+[here](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/configuration.html)
+for more on these topics.)
+
+After creating a logical device, you can create a
+[`VmaAllocator`](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/struct_vma_allocator.html),
+which is the main object in the library. You create it in
+conjunction with a
+[`VmaAllocatorCreateInfo`](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/struct_vma_allocator_create_info.html);
+this allows you to set the maximum number of bytes to allocate
+from a given heap and how many frames you need to keep track of
+resources for, among other things.
+
+VMA provides its own functions for creating and destroying
+resources,
+[`vmaCreateBuffer()`](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/vk__mem__alloc_8h.html#ac72ee55598617e8eecca384e746bab51)
+/
+[`vmaCreateImage()`](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/vk__mem__alloc_8h.html#a02a94f25679275851a53e82eacbcfc73)
+and
+[`vmaDestroyBuffer()`](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/vk__mem__alloc_8h.html#a0d9f4e4ba5bf9aab1f1c746387753d77)
+/
+[`vmaDestroyImage()`](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/vk__mem__alloc_8h.html#ae50d2cb3b4a3bfd4dd40987234e50e7e).
+Whether creating buffers or images, VMA uses a struct
+[`VmaAllocationCreateInfo`](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/struct_vma_allocation_create_info.html#a6272c0555cfd1fe28bff1afeb6190150)
+to get parameters for the allocation. This allows you to set
+required and preferred `VkMemoryPropertyFlags` and a bitmask of
+`memoryTypeBits` to specify which memory types are acceptable if
+desired. However, it also has its own usage enum,
+[`VmaMemoryUsage`](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/vk__mem__alloc_8h.html#aa5846affa1e9da3800e3e78fae2305cc),
+which lets you specify how the host and device will need to
+access the memory. All of these are optional; any that are
+specified will place limitations on which pool the allocator
+uses. You can also specify the
+[`VmaPool`](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/struct_vma_pool.html)
+manually if you want. It also provides `vmaBind*` functions that
+you can use to bind resources you've created through the Vulkan
+API.
+
+It has some convenience functions for mapping memory. They're not
+that different from the Vulkan interface, but they're a bit safer
+(it's okay to call
+[`vmaMapMemory()`](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/vk__mem__alloc_8h.html#ad5bd1243512d099706de88168992f069)
+on an already-mapped memory object, for instance). It does take
+care of basic synchronization and has a flag you can set if you
+want to map the memory persistently, but you still need to take
+care of flushing and invalidating the memory if it's not
+host-coherent. See ["Memory
+mapping"](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/memory_mapping.html)
+in the VMA docs for more info.
+
+There's no special support for binding a single large buffer and
+storing different kinds of data in it by offset. You can allocate
+such a buffer with VMA, but you have to take care of managing it
+afterwards.
+
+When allocating a new block, VMA will automatically allocate a
+smaller block than the default size if allocating a default-sized
+block would go over the memory budget (unless the resource in
+question is too large).
+
+It permits memory aliasing but doesn't really provide special
+support for it.
+
+It can defragment both host and device memory. However, you have
+to destroy and recreate all the resources within that memory as
+well as recreating their views and updating any of their
+associated descriptors. It can do this in a background thread,
+but since you can't really do anything with the memory in
+question while defragmentation is happening, there might not
+be much useful work you can do in parallel depending on your
+application.
+
+It has a concept called "lost allocations" that can automatically
+"abandon" resources that are guaranteed not to be needed anymore.
+This can help ensure that available memory is not exhausted. It
+does this based on how many frames have passed since the resource
+was last accessed. You have to tell it when a new frame starts,
+mark resources as "losable," and query resources at the start of
+each frame to see if they're still available. See ["Lost
+allocations"](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/lost_allocations.html)
+in the VMA docs for more info.
+
+So, should you use it? That's a call you have to make. One of the
+biggest complaints you might have about it is that it doesn't
+necessarily save you _that_ much work on top of what Vulkan has
+you do, and there are always costs associated with bringing in
+any dependency. On the other hand, much of what it does do are
+things that the average Vulkan application would end up
+implementing in largely the same way, and it's very flexible, so
+you can probably get it to work close to how your code would have
+done in the places where you do use it (unless your application
+is very unusual).
+
+My hunch is that rather "middleweight" Vulkan applications will
+get the most out of it—those that have a fair bit of data flying
+around but don't require super-intensive optimization to run
+acceptably. Really heavy applications that need to squeeze every
+last cycle they can out of the hardware will probably end up
+pushing the library out of the way in many areas to do things
+themselves, and thus may not actually make much use of it.
+Lighter applications may be able to predict quite precisely how
+much memory they'll need and where and thus won't need a lot of
+complicated logic around memory management (although they may
+still be able to save on boilerplate by using VMA). These are all
+just guesses on my part, though—you know your application best.
+
 ## Synchronization
 
 Execution of commands is highly concurrent, and ordering of
