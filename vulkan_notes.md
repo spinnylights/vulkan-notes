@@ -1542,7 +1542,99 @@ To destroy a buffer view, use
 Any submitted commands that refer to the buffer in question must
 have completed execution before you call this.
 
+#### Image views
 
+As you might imagine, image views are more baroque than buffer
+views. There are different types of image view, depending on the
+image's dimensionality, layer count, etc.; these are enumerated
+in
+[`VkImageViewType`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageViewType.html).
+The image view itself is represented by
+[`VkImageView`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageView.html);
+this is created with
+[`vkCreateImageView()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateImageView.html),
+which takes a
+[`VkImageViewCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageViewCreateInfo.html).
+That includes a field <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImage.html">VkImage</a>
+image</a></code> from which the view will be created.
+
+[Butler Lampson](https://en.wikipedia.org/wiki/Butler_Lampson)
+famously said, "All problems in computer science can be solved by
+another level of indirection." This is, of course, typically
+appended with "...except for the problem of too many levels of
+indirection." Here is the process by which an image is written to
+from a fragment shader:
+
+<pre>
+                                                                ┌─────────┐
+                                                                │         │
+                                               ┌──────────────┐ │ Command │ ┌───────┐
+                            You                │ Draw command ╞═╡         ╞═╡ Queue │
+                            are                └──────────────┘ │ buffer  │ └───────┘
+                            here                                │         │
+                             ↓                                  └─╥─────╥─┘
+             ┌───────┐ ┌────────────┐ ┌─────────────┐ ┌───────────╨─┐ ┌─╨────────┐
+             │ Image ╞═╡ Image view ╞═╡ Framebuffer ╞═╡ Render pass ╞═╡          │
+             └───────┘ └────────────┘ └─────────────┘ └─────────────┘ │ Graphics │
+                                                                      │          │
+                   ┌─────────────┐ ┌───────────────┐ ┌──────────────┐ │ pipeline │
+                   │ shader.frag ╞═╡ Shader module ╞═╡ Shader stage ╞═╡          │
+                   └─────────────┘ └───────────────┘ └──────────────┘ └──────────┘
+</pre>
+
+I'll leave you with whatever conclusions you may come to on this
+matter, good or ill.
+
+The role of the image view in this elaborate formula is mainly
+to isolate a set of subresources from the image in question.
+[`VkImageViewCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageViewCreateInfo.html)
+has a field <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageSubresourceRange.html">VkImageSubresourceRange</a>
+subresourceRange</code> for this purpose. You might not want to
+involve all the subresources of an image in a rendering process;
+the image view lets you pick and choose.
+
+An image view has a few other tricks of indirection up its
+sleeve, too. For example,
+[`VkImageViewCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageViewCreateInfo.html)
+also has a field <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkComponentMapping.html">VkComponentMapping</a>
+components</code> which allows you to swizzle the components of
+the color vector that will be passed into the shaders from the
+image (although this must be the identity swizzle for storage
+images, input attachments, framebuffer attachments, or a view
+used with a combined image sampler with
+Y′C<sub>B</sub>C<sub>R</sub> conversion enabled). There is also a
+field <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkFormat.html">VkFormat</a>
+format</code> that can be used to view the subresources through a
+different format than they actually have, albeit with some
+caveats—the image must have been created with the
+`VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT` flag and have a
+[compatible](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#formats-compatibility-classes)
+format with the format of the view (unless the image was created
+with `VK_IMAGE_CREATE_BLOCK_TEXEL_VIEW_COMPATIBLE_BIT` and is in
+a compressed format, in which case a view can be created from it
+with an equivalent uncompressed format).
+
+The
+<code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageViewType.html">VkImageViewType</a>
+viewType</code> field that we briefly touched on has a bit of a
+complicated relationship with the properties of the underlying
+image. Not every image supports every view type—see ["Table 16:
+Image and image view parameter compatibility
+requirements"](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#resources-image-views-compatibility)
+in the Vulkan spec for how to properly set up a view for a given
+image. The `baseArrayLayer` and `layerCount` fields in that chart
+are part of the view's
+[`VkImageSubresourceRange`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageSubresourceRange.html).
+
+As with buffer views, image views are destroyed via
+[`vkDestroyImageView()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroyImageView.html),
+which must be called only after commands that refer to the image
+view have finished.
 
 ## Memory management
 
