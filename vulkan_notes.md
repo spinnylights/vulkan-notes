@@ -3230,6 +3230,37 @@ used, but only for image subresources used as attachments within
 the subpass, and they must not define an image layout
 transition or queue family ownership transfer.
 
+### Render passes
+
+A _render pass_ provides a way to order access to resources in
+the context of a command buffer. Render passes are a more
+complicated synchronization primitive than those we've discussed
+so far. They also play a significant role in the rendering
+process (as you might imagine given their name). In a sense,
+they're like a small declarative language you can use to describe
+a rendering process at a high level.
+
+A lot of the render pass functions and structures got `*2`
+versions in Vulkan 1.2. We'll go over the "traditional" versions
+first and then talk about what the `*2` versions add.
+
+Render passes can be created with
+[`vkCreateRenderPass()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateRenderPass.html),
+which takes a
+[`VkRenderPassCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkRenderPassCreateInfo.html).
+This basically takes three arrays as parameters—a
+[`VkSubpassDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubpassDescription.html)
+array, a
+[`VkAttachmentDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentDescription.html)
+array, and a
+[`VkSubpassDependency`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubpassDependency.html)
+array. Each of these types is fairly complex, so we'll take them
+in turn.
+
+Actually, wait. Before we do that, let's briefly explore the
+_framebuffer_. All this stuff is too confusing without the
+framebuffer.
+
 ### Memory barriers
 
 These are not synchronization primitives in and of themselves,
