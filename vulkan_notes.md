@@ -3261,6 +3261,88 @@ Actually, wait. Before we do that, let's briefly explore the
 _framebuffer_. All this stuff is too confusing without the
 framebuffer.
 
+#### Framebuffers
+
+A framebuffer is a collection of _attachments_, which are
+basically image views (see "Images views" under "Images"). Well,
+okay, not really, but in the context of the framebuffer, they
+are. You'll see what I mean in just a moment. Framebuffers are
+represented by
+[`VkFramebuffer`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkFramebuffer.html)
+handles, and created with
+[`vkCreateFramebuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateFramebuffer.html),
+which takes a
+[`VkFrameBufferCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkFramebufferCreateInfo.html).
+
+[`VkFrameBufferCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkFramebufferCreateInfo.html)
+is relatively simple. As was just alluded to, it has an array
+field <code>const <a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageView.html">VkImageView</a>\*
+pAttachments</code> where the attachments themselves are passed.
+So what makes it more than just an image view array? Probably the
+most significant other field is <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkRenderPass.html">VkRenderPass</a>
+renderPass</code>, which defines what render passes the
+framebuffer is _compatible with_. We'll define what that means
+shortly, as render pass compatibility is a general concept that
+graphics pipelines also need to adhere to.
+
+Goodness gracious, I'm sorry this section is so abstract. We
+have to start burrowing into render passes somewhere. At least
+this part features something we're familiar with ("image views").
+
+[`VkFrameBufferCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkFramebufferCreateInfo.html)
+also has `uint32_t` fields `width`, `height`, and `layers` that
+define the rendering area for a subpass associated with the
+framebuffer. Obviously the image subresources represented by the
+views have their own dimensions, and these fields should not
+exceed those, but they can restrict rendering to a portion of
+them.
+
+So. Okay. We have an array of image views, and a set of
+dimensions describing some subsection of them. We also have a
+render pass, although the framebuffer is coupled to it a bit
+loosely—rather than being strongly associated with that
+particular render pass, the framebuffer is created as _comaptible
+with_ that render pass, and perhaps other sufficiently similar
+render passes.
+
+Oh. Before we go, we should note that framebuffers have a
+<code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkFramebufferCreateFlagBits.html">VkFramebufferCreateFlagBits</a>
+flags</code> field with one flag:
+`VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT`, which says the framebuffer
+has no image views. Psych!! Well, okay, okay, it's not really
+_that_ surprising—arrays can be empty, after all. If this flag is
+set, the framebuffer in question exists only to specify
+dimensionality and attachment compatibility information for the
+render pass. Mysterious…
+
+As a side note, something a bit funny—framebuffers are also a
+concept in hardware, if you can believe it given what we
+discussed just now. That must already be obvious to some of you I
+guess, but anyway, these are memory chips for the Sega Saturn's
+video processors that contain framebuffers:
+
+<a href="pics/2560px-Sega-Saturn-US-Motherboard-M2-03.png">
+    <img
+        src="pics/2560px-Sega-Saturn-US-Motherboard-M2-03.png"
+        alt="An NTSC Sega Saturn VA2 ('VA-SG') motherboard with the
+             Hitachi HM5221605TT17S memory chips for the VDP1+2 highlighted."
+        width="800"
+        height="527"
+    >
+</a>
+
+From doing a bit of Saturn romhacking, I have to say, these kinds
+of framebuffers are _much_ more like what you would expect when
+you hear the word "framebuffer". They are blocks of memory where
+you write a bitmap that is displayed on the screen. I feel like
+the `VkFramebuffer` is related to these in perhaps a poetic
+sense. Imagine a chip like this that "exists only to specify
+dimensionality and attachment compatibility information for the
+render pass" so to speak. Hahaha!
+
 ### Memory barriers
 
 These are not synchronization primitives in and of themselves,
