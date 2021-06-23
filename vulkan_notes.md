@@ -3303,7 +3303,7 @@ So. Okay. We have an array of image views, and a set of
 dimensions describing some subsection of them. We also have a
 render pass, although the framebuffer is coupled to it a bit
 loosely—rather than being strongly associated with that
-particular render pass, the framebuffer is created as _comaptible
+particular render pass, the framebuffer is created as _compatible
 with_ that render pass, and perhaps other sufficiently similar
 render passes.
 
