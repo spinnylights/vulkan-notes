@@ -3423,6 +3423,15 @@ contents</code>. As before, this allows you to switch between
 recording the commands for the next subpass in the primary
 command buffer or in a secondary commmand buffer.
 
+##### Ending the render pass
+
+This is the easiest part—all you need to do is call
+[`vkCmdEndRenderPass()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdEndRenderPass.html),
+which takes no parameters aside from the command buffer to record
+it on. The only thing to watch out for is that you have to have
+moved through every subpass described when the render pass was
+created (more on this later).
+
 #### Framebuffers
 
 I promise we'll come back to render pass creation soon, but first
