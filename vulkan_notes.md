@@ -3458,13 +3458,9 @@ So what makes it more than just an image view array? Probably the
 most significant other field is <code><a
 href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkRenderPass.html">VkRenderPass</a>
 renderPass</code>, which defines what render passes the
-framebuffer is _compatible with_. We'll define what that means
-shortly, as render pass compatibility is a general concept that
+framebuffer is _compatible with_. We'll define what that means a
+bit later, as render pass compatibility is a general concept that
 graphics pipelines also need to adhere to.
-
-Goodness gracious, I'm sorry this section is so abstract. We
-have to start burrowing into render passes somewhere. At least
-this part features something we're familiar with ("image views").
 
 [`VkFrameBufferCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkFramebufferCreateInfo.html)
 also has `uint32_t` fields `width`, `height`, and `layers` that
