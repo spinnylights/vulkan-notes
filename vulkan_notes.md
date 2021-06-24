@@ -3346,9 +3346,9 @@ Render passes can be created with
 which takes a
 [`VkRenderPassCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkRenderPassCreateInfo.html).
 This basically takes three arrays as parameters—a
-[`VkSubpassDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubpassDescription.html)
-array, a
 [`VkAttachmentDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentDescription.html)
+array, a
+[`VkSubpassDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubpassDescription.html)
 array, and a
 [`VkSubpassDependency`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubpassDependency.html)
 array. Each of these types is fairly complex, so we'll take them
@@ -3539,8 +3539,89 @@ array, and a
 [`VkSubpassDependency`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubpassDependency.html)
 array. We'll go through each of these one-by-one.
 
+##### Attachment descriptions
 
+Now that we've talked about what attachments are in the context
+of a framebuffer (image views), we can start talking about
+attachments from the point of view of the render pass as a whole.
+Outside of the framebuffer, attachments are a sort of weird,
+nebulous-feeling thing, represented by a couple of different
+structures.
+[`VkAttachmentDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentDescription.html)
+is one of them. It doesn't actually have a "constructor"—it's
+basically a set of parameters for the render pass. I feel like it
+might have been better off being named `VkAttachmentProcess`, as
+its main function is to describe the process the attachment goes
+through over the course of the render pass.
 
+Four important fields in
+[`VkAttachmentDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentDescription.html)
+are <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentLoadOp.html">VkAttachmentLoadOp</a>
+loadOp</code>, <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentStoreOp.html">VkAttachmentStoreOp</a>
+storeOp</code>, <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentLoadOp.html">VkAttachmentLoadOp</a>
+stencilLoadOp</code>, and <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentStoreOp.html">VkAttachmentStoreOp</a>
+stencilStoreOp</code>. These describe the _load_ and _store
+operations_ associated with the attachment in the render pass.
+The attachment's load operations execute as part of the first
+subpass that uses it, and its store operations execute as part of
+the last subpass that uses it. (I know we haven't really gotten
+to subpasses yet—for now you can just think of them as phases of
+the render pass.)
+
+Thankfully
+[`VkAttachmentLoadOp`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentLoadOp.html)
+and
+[`VkAttachmentStoreOp`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentStoreOp.html)
+are pretty simple.
+[`VkAttachmentLoadOp`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentLoadOp.html)
+gives you a rather clever choice:
+
+* `VK_ATTACHMENT_LOAD_OP_LOAD`, meaning you want to preserve the
+  contents of the image within the render area;
+* `VK_ATTACHMENT_LOAD_OP_CLEAR`, meaning you explicitly want to
+  clear the contents of the image within the render area;
+* `VK_ATTACHMENT_LOAD_OP_DONT_CARE`, meaning you don't care
+  whether or not the image gets cleared or not on load.
+
+I really like this part of the API…I feel like it has a nice
+humanist quality. (You know, I wonder if like, if we make contact
+with space aliens someday, if it will make sense anymore after
+that to use the word "humanist" in that kind of context? Who can
+say I suppose…I guess from our perspective it really depends on
+the space aliens.)
+
+[`VkAttachmentDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentDescription.html)
+also has a small collection of "routine fields". These are
+
+* <code><a
+  href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkFormat.html">VkFormat</a>
+  format</code>, which specifies the format of the attachment in
+  the image view sense,
+* <code><a
+  href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentDescription.html">VkSampleCountFlagBits</a>
+  samples</code>, which specifies how many samples the image in
+  question has, and
+* <code><a
+  href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentDescription.html">VkAttachmentDescription</a>
+  flags</code>, which supports a single
+  `VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT` flag which indicates
+  that the attachment aliases memory also occupied by other
+  attachments.
+
+There is a also a familiar face here in
+[`VkAttachmentDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentDescription.html):
+[`VkImageLayout`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageLayout.html),
+which types the remaining two fields, `initialLayout` and
+`finalLayout`. (Nice to see a familiar face.) This is also easy
+to understand: here we can declare an image layout transition
+(see "Image layout transition" under "Memory barriers" above).
+I'd be kind of surprised if you remembered but we briefly touched
+on this in "Image layouts" when I mentioned that an image layout
+transition can be done "as part of a subpass dependency."
 
 
 
