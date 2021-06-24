@@ -3230,6 +3230,96 @@ used, but only for image subresources used as attachments within
 the subpass, and they must not define an image layout
 transition or queue family ownership transfer.
 
+### Memory barriers
+
+These are not synchronization primitives in and of themselves,
+but rather data structures which are used to define access
+dependencies for images and buffers. We have already seen them in
+the context of defining events and pipeline barriers, but they
+have some properties we have not yet explored.
+
+Memory barriers come in three types. Global memory barriers such
+as `VkMemoryBarrier2KHR` encompass all the memory accesses in
+their specified pipeline stages. Buffer and image memory barriers
+such as `VkBufferMemoryBarrier2KHR` and
+`VkImageMemoryBarrier2KHR` apply to specific, single buffer and
+image resources respectively.
+
+#### Queue family ownership transfer
+
+Buffer and image memory barriers can be used to declare a _queue
+family ownership transfer_ for the resource they relate to. If
+this resource was created with a
+[`VkSharingMode`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSharingMode.html)
+of `VK_SHARING_MODE_EXCLUSIVE`, the first queue family in which
+it is used acquires the exclusive use of it, and this _ownership_
+must be explicitly transferred to another queue family in order
+for it to be accessible there.
+
+This is only necessary if the receiving queue family needs the
+contents of the resource to remain valid. Also, it is not
+necessary if the resource was declared with a sharing mode of
+`VK_SHARING_MODE_CONCURRENT`, which allows it to be accessed
+concurrently from multiple queue families. However,
+`VK_SHARING_MODE_EXCLUSIVE` may offer better access performance.
+
+Two operations are involved in a queue family ownership transfer,
+a _release operation_ and an _acquire operation_. These must
+occur in that order. An execution dependency should be used to
+ensure this, such as that introduced by a semaphore.
+
+To define a release operation, execute a buffer or image memory
+barrier on a queue from the source family using
+`VkCmdPipelineBarrier` (and possibly
+`VkCmdPipelineBarrier2KHR`; see
+[here](https://github.com/KhronosGroup/Vulkan-Docs/issues/1516)).
+To define an acquire operation, perform the same procedure on a
+queue from the destination family. In both cases, the
+`srcQueueFamilyIndex` and the `dstQueueFamilyIndex` parameters of
+the memory barrier instances should match those of the source and
+destination families. Their destination and source access masks
+should be set to 0.
+
+If an image memory barrier is used and an image layout transition
+is desired (see below), the values of `oldLayout` and `newLayout`
+used in the release and acquire barriers should match. A layout
+transition specified in this way will only happen once. It will
+occur after the release operation but before the acquire
+operation.
+Any writes to the memory bound to the resource in question must be made available before 
+
+Any writes to the memory bound to the resource in question must
+be made available before the queue family ownership transfer is
+carried out. Memory that is available will automatically be made
+visible to the release and acquire operations, and any writes
+performed by these operations will in turn be made available.
+
+#### Image layout transition
+
+Image subresources can be transitioned from one layout to
+another as part of a memory dependency, such as that introduced
+by an image memory barrier. The operation to do this always
+operates on a specific image subresource range and includes a
+specification of both the old layout and the new layout.
+
+In order for the image contents to be preserved, the old layout
+specified must match that of the image prior to the transition.
+Otherwise, it must be set to `VK_IMAGE_LAYOUT_UNDEFINED`, in
+which case the contents may be discarded. (See "Image layouts"
+under "Images" for more on the layouts themselves.)
+
+The memory bound to an image subresource range must be made
+available prior to an image layout transition operation on it, as
+such an operation may read and write to this memory. If the
+memory is available, it will automatically be made visible to the
+operation, and writes performed by the operation will
+automatically be made available. Because of this requirement, it
+is important to ensure that any operations which need to access
+this memory before the layout transition are made to finish
+beforehand through the use of an approriate memory barrier, and
+that operations which need to access it afterwards are handled
+likewise.
+
 ### Render passes
 
 A _render pass_ provides a way to order access to resources in
@@ -3339,99 +3429,15 @@ of framebuffers are _much_ more like what you would expect when
 you hear the word "framebuffer". They are blocks of memory where
 you write a bitmap that is displayed on the screen. I feel like
 the `VkFramebuffer` is related to these in perhaps a poetic
-sense. Imagine a chip like this that "exists only to specify
-dimensionality and attachment compatibility information for the
-render pass" so to speak. Hahaha!
 
-### Memory barriers
 
-These are not synchronization primitives in and of themselves,
-but rather data structures which are used to define access
-dependencies for images and buffers. We have already seen them in
-the context of defining events and pipeline barriers, but they
-have some properties we have not yet explored.
 
-Memory barriers come in three types. Global memory barriers such
-as `VkMemoryBarrier2KHR` encompass all the memory accesses in
-their specified pipeline stages. Buffer and image memory barriers
-such as `VkBufferMemoryBarrier2KHR` and
-`VkImageMemoryBarrier2KHR` apply to specific, single buffer and
-image resources respectively.
 
-#### Queue family ownership transfer
 
-Buffer and image memory barriers can be used to declare a _queue
-family ownership transfer_ for the resource they relate to. If
-this resource was created with a
-[`VkSharingMode`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSharingMode.html)
-of `VK_SHARING_MODE_EXCLUSIVE`, the first queue family in which
-it is used acquires the exclusive use of it, and this _ownership_
-must be explicitly transferred to another queue family in order
-for it to be accessible there.
 
-This is only necessary if the receiving queue family needs the
-contents of the resource to remain valid. Also, it is not
-necessary if the resource was declared with a sharing mode of
-`VK_SHARING_MODE_CONCURRENT`, which allows it to be accessed
-concurrently from multiple queue families. However,
-`VK_SHARING_MODE_EXCLUSIVE` may offer better access performance.
 
-Two operations are involved in a queue family ownership transfer,
-a _release operation_ and an _acquire operation_. These must
-occur in that order. An execution dependency should be used to
-ensure this, such as that introduced by a semaphore.
 
-To define a release operation, execute a buffer or image memory
-barrier on a queue from the source family using
-`VkCmdPipelineBarrier` (and possibly
-`VkCmdPipelineBarrier2KHR`; see
-[here](https://github.com/KhronosGroup/Vulkan-Docs/issues/1516)).
-To define an acquire operation, perform the same procedure on a
-queue from the destination family. In both cases, the
-`srcQueueFamilyIndex` and the `dstQueueFamilyIndex` parameters of
-the memory barrier instances should match those of the source and
-destination families. Their destination and source access masks
-should be set to 0.
 
-If an image memory barrier is used and an image layout transition
-is desired (see below), the values of `oldLayout` and `newLayout`
-used in the release and acquire barriers should match. A layout
-transition specified in this way will only happen once. It will
-occur after the release operation but before the acquire
-operation.
-Any writes to the memory bound to the resource in question must be made available before 
-
-Any writes to the memory bound to the resource in question must
-be made available before the queue family ownership transfer is
-carried out. Memory that is available will automatically be made
-visible to the release and acquire operations, and any writes
-performed by these operations will in turn be made available.
-
-#### Image layout transition
-
-Image subresources can be transitioned from one layout to
-another as part of a memory dependency, such as that introduced
-by an image memory barrier. The operation to do this always
-operates on a specific image subresource range and includes a
-specification of both the old layout and the new layout.
-
-In order for the image contents to be preserved, the old layout
-specified must match that of the image prior to the transition.
-Otherwise, it must be set to `VK_IMAGE_LAYOUT_UNDEFINED`, in
-which case the contents may be discarded. (See "Image layouts"
-under "Images" for more on the layouts themselves.)
-
-The memory bound to an image subresource range must be made
-available prior to an image layout transition operation on it, as
-such an operation may read and write to this memory. If the
-memory is available, it will automatically be made visible to the
-operation, and writes performed by the operation will
-automatically be made available. Because of this requirement, it
-is important to ensure that any operations which need to access
-this memory before the layout transition are made to finish
-beforehand through the use of an approriate memory barrier, and
-that operations which need to access it afterwards are handled
-likewise.
 
 ## Pipelines
 
