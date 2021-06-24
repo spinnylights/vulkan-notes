@@ -3354,11 +3354,30 @@ array, and a
 array. Each of these types is fairly complex, so we'll take them
 in turn.
 
-Actually, wait. Before we do that, let's briefly explore the
-_framebuffer_. All this stuff is too confusing without the
-framebuffer.
+Actually, wait. Before we do that, let's explore the render pass
+as something you begin and end. I think it feels more solid that
+way.
+
+#### Render pass commands
+
+A _render pass instance_ is what arises when you _begin_ a render
+pass in a command buffer. You can begin a render pass with
+[`vkCmdBeginRenderPass()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBeginRenderPass.html).
+Once the render pass instance is underway, you can move it from
+_subpass_ to _subpass_ with
+[`vkCmdNextSubpass()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdNextSubpass.html);
+a subpass is like a distinct phase of a render pass. Between
+calls to this function, you can record drawing commands and the
+like for each subpass (see "Drawing" under "Command buffers",
+"Pipeline barriers" above, etc.). Once you've recorded all the
+commands for the render pass, you can end the instance with
+[`vkCmdEndRenderPass()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdEndRenderPass.html).
 
 #### Framebuffers
+
+I promise we'll come back to render pass creation soon, but first
+I think we should explore the framebuffer. All this stuff is
+too confusing without the framebuffer.
 
 A framebuffer is a collection of _attachments_, which are
 basically image views (see "Images views" under "Images"). Well,
