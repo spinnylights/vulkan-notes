@@ -3510,6 +3510,18 @@ of framebuffers are _much_ more like what you would expect when
 you hear the word "framebuffer". They are blocks of memory where
 you write a bitmap that is displayed on the screen. I feel like
 the `VkFramebuffer` is related to these in perhaps a poetic
+sense. Imagine a chip like this that stores something which is
+three degrees removed from a bitmap, or one that "exists only to
+specify dimensionality and attachment compatibility information
+for the render pass" so to speak. Hahaha!
+
+You know, maybe this is not so different from Saturn programming
+after all, what with its two CPUs and two different graphics
+processors and stuff. I think learning to work with its graphics
+hardware is honestly easier than learning Vulkan, though, if you
+ever feel tempted by that. Maybe it would be fun to write a guide
+like this for the Saturn sometime. Anyway.
+
 
 
 
