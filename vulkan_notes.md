@@ -3522,6 +3522,22 @@ hardware is honestly easier than learning Vulkan, though, if you
 ever feel tempted by that. Maybe it would be fun to write a guide
 like this for the Saturn sometime. Anyway.
 
+#### Creating a render pass
+
+At last! I think now we can approach this and it won't seem so
+dizzyingly abstract. Just to quickly recap, a render pass is
+represented by a
+[`VkRenderPass`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkRenderPass.html)
+handle, which is created with [`vkCreateRenderPass()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateRenderPass.html),
+which takes a
+[`VkRenderPassCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkRenderPassCreateInfo.html),
+which mainly stores a
+[`VkAttachmentDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentDescription.html)
+array, a
+[`VkSubpassDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubpassDescription.html)
+array, and a
+[`VkSubpassDependency`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubpassDependency.html)
+array. We'll go through each of these one-by-one.
 
 
 
