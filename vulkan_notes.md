@@ -3373,6 +3373,45 @@ like for each subpass (see "Drawing" under "Command buffers",
 commands for the render pass, you can end the instance with
 [`vkCmdEndRenderPass()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdEndRenderPass.html).
 
+##### Beginning a render pass
+
+[`vkCmdBeginRenderPass()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBeginRenderPass.html)
+must be recorded in a primary command buffer (see "Command
+buffers").  It takes most of its parameters in a
+[`VkRenderPassBeginInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkRenderPassBeginInfo.html).
+This includes fields <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkRenderPassBeginInfo.html">VkRenderPass</a>
+renderPass</code> and <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkRenderPassBeginInfo.html">VkFramebuffer</a>
+framebuffer</code>, which specify the render pass and the
+_framebuffer_ for the instance (a framebuffer in Vulkan is
+basically a collection of image views). There's also a <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkRect2D.html">VkRect2d</a>
+renderArea</code> that defines the area rendering must be
+confined to for all the images in the render pass, and an array
+<code>const <a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkClearValue.html">VkClearValue</a>\*
+pClearValues</code> that sets the color and/or depth/stencil
+values to use if the image corresponding to the
+[`VkClearValue`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkClearValue.html)
+by _attachment number_ is set to be cleared on load (we'll come
+back to attachments).
+
+[`vkCmdBeginRenderPass()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBeginRenderPass.html)
+also has a parameter <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubpassContents.html">VkSubpassContents</a>
+contents</code>.
+[`VkSubpassContents`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubpassContents.html)
+is an enum value which you can use to pick whether you'll record
+commands for the first subpass in the primary command buffer or
+if you'll record its commands in a secondary command buffer.
+`VK_SUBPASS_CONTENTS_INLINE` is the first option;
+`VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS` is the second. If
+you pick `VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS`, the
+only command you're allowed to execute on the primary command
+buffer is
+[`vkCmdExecuteCommands()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdExecuteCommands.html) until you move to the next subpass or end the render pass instance.
+
 #### Framebuffers
 
 I promise we'll come back to render pass creation soon, but first
