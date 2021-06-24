@@ -3412,6 +3412,17 @@ only command you're allowed to execute on the primary command
 buffer is
 [`vkCmdExecuteCommands()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdExecuteCommands.html) until you move to the next subpass or end the render pass instance.
 
+##### Moving to the next subpass
+
+Once you've finished recording commands for the current subpass,
+you can move to the next subpass with
+[`vkCmdNextSubpass()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdNextSubpass.html).
+This has only one parameter, which is also <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubpassContents.html">VkSubpassContents</a>
+contents</code>. As before, this allows you to switch between
+recording the commands for the next subpass in the primary
+command buffer or in a secondary commmand buffer.
+
 #### Framebuffers
 
 I promise we'll come back to render pass creation soon, but first
