@@ -3478,9 +3478,9 @@ graphics pipelines also need to adhere to.
 also has `uint32_t` fields `width`, `height`, and `layers` that
 define the rendering area for a subpass associated with the
 framebuffer. Obviously the image subresources represented by the
-views have their own dimensions, and these fields should not
-exceed those, but they can restrict rendering to a portion of
-them.
+views have their own dimensions, as does the render pass
+instance; these fields should not exceed those, but they can
+restrict rendering to a portion of them.
 
 So. Okay. We have an array of image views, and a set of
 dimensions describing some subsection of them. We also have a
