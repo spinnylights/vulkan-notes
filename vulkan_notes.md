@@ -3372,6 +3372,19 @@ like for each subpass (see "Drawing" under "Command buffers",
 commands for the render pass, you can end the instance with
 [`vkCmdEndRenderPass()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdEndRenderPass.html).
 
+Some commands can only be recorded within a render pass instance.
+Aside from
+[`vkCmdNextSubpass()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdNextSubpass.html)
+and
+[`vkCmdEndRenderPass()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdEndRenderPass.html),
+these also include the drawing commands (see "Drawing" under
+"Command buffers"), as well as
+[`vkCmdClearAttachments()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdClearAttachments.html),
+which is used to clear regions of attachments in the current
+subpass. Some commands also have special meaning when recorded
+within a render pass instance, such as those used to declare a
+pipeline barrier (see "Pipeline barriers").
+
 ##### Beginning a render pass
 
 [`vkCmdBeginRenderPass()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBeginRenderPass.html)
