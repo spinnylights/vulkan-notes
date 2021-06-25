@@ -3322,12 +3322,11 @@ likewise.
 
 ### Render passes
 
-A _render pass_ provides a way to order access to resources in
-the context of a command buffer. Render passes are a more
-complicated synchronization primitive than those we've discussed
-so far. They also play a significant role in the rendering
-process (as you might imagine given their name). They're
-represented by a handle
+A _render pass_ provides a way to coordinate access to images
+during rendering. Render passes are a more complicated
+synchronization primitive than those we've discussed so far; they
+play a significant role in rendering generally (as you might
+imagine given their name). They're represented by a handle
 [`VkRenderPass`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkRenderPass.html).
 
 In a sense, render passes are like an object that stores
