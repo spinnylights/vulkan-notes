@@ -3635,8 +3635,60 @@ I'd be kind of surprised if you remembered but we briefly touched
 on this in "Image layouts" when I mentioned that an image layout
 transition can be done "as part of a subpass dependency."
 
+#### Subpasses
 
+A _subpass_, described by one of the
+[`VkSubpassDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubpassDescription.html)s
+in
+[`VkRenderPassCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkRenderPassCreateInfo.html),
+is a distinct phase of a rendering process in which a subset of
+the attachments in the render pass are accessed (in the memory
+sense). Every rendering command in a render pass is recorded in
+one of its subpasses, as we explored a little bit in "Render pass
+commands".
 
+It's maybe a bit sneaky, but actually the subpass has a secret
+identity: it brings us very close to writing shaders, and in a
+way that starts to reveal the "true nature" of attachments beyond
+just being image views. The attachments referenced in a
+[`VkSubpassDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubpassDescription.html)
+have a relationship to the fragment shader that's run in the
+subpass (if there is one):
+
+* the <code>const <a
+  href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentReference.html">VkAttachmentReference</a>\*
+  pInputAttachments</code> are available as _subpass inputs_
+  within the fragment shader (see "Layout qualifiers" in
+  "Shaders: Vulkan and GLSL"),
+* the <code>const <a
+  href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentReference.html">VkAttachmentReference</a>\*
+  pColorAttachments</code> are available as outputs in the
+  fragment shader (see "Layout qualifiers" in "Shaders: Vulkan
+  and GLSL"), and
+* the <code>const <a
+  href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentReference.html">VkAttachmentReference</a>\*
+  pDepthStencilAttachment</code> is used for stencil and depth
+  testing during fragment shading (see "Stencil test" and "Depth
+  test" under "Fragment operations"). The results of these tests
+  can be made available as input to the fragment shader, and the
+  attachment itself can also be read and written to from the
+  fragment shader.
+
+The <code>const <a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentReference.html">VkAttachmentReference</a>\*
+pResolveAttachments</code> are used to store the results of
+_multisample resolve_ operations within the subpass, which we'll
+discuss shortly.
+
+`const uint32_t* pPreserveAttachments` is for attachments that
+aren't used in this subpass but whose contents must be preserved
+during it.
+
+There is also a simple field <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineBindPoint.html">VkPipelineBindPoint</a>
+pipelineBindPoint</code> which specifies which type of pipeline the
+subpass supports (`VK_PIPELINE_BIND_POINT_GRAPHICS` or
+`VK_PIPELINE_BIND_POINT_COMPUTE`).
 
 
 
