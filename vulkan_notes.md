@@ -3709,6 +3709,12 @@ subpass (if there is one):
   attachment itself can also be read and written to from the
   fragment shader.
 
+Vulkan doesn't allow you to declare an attachment as both a color
+and a depth/stencil attachment. You can declare an attachment as
+both an input and a color _or_ depth/stencil attachment, but you
+have to be careful not to cause a data race (see "Subpass
+feedback loops").
+
 The <code>const <a
 href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentReference.html">VkAttachmentReference</a>\*
 pResolveAttachments</code> are used to store the results of
@@ -3866,6 +3872,26 @@ VkSubpassDependency implicit_end = {
     .dependencyFlags = 0;
 };
 ```
+
+##### Subpass feedback loops
+
+If a subpass uses an attachment as both an input attachment and a
+color or depth/stencil attachment, the possibility exists for
+a data race.
+
+This is prevented if the components you read via the input
+attachment are entirely different to those you write via the
+color or depth/stencil attachment. In this case, either you have
+to configure the graphics pipeline to prevent writes to color and
+depth/stencil components that are also read as input, or you have
+to use the attachment as only an input and depth/stencil
+attachment and not write to it via the depth/stencil attachment.
+
+Otherwise, the only way to prevent this data race is to use a
+pipeline barrier for every time you read a value at a particular
+sample coordinate in a fragment shader invocation if you wrote to
+that value since either the most recent pipeline barrier or the
+start of the subpass.
 
 ## Pipelines
 
