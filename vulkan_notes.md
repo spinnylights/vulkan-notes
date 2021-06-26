@@ -3555,6 +3555,20 @@ ever feel tempted by that. Maybe it would be fun to write a guide
 like this for the Saturn sometime…that feels kind of nice to
 fantasize about right now. Anyway.
 
+##### Framebuffer regions
+
+This is just a quick concept we need to define so we can use it
+elsewhere. A _framebuffer region_ is a subset of the geometric
+area of the framebuffer. It can either be a _sample region_,
+which is a set of sample coordinates (x, y, layer, sample) within
+the framebuffer, or a _fragment region_, which is a set of
+fragment coordinates (x, y, layer) within the framebuffer.
+Obviously we haven't talked about what a sample or a fragment is
+yet, but just hold tight for a bit and we'll get there (you can
+skip ahead to "Graphics pipelines" if you need to know right
+now). At this point you can just think about a framebuffer region
+as some part of the image data included in the framebuffer.
+
 #### Creating a render pass
 
 At last! I think now we can approach this and it won't seem so
