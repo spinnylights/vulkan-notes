@@ -824,6 +824,17 @@ reset.
 In order to detect when a command buffer has left the pending
 state, a synchronization command should be used.
 
+### Optimal command usage
+
+You can tell from revisions to the Vulkan spec, [statements like
+this](https://youtu.be/e0ySJ9Qzvrs?t=1964), etc. that every
+command recorded comes with overhead, sometimes significant
+overhead, and as such it's a good idea to record as few commands
+as you need to for whatever you're trying to accomplish. In
+particuar, many command functions give you opportunities to batch
+work, and you should always try to take advantage of this if you
+can rather than recording the same command repeatedly.
+
 ### Binding to a command buffer
 
 Many of the objects used in a command buffer need to be bound to
