@@ -3552,7 +3552,8 @@ after all, what with its two CPUs and two different graphics
 processors and stuff. I think learning to work with its graphics
 hardware is honestly easier than learning Vulkan, though, if you
 ever feel tempted by that. Maybe it would be fun to write a guide
-like this for the Saturn sometime. Anyway.
+like this for the Saturn sometime…that feels kind of nice to
+fantasize about right now. Anyway.
 
 #### Creating a render pass
 
