@@ -3932,6 +3932,14 @@ If an attachment is used as…
 
 See "Image layouts" for more on these.
 
+#### Destroying a render pass
+
+You can destroy a render pass with
+[`vkDestroyRenderPass()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroyRenderPass.html).
+After everything we've discussed here, it's refreshingly simple.
+Make sure all the commands referring to the render pass have
+finished beforehand.
+
 ## Pipelines
 
 Vulkan pipelines represent a set of operations for the GPU to
