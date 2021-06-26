@@ -3734,6 +3734,24 @@ This is also part of how you set up multisampling, and has a way
 to ensure that some attachments are not changed during part of a
 render pass.
 
+##### Subpass dependencies
+
+_Subpass dependencies_, represented by
+[`VkSubpassDependency`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubpassDependency.html),
+are the part of the render pass where its "synchronization
+primitive" aspect is brought out most fully. It can be used to
+define synchronization and access scopes between subpasses in the
+render pass (see "Scopes and dependencies"). This is done by
+specifying a source and destination subpass and setting a series
+of flags.
+
+Unless the subpass dependency chain within a render pass implies
+otherwise, its subpasses may execute concurrently. If you
+require part of a render pass to have finished before another
+part, you can use subpass dependencies to ensure this. Be careful
+that you are defining the narrowest dependencies possible in this
+case, however, in order to maximize opportunities for
+parallelism.
 
 
 
