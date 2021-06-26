@@ -3670,7 +3670,7 @@ I'd be kind of surprised if you remembered but we briefly touched
 on this in "Image layouts" when I mentioned that an image layout
 transition can be done "as part of a subpass dependency."
 
-#### Subpasses
+##### Subpass descriptions
 
 A _subpass_, described by one of the
 [`VkSubpassDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubpassDescription.html)s
