@@ -3779,6 +3779,44 @@ If either `srcSubpass` or `dstSubpass` is set to
 commands occurring either before or after the subpass for the
 scope in question.
 
+###### Subpass dependency flags
+
+The other fields in
+[`VkSubpassDependency`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubpassDependency.html)
+are all bitmasks used to qualify the dependencies it creates.
+
+<code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineStageFlagBits.html">
+VkPipelineStageFlags</a> srcStageMask</code> and <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineStageFlagBits.html">
+VkPipelineStageFlags</a> dstStageMask</code> limit its
+synchronization scopes to the specified pipeline stages, and
+<code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAccessFlagBits.html">VkAccessFlags</a>
+srcAccessMask</code> and <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAccessFlagBits.html">VkAccessFlags</a>
+dstAccessMask</code> limit its access scopes to the specified
+access types.
+
+<code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDependencyFlagBits.html">VkDependencyFlags</a>
+dependencyFlags</code> is a typical "random assorted flags"
+field. The main important flag here is
+`VK_DEPENDENCY_BY_REGION_BIT`, which declares the dependencies in
+the subpass to be _framebuffer-local_. Provided that the
+dependencies encompass only framebuffer-space pipeline stages
+(see "Framebuffer-space stages" under "Graphics pipelines"), this
+means that the dependencies will only concern the framebuffer
+_region_ accessed by the current fragment shader instance (see
+"Framebuffer regions" under "Framebuffers"). Without this flag,
+the dependencies will be _framebuffer-global_, meaning they
+concern the space of the framebuffer as a whole (unless they
+involve non-framebuffer-space pipeline stages, in which case they
+are neither framebuffer-local nor -global). If you need to read
+the result of a previous color attachment output from a fragment
+shader within the same render pass, and you only need to read the
+value relating to the current fragment, you should set this flag,
+because it will allow for greater GPU parallelism.
 
 ## Pipelines
 
