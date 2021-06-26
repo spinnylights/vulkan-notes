@@ -3347,9 +3347,18 @@ addition to being an object, they are also something you begin
 and end in a command buffer (they are a synchronization
 primitive, after all).
 
-A lot of the render pass functions and structures got `*2`
-versions in Vulkan 1.2. We'll go over the "traditional" versions
-first and then talk about what the `*2` versions add.
+In Vulkan 1.2, the extension
+[`VK_KHR_create_renderpass2`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VK_KHR_create_renderpass2.html)
+was promoted to the core. This introduces `*2` versions of some
+of the render-pass-related structs and functions. However, all
+the new functionality they bring in relates to things we're not
+covering (multiview,
+[`VK_KHR_fragment_shading_rate`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VK_KHR_fragment_shading_rate.html),
+[`separateDepthStencilLayouts`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures.html)
+which [has no macOS support at this
+time](https://vulkan.gpuinfo.org/listfeaturescore12.php?platform=macos),
+etc.). So, we're just going to cover the "traditional" render
+pass interface.
 
 Render passes can be created with
 [`vkCreateRenderPass()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateRenderPass.html),
