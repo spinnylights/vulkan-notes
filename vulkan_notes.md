@@ -3893,6 +3893,45 @@ sample coordinate in a fragment shader invocation if you wrote to
 that value since either the most recent pipeline barrier or the
 start of the subpass.
 
+##### Attachment layout requirements
+
+If an attachment is used as…
+
+* …an input attachment only, it must be in the
+    * `VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR`,
+    * `VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL`,
+    * `VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL`,
+    * `VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL`,
+    * `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL`, or
+    * `VK_IMAGE_LAYOUT_GENERAL` layout.
+* …a color attachment only, it must be in the
+    * `VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL`,
+    * `VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR`, or
+    * `VK_IMAGE_LAYOUT_GENERAL` layout.
+* …a depth/stencil stencil attachment only, it must be in the
+    * `VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL`,
+    * `VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL`,
+    * `VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL`,
+    * `VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL`,
+    * `VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL`,
+    * `VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR`,
+    * `VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL`,
+    * `VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL`,
+    * `VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL`, or
+    * `VK_IMAGE_LAYOUT_GENERAL` layout.
+* …both an input and a color attachment, it must be in the
+    * `VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR`, or
+    * `VK_IMAGE_LAYOUT_GENERAL` layout.
+* …both an input and a depth/stencil attachment, it must be in
+  the
+    * `VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR`,
+    * `VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL`,
+    * `VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL`,
+    * `VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL`, or
+    * `VK_IMAGE_LAYOUT_GENERAL` layout.
+
+See "Image layouts" for more on these.
+
 ## Pipelines
 
 Vulkan pipelines represent a set of operations for the GPU to
