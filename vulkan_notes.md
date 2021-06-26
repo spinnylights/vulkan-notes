@@ -3753,6 +3753,31 @@ that you are defining the narrowest dependencies possible in this
 case, however, in order to maximize opportunities for
 parallelism.
 
+###### Source and destination subpasses
+
+The source and destination subpasses are represented by `uint32_t
+srcSubpass` and `uint32_t dstSubpass` respectively. You can set
+these either to subpass indices or to `VK_SUBPASS_EXTERNAL`,
+which refers to commands entered before or after the render pass
+instance.
+
+If `srcSubpass` and `dstSubpass` are set to different subpass
+indices in the render pass, an execution dependency is
+established between them, including a memory dependency. Its
+scopes include all the commands submitted as part of each subpass
+as well as any load, store, or multisample resolve operations
+performed during either.
+
+If `srcSubpass` and `dstSubpass` are set to the same subpass
+index, a _subpass self-dependency_ is established for the
+specified subpass. This does not establish an execution
+dependency by itself, but rather allows for the declaration of
+pipeline barriers within the subpass (see "Pipeline barriers").
+
+If either `srcSubpass` or `dstSubpass` is set to
+`VK_SUBPASS_EXTERNAL`, the execution dependency includes all the
+commands occurring either before or after the subpass for the
+scope in question.
 
 
 ## Pipelines
