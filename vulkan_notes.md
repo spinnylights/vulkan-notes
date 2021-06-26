@@ -3818,6 +3818,55 @@ shader within the same render pass, and you only need to read the
 value relating to the current fragment, you should set this flag,
 because it will allow for greater GPU parallelism.
 
+###### Image layout transitions implied by a subpass dependency
+
+For attachments within the render pass, a subpass dependency is
+similar to an image memory barrier (see "Memory barriers") with
+matching stage and access masks, no queue family ownership
+transfer, and the old and new layouts defined in accordance with
+the layouts specified in the attachment's description.
+
+If a subpass dependency is not declared between
+`VK_SUBPASS_EXTERNAL` and the first subpass in the render pass,
+and the description for an attachment within the first subpass
+implies a transition away from its `initialLayout`, an implicit
+subpass dependency exists as if declared like this:
+
+```cpp
+VkSubpassDependency implicit_start = {
+    .srcSubpass      = VK_SUBPASS_EXTERNAL;
+    .dstSubpass      = first; // index of the first subpass
+    .srcStageMask    = VK_PIPELINE_STAGE_NONE_KHR;
+    .dstStageMask    = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+    .srcAccessMask   = 0;
+    .dstAccessMask   = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT
+                       | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT
+                       | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
+                       | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT
+                       | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    .dependencyFlags = 0;
+};
+```
+
+Similarly, if a subpass dependency is not declared between the
+last subpass and `VK_SUBPASS_EXTERNAL`, and the description for
+an attachment within the last subpass implies a transition into
+its `finalLayout`, an implicit subpass dependency exists as if
+declared like this:
+
+```cpp
+VkSubpassDependency implicit_end = {
+    .srcSubpass      = last; // index of the last subpass
+    .dstSubpass      = VK_SUBPASS_EXTERNAL;
+    .srcStageMask    = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+    .dstStageMask    = VK_PIPELINE_STAGE_NONE_KHR;
+    .srcAccessMask   = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
+                       | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    .dstAccessMask   = 0;
+    .dependencyFlags = 0;
+};
+```
+
 ## Pipelines
 
 Vulkan pipelines represent a set of operations for the GPU to
