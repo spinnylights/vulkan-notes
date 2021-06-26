@@ -3940,6 +3940,38 @@ After everything we've discussed here, it's refreshingly simple.
 Make sure all the commands referring to the render pass have
 finished beforehand.
 
+#### Render pass compatability
+
+Sorry to leave you hanging about this. It just wouldn't have fit
+in properly in the framebuffer section because it also has to do
+with graphics pipelines. Both framebuffers and graphics pipelines
+are "based on" (the spec's words) a specific render pass, which
+defines the render passes they can be used with.
+
+So, first off, two attachment references are compatible if they
+have the same format and sample count, or are both
+`VK_ATTACHMENT_UNUSED`, or the pointers to them are both null.
+
+Two arrays of attachment references are compatible if all the
+corresponding pairs of attachments between them are compatible.
+If they're different lengths, the shorter one is treated as if
+it's padded out with `VK_ATTACHMENT_UNUSED`s.
+
+Two render passes are compatible if all of their attachment
+references are compatible (aside from the preserve attachments)
+and they're otherwise identical aside from the initial and final
+layouts in their attachment descriptions, the load and store
+operations specified in their attachment descriptions, and the
+image layouts in their attachment references.
+
+Although, if two render passes each have only one subpass, the
+compatibility requirements for their resolve attachment
+references and their depth/stencil resolve modes are ignored.
+
+A framebuffer is compatible with a render pass if it was created
+with that render pass or one compatible with it. Same goes for a
+graphics pipeline.
+
 ## Pipelines
 
 Vulkan pipelines represent a set of operations for the GPU to
