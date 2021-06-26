@@ -3725,6 +3725,15 @@ pipelineBindPoint</code> which specifies which type of pipeline the
 subpass supports (`VK_PIPELINE_BIND_POINT_GRAPHICS` or
 `VK_PIPELINE_BIND_POINT_COMPUTE`).
 
+So, here you have a way of passing color, depth, and stencil
+input to a fragment shader. There are other ways of getting
+things into shaders, but this is a significant one in the
+fragment shading context. Even more significantly perhaps, this
+is where you specify images for a fragment shader to write to.
+This is also part of how you set up multisampling, and has a way
+to ensure that some attachments are not changed during part of a
+render pass.
+
 
 
 
