@@ -4278,6 +4278,17 @@ shader and passed directly from there to the rasterizer, which
 in the pipeline. Mesh shading is only available on recent,
 high-end GPUs.
 
+##### Framebuffer-space stages
+
+There are four stages in the graphics pipeline that operate in
+accordance with the framebuffer (see "Framebuffers" under "Render
+passes"). These are:
+
+* fragment shading,
+* early fragment tests,
+* late fragment tests, and
+* color attachment output.
+
 #### Ray tracing pipeline
 
 Ray tracing pipelines are designed for simulating the behavior of
