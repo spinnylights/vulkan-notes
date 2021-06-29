@@ -5985,6 +5985,77 @@ back to GLSL from here on out, we'll take frequent trips over to
 the Vulkan side to talk about how to set things up appropriately
 over there based on what you might be doing in your shaders.
 
+### Resource descriptors
+
+Buffers, buffer views, image views, samplers, and combined image
+samplers are made accessible to shaders via _resource
+descriptors_. These are organized into _descriptor sets_, which
+themselves are organized via _descriptor set layouts_, which are
+then made available in a pipeline via a _pipeline layout_, which
+is used in the creation of a pipeline (good grief!).
+
+Descriptors themselves are not represented by a discrete object
+in Vulkan. Descriptor sets are, but by an opaque handle
+[`VkDescriptorSet`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSet.html),
+and they don't have an associated "constructor" but rather are
+allocated from a _descriptor pool_. I know, I know. Descriptor
+pools are represented by
+[`VkDescriptorPool`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorPool.html)
+handles, and are created via
+[`vkCreateDescriptorPool()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateDescriptorPool.html).
+Once created, descriptor sets can be allocated from the pool with
+[`vkAllocateDescriptorSets()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkAllocateDescriptorSets.html),
+which takes (among other things) a
+[`VkDescriptorPool`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorPool.html),
+a
+[`VkDescriptorSet`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSet.html)
+array, and a matching
+[`VkDescriptorSetLayout`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayout.html)
+array. The descriptor set layouts are created via
+[`vkCreateDescriptorSetLayout()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateDescriptorSetLayout.html),
+which mainly involves a
+[`VkDescriptorSetLayoutBinding`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayoutBinding.html)
+array, in which you can specify the number and type of
+descriptors in the binding as well as the shader stages that will
+access the bound resources. Once allocated, the data held by a
+descriptor set can be updated with
+[`vkUpdateDescriptorSets()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkUpdateDescriptorSets.html),
+which can write data from resources as well as from another
+descriptor set. You can also use
+[`vkUpdateDescriptorSetWithTemplate()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkUpdateDescriptorSetWithTemplate.html)
+(we'll get there). Pipeline layouts are represented by
+[`VkPipelineLayout`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineLayout.html)
+handles and created via
+[`vkCreatePipelineLayout()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreatePipelineLayout.html),
+which also involves a
+[`VkDescriptorSetLayout`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayout.html)
+array (as well as an array of _push constant ranges_—we'll get to
+push constants in just a bit). Everything is brought together
+with
+[`vkCmdBindDescriptorSets()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindDescriptorSets.html),
+which takes (among other things) a
+[`VkPipelineLayout`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineLayout.html)
+and a
+[`VkDescriptorSet`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSet.html)
+array. Goodness gracious, here's a diagram:
+
+<a href="pics/descriptors.svg"><img src="pics/descriptors.svg"></a>
+
+Naturally, this is something of an oversimplification (ha!), but
+hopefully it helps you get your bearings.
+
+There is a wide variety of descriptor types. We'll discuss them
+in detail in "Layout qualifiers," so we can talk about them from
+the Vulkan and GLSL perspectives side-by-side.
+
+A pipeline supports a limited number of bound descriptor sets,
+which are given by `maxBoundDescriptorSets` in
+`VkPhysicalDeviceLimits` (most commonly `32` on
+[Windows](https://vulkan.gpuinfo.org/displaydevicelimit.php?name=maxBoundDescriptorSets&platform=windows)
+and
+[Linux](https://vulkan.gpuinfo.org/displaydevicelimit.php?name=maxBoundDescriptorSets&platform=linux)
+as of June 2021).
+
 ### Qualifiers
 
 Qualifiers are keywords used in declarations before the type name
@@ -6654,4 +6725,8 @@ These are all part of the ray tracing extensions. My GPU barely
 supports ray tracing and can't really do it in real time. Since
 I'm writing a game engine, I'm not going to cover these either.
 
-## Resource descriptors
+### Scope
+
+#### Subgroup
+
+### Validation cache
