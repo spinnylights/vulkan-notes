@@ -6245,7 +6245,8 @@ rules in "Offset and Stride Assignment".
 Global variables can be grouped together into named _interface
 blocks_ that can be qualified with `in`, `out`, `buffer`, or
 `uniform`, and which also support the auxiliary qualifier `patch`
-for `in` and `out` blocks. Input and output blocks define
+for `in` and `out` blocks (these qualifiers are collectively
+known as _interface qualifiers_). Input and output blocks define
 interfaces between shader stages similarly to input and output
 variables. `buffer` and `uniform` blocks represent an interface
 to a `VkBuffer` bound to the current pipeline.
@@ -6310,6 +6311,79 @@ at binding time).
 A _shader interface_ consists of all the uniform blocks and
 variables and storage blocks declared in the shader as well as
 inputs/outputs at the boundary between two shading stages.
+
+#### Layout qualifiers
+
+Layout qualifiers are used in concert with interface qualifiers
+(see "Interface blocks") to declare things about how the shader
+receives and outputs data, such as the place the data comes from
+or the format it's stored in.
+
+They are written with `layout`, `(`, one or more layout qualifier
+phrases separated by commas, and `)`, in that order. A layout
+qualifier phrase can consist of a layout qualifier name by
+itself, the keyword `shared`, or a layout qualifier name, ` = `,
+and an constant integral expression, with optional spaces around
+the `=`. For example:
+
+```glsl
+layout(triangle_strip, max_vertices = 60)
+layout(shared, row_major)
+layout(stream=1)
+```
+
+You're allowed to use the same layout qualifier repeatedly in a
+singe declaration, but the later uses of it will override the
+earlier ones, so there's not much point.
+
+To form a complete statement with a layout qualifier, you can
+write it followed by an interface qualifier and a semicolon:
+
+```glsl
+layout(triangle_strip, max_vertices = 60) out;
+```
+
+This applies the layout qualifier to all of the variables
+qualified with `out` in the shader.
+
+You can also follow it up with a interface qualifier followed by
+a variable declaration and a semicolon:
+
+```glsl
+layout(location = 4, component = 2) in vec2 a;
+```
+
+In this case, the layout qualifier is applied only to the
+variable declared with it.
+
+Last but not least, you can use a layout qualifier to qualify a
+whole block:
+
+```glsl
+layout(location = 3) in struct S {
+    vec3 a;
+    mat2 b;
+    vec4 c[2];
+} s;
+```
+
+or a single block member:
+
+```glsl
+layout(column_major) uniform T3 {
+    mat4 M3;
+    layout(row_major) mat4 m4;
+    mat3 N2;
+};
+```
+
+The meaning of these sorts of constructions depends on the layout
+qualifier.
+
+Most layout qualifiers only support a subset of these kinds of
+declarations. You can see a chart of what supports what in the
+GLSL spec, section [4.4 Layout
+Qualifiers](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#layout-qualifiers).
 
 ## Shaders
 
