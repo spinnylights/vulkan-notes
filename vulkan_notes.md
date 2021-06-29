@@ -6039,9 +6039,9 @@ and a
 [`VkDescriptorSet`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSet.html)
 array. Goodness gracious, here's a diagram:
 
-<a href="pics/descriptors.svg"><img src="pics/descriptors.svg"></a>
+[![Binding descriptor sets](pics/descriptors.svg)](pics/descriptors.svg)
 
-Naturally, this is something of an oversimplification (ha!), but
+Naturally, this is glossing over some of the details (ha!), but
 hopefully it helps you get your bearings.
 
 There is a wide variety of descriptor types. We'll discuss them
