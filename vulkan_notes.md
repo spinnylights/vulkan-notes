@@ -6044,9 +6044,144 @@ array. Goodness gracious, here's a diagram:
 Naturally, this is glossing over some of the details (ha!), but
 hopefully it helps you get your bearings.
 
-There is a wide variety of descriptor types. We'll discuss them
-in detail in "Layout qualifiers," so we can talk about them from
-the Vulkan and GLSL perspectives side-by-side.
+#### Descriptor set layouts
+
+A descriptor set layout, respresented by
+[`VkDescriptorSetLayout`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayout.html),
+is essentially an array of _descriptor bindings_, which you
+specify when calling
+[`vkCreateDescriptorSetLayout()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateDescriptorSetLayout.html)
+with an array of
+[`VkDescriptorSetLayoutBinding`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayoutBinding.html)s.
+There's actually not much more to
+[`vkCreateDescriptorSetLayout()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateDescriptorSetLayout.html) than this;
+[`VkDescriptorSetLayoutCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayoutCreateInfo.html)
+also has `pNext` and `flags` fields but they're pretty ancillary
+(we'll touch on them at the end of this section). As you can see
+in the graph above, you don't actually bind any resources when
+creating a descriptor set layout; you're basically describing the
+structure that descriptor sets made with this layout will take
+on.
+
+One thing to note apart from the details of
+[`VkDescriptorSetLayoutBinding`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayoutBinding.html)
+is that
+[`VkDescriptorSetLayoutCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayoutCreateInfo.html)'s
+`uint32_t bindingCount` does not actually have to match the
+length of its <code>const <a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayoutBinding.html">VkDescriptorSetLayoutBinding</a>\*
+pBindings</code> array, because of
+[`VkDescriptorSetLayoutBinding`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayoutBinding.html)'s
+field `uint32_t binding`. We'll explain in detail shortly.
+
+These are the fields in [`VkDescriptorSetLayoutBinding`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayoutBinding.html):
+
+* `uint32_t binding`: This is the binding's _number_, which is
+  similar to an index; it can be anywhere from `0` to <code><a href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayoutCreateInfo.html">VkDescriptorSetLayoutCreateInfo</a>::bindingCount - 1</code>,
+  although each binding should have a different number. In GLSL,
+  the bound resource(s) can be accessed using the layout
+  qualifiers `set` and `binding`, where `set` takes the index of
+  the descriptor set and `binding` takes the same value as used
+  here, i.e. `layout(set=2, binding=1)`.  We'll discuss this more
+  in "Layout qualifiers."
+* <code><a
+  href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorType.html">VkDescriptorType</a>
+  descriptorType</code>: This describes how the bound resource(s)
+  will be presented to a shader. There is a wide variety of
+  descriptor types, as you'll see if you click the link. We'll
+  discuss them in detail in "Layout qualifiers" as well, so we
+  can also talk about them from the GLSL side.
+* `uint32_t descriptorCount`: If you're going to bind an array of
+  descriptors, you can use this field to set the size of the
+  array, which will also be its size in GLSL. Otherwise, it
+  should usually be `1`. You can set it to `0`, but then nothing
+  will be bound, meaning you should not access this binding from
+  any shader. Bindings whose existence is implied by the size of
+  <code><a
+  href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayoutCreateInfo.html">VkDescriptorSetLayoutCreateInfo</a>::bindingCount</code>
+  but don't correspond to any `binding` will be treated as having
+  a `descriptorCount` of `0` and thus should not be used,
+  although they may still consume memory when a descriptor set is
+  allocated with this layout.
+* <code><a
+  href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkShaderStageFlags.html">VkShaderStageFlags</a>
+  stageFlags</code>: This is the most straightforward field; it
+  describes which shader stages will access this binding's
+  resource(s).
+* <code>const <a
+  href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSampler.html">VkSampler</a>\*
+  pImmutableSamplers</code>: If you set `descriptorType` to
+  `VK_DESCRIPTOR_TYPE_SAMPLER` or
+  `VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER`, any
+  [`VkSampler`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSampler.html)
+  handles you reference here will be copied into this layout and
+  used for this binding. These samplers will be treated as
+  _immutable samplers_. You should avoid updating a
+  `VK_DESCRIPTOR_TYPE_SAMPLER` descriptor with immutable
+  samplers, and if you update a
+  `VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER` descriptor that has
+  them, only its image views will change. You should wait to
+  destroy the corresponding samplers until after your last use of
+  this layout and any descriptor pools and sets you've made with
+  it. If you leave this field null, you should make sure to bind
+  the necessary sampler handles into any descriptor sets you make
+  with this layout.
+
+The other fields in
+[`VkDescriptorSetLayoutCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayoutCreateInfo.html)
+are
+`const void* pNext` and <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayoutCreateFlags.html">VkDescriptorSetLayoutCreateFlags</a>
+flags</code>. Nothing in `flags` is useful without various
+extensions so we won't touch on it here. `pNext` can be a pointer
+to a
+[`VkDescriptorSetLayoutBindingFlagsCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayoutBindingFlagsCreateInfo.html),
+which holds an array of
+[`VkDescriptorBindingFlags`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorBindingFlags.html),
+one for each member of `pBindings`. These specify aspects of when
+the associated descriptors can be updated and when they're
+required to be valid, mostly in ways that allow for greater
+concurrency:
+
+* `VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT`: You can update
+  the descriptors after binding the set to a command buffer but
+  before submitting the buffer to a queue; the update will not
+  invalidate the buffer. Also, you can update multiple
+  descriptors with this flag from multiple threads, although you
+  should still update a single descriptor synchronously. This is
+  even okay if the buffer itself is in another thread, although
+  the descriptor set should not be reset or freed while you're
+  doing this. Note that sets which include this binding should be
+  allocated from pools with
+  `VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT` set (see
+  "Descriptor pools").
+* `VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT`: If you don't
+  access the resources associated with these descriptors from the
+  shaders in a given pipeline, the descriptors themselves don't
+  need to be valid when you submit the command buffer that
+  pipeline is bound to.
+* `VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT`: You
+  can update the descriptors while the command buffer you've
+  bound them to is pending, provided that you won't use the
+  descriptors in the buffer. If you've also set
+  `VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT` for these
+  descriptors, you can even update them while the buffer is being
+  executed. Even if not, you can still do this if you don't use
+  the descriptors statically from any of the relevant shaders.
+* `VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT`: You'll
+  set the size of this binding using
+  [`VkDescriptorSetVariableDescriptorCountAllocateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetVariableDescriptorCountAllocateInfo.html)
+  when you allocate a descriptor set with this layout, with its
+  `descriptorCount` attribute forming an upper bound on this size
+  rather than specifying it absolutely (see "Allocating
+  descriptor sets"). You're only allowed to set this flag for the
+  last binding in the layout (i.e. the one with the highest
+  `binding` number), and you should still use `descriptorCount`
+  for checks against device limits and so on.
+
+Descriptor set layouts are destroyed with
+[`vkDestroyDescriptorSetLayout()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroyDescriptorSetLayout.html),
+which doesn't really involve anything special.
 
 A pipeline supports a limited number of bound descriptor sets,
 which are given by `maxBoundDescriptorSets` in
