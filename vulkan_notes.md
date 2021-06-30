@@ -6183,6 +6183,131 @@ Descriptor set layouts are destroyed with
 [`vkDestroyDescriptorSetLayout()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroyDescriptorSetLayout.html),
 which doesn't really involve anything special.
 
+#### Descriptor pools
+
+A descriptor pool is a pool of memory that you can allocate
+descriptor sets from. They're represented by
+[`VkDescriptorPool`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorPool.html)
+handles and created with
+[`vkCreateDescriptorPool()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateDescriptorPool.html).
+
+[`vkCreateDescriptorPool()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateDescriptorPool.html)
+takes its parameters in a
+[`VkDescriptorPoolCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorPoolCreateInfo.html).
+The two main parameters in this structure are `uint32_t maxSets`,
+which is the maximum number of descriptor sets that can be
+allocated from the pool at one time, and an array <code>const <a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorPoolSize.html">VkDescriptorPoolSize</a>\*
+pPoolSizes</code>.
+
+[`VkDescriptorPoolSize`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorPoolSize.html)
+has two fields, <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorType.html">VkDescriptorType</a>
+type</code> and `uint32_t descriptorCount`. Together they specify
+an amount of memory to allocate: however much is needed for that
+many descriptors of the specified type. If you add two different
+members to `pPoolSizes[]` with the same `type`, enough memory
+will be allocated for both.
+
+`maxSets` and `pPoolSizes` impose separate limits on the use of
+the pool. Allocating from the pool may fail if you try to
+allocate more sets from it than `maxSets` _or_ more descriptors
+than there is memory for according to `pPoolSizes`. What's worse,
+a descriptor pool can become fragmented, so allocating from it
+may fail anyway even if you're within these limits. We'll talk
+about how to cope with all this in "Allocating descriptor sets".
+
+[`VkDescriptorPoolCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorPoolCreateInfo.html) also has a <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorPoolCreateFlags.html">VkDescriptorPoolCreateFlags</a> flags</code> field with a couple flags of note:
+
+* `VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT`: You can
+  use
+  [`vkFreeDescriptorSets()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkFreeDescriptorSets.html)
+  to free memory allocated from the pool for individual
+  descriptor sets. Otherwise, your only option is to free all the
+  memory in the pool at once with
+  [`vkResetDescriptorPool()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkResetDescriptorPool.html)
+  (which you can use whether or not you have this flag set).
+* `VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT`: You can
+  allocate sets from the pool that include bindings with
+  `VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT` set (bindings
+  without that flag set are fine either way).
+
+Descriptor pools are destroyed with
+[`vkDestroyDescriptorPool()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroyDescriptorPool.html).
+This automatically frees all the sets allocated from the pool, so
+you don't need to free them beforehand.
+
+#### Allocating descriptor sets
+
+Descriptor sets are represented by
+[`VkDescriptorSet`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSet.html)
+handles. Rather than creating them directly, you allocate them
+from descriptor pools with
+[`vkAllocateDescriptorSets()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkAllocateDescriptorSets.html),
+which takes a <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSet.html">VkDescriptorSet</a>\*
+pDescriptorSets</code> array and accepts parameters in a
+[`VkDescriptorSetAllocateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetAllocateInfo.html).
+
+[`VkDescriptorSetAllocateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetAllocateInfo.html)
+mainly exists for you to set the pool to allocate from and the
+layout each descriptor set should be allocated with. It has
+<code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorPool.html">VkDescriptorPool</a>
+descriptorPool</code> and <code>const <a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayout.html">VkDescriptorSetLayout</a>\*
+pSetLayouts</code> fields for this purpose.
+
+The only other thing to note about
+[`VkDescriptorSetAllocateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetAllocateInfo.html)
+is that its `pNext` field can point to a
+[`VkDescriptorSetVariableDescriptorCountAllocateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetVariableDescriptorCountAllocateInfo.html)
+which can be used to set the descriptor counts for descriptors
+with `VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT`
+bindings (see "Descriptor set layouts"). This is simple—it has a
+`const uint32_t* pDescriptorCounts` array for the descriptor
+counts, one entry for each corresponding member of
+`pDescriptorSets` (members without
+`VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT` bindings
+will be unaffected). Any descriptor sets that _do_ have
+`VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT` bindings
+will have effective `descriptorCount`s of `0` if their counts are
+not set here, so make sure to use this if you're making use of
+that flag.
+
+A call to
+[`vkAllocateDescriptorSets()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkAllocateDescriptorSets.html)
+can fail with `VK_ERROR_OUT_OF_POOL_MEMORY` if any of the
+allocations would exceed the limits implied by the pool's
+`maxSets` or `pPoolSizes` attributes. It can also fail with
+`VK_ERROR_FRAGMENTED_POOL` even if the allocations wouldn't
+exceed these limits. If this occurs, all of the sets in the call
+are invalid, so you'll have to try to allocate all of them again.
+You can either free memory in the pool you were trying to use or
+create a new pool to try with. A call to
+[`vkAllocateDescriptorSets()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkAllocateDescriptorSets.html)
+can also fail with `VK_ERROR_OUT_OF_HOST_MEMORY` or
+`VK_ERROR_OUT_OF_DEVICE_MEMORY`, in which case you'll probably
+have to take more drastic measures.
+
+If the allocation is successful, the descriptor sets are still
+mostly uninitialized and their descriptors are undefined. You can
+update them to initialize them; see "Updating descriptor sets"
+for details. There are situations when you can bind and use
+descriptor sets with undefined descriptors; see "Binding
+descriptor sets" for the details on that.
+
+To free memory in a descriptor pool, you can use
+[`vkResetDescriptorPool()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkResetDescriptorPool.html),
+which frees all the sets allocated from the pool and returns
+their memory. If the pool was created with
+`VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT` set (see
+"Descriptor pools"), you can also use
+[`vkFreeDescriptorSets()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkFreeDescriptorSets.html)
+to free only some of the memory allocated from the pool; it takes
+an array of descriptor set handles indicating the sets to free.
+
 #### Binding descriptor sets
 
 [`vkCmdBindDescriptorSets()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindDescriptorSets.html)
