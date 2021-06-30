@@ -6183,9 +6183,23 @@ Descriptor set layouts are destroyed with
 [`vkDestroyDescriptorSetLayout()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroyDescriptorSetLayout.html),
 which doesn't really involve anything special.
 
-A pipeline supports a limited number of bound descriptor sets,
-which are given by `maxBoundDescriptorSets` in
-`VkPhysicalDeviceLimits` (most commonly `32` on
+#### Binding descriptor sets
+
+[`vkCmdBindDescriptorSets()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindDescriptorSets.html)
+is meant to be recorded to a command buffer after
+[`vkCmdBindPipeline()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindPipeline.html).
+The field <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineBindPoint.html">VkPipelineBindPoint</a>
+pipelineBindPoint</code> in
+[`vkCmdBindDescriptorSets()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindDescriptorSets.html)
+specifies the kind of pipeline that will use the descriptors; the
+most recent pipeline of that kind which was bound to the same
+command buffer with
+[`vkCmdBindPipeline()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindPipeline.html)
+will then have access to them. A pipeline supports a limited
+number of bound descriptor sets, which are given by
+`maxBoundDescriptorSets` in `VkPhysicalDeviceLimits` (most
+commonly `32` on
 [Windows](https://vulkan.gpuinfo.org/displaydevicelimit.php?name=maxBoundDescriptorSets&platform=windows)
 and
 [Linux](https://vulkan.gpuinfo.org/displaydevicelimit.php?name=maxBoundDescriptorSets&platform=linux)
