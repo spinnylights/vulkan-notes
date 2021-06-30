@@ -6308,6 +6308,125 @@ their memory. If the pool was created with
 to free only some of the memory allocated from the pool; it takes
 an array of descriptor set handles indicating the sets to free.
 
+#### Updating descriptor sets
+
+Post-allocation, descriptor sets can be _updated_, which assigns
+values to their descriptors. You can both write to them directly
+and copy values into them from other descriptor sets.
+
+##### [`vkUpdateDescriptorSets()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkUpdateDescriptorSets.html)
+
+One way to update them is with
+[`vkUpdateDescriptorSets()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkUpdateDescriptorSets.html).
+You specify write and copy operations together with this
+function. The write operations are described in an array of
+[`VkWriteDescriptorSet`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkWriteDescriptorSet.html)s,
+and the copy operations are described in an array of
+[`VkCopyDescriptorSet`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCopyDescriptorSet.html)s.
+The write operations are performed before the copy operations,
+and the operations within each array are performed following
+their order in their array.
+
+###### [`VkWriteDescriptorSet`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkWriteDescriptorSet.html)
+
+[`VkWriteDescriptorSet`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkWriteDescriptorSet.html)
+is a bit complicated. You describe the location to write to in it
+with these fields:
+
+* <code><a
+  href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSet.html">VkDescriptorSet</a>
+  dstSet</code>, which is the set to update,
+* `uint32_t dstBinding`, which is the binding number to update
+  within that set, and
+* `uint32_t dstArrayElement`, which is the element to start with
+  in the binding.
+
+You can specify the actual data to write in one of these three
+fields:
+
+* <code>const <a
+  href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorImageInfo.html">VkDescriptorImageInfo</a>\*
+  pImageInfo</code>, for images;
+  [`VkDescriptorImageInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorImageInfo.html)
+  has these fields:
+    * <code><a
+      href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSampler.html">VkSampler</a>
+      sampler</code>, for `VK_DESCRIPTOR_TYPE_SAMPLER` and
+      `VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER` bindings that
+      don't use immutable samplers (see "Descriptor set
+      layouts"),
+    * <code><a
+      href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageView.html">VkImageView</a>
+      imageView</code>, for `VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE`,
+      `VK_DESCRIPTOR_TYPE_STORAGE_IMAGE` and
+      `VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER`, and
+      `VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT` bindings, and
+    * <code><a
+      href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkImageLayout.html">VkImageLayout</a>
+      imageLayout</code>, the layout that the subresources
+      accessible through `imageView` will be in when you access
+      them through the descriptor (if you're using
+      `imageView`)—you have to make sure that they're actually in
+      this layout yourself;
+* <code>const <a
+  href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorBufferInfo.html">VkDescriptorBufferInfo</a>\*
+  pBufferInfo</code>, for buffers;
+  [`VkDescriptorBufferInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorBufferInfo.html)
+  has these fields:
+    * <code><a
+      href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkBuffer.html">VkBuffer</a>
+      buffer</code>, the buffer to write from,
+    * <code><a
+      href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDeviceSize.html">VkDeviceSize</a>
+      offset</code>, the offset into the buffer to use,
+      and
+    * <code><a
+      href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDeviceSize.html">VkDeviceSize</a>
+      range</code>, how many bytes to write (can be
+      `VK_WHOLE_SIZE`)—this should not exceed the maximum range
+      for the descriptor type, either
+      `VkPhysicalDeviceLimits::maxUniformBufferRange` or
+      `VkPhysicalDeviceLimits::maxStorageBufferRange`;
+* <code>const <a
+  href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkBufferView.html">VkBufferView</a>\*
+  pTexelBufferView</code>, for buffers views.
+
+There are two other fields you have to set as well to specify the
+data to write:
+
+* <code><a
+  href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorType.html">VkDescriptorType</a>
+  descriptorType</code>, which should match the descriptor type
+  for the binding you're writing to and which determines the
+  array field that the data is written from, and
+* `uint32_t descriptorCount`, the number of descriptors to
+  update, which should match the number of elements in the array
+  you're using to write from as indicated by `descriptorType`.
+
+You can update multiple bindings in one go by using a
+`descriptorCount` greater than the number of elements in
+`dstBinding` starting at `dstArrayElement`. In this case, writing
+will continue at the next binding starting at index `0`. All the
+bindings written to this way must have the same descriptor type,
+shader stage flags, binding flags, and immutable sampler
+references (see "Descriptor set layouts").
+
+###### [`VkCopyDescriptorSet`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCopyDescriptorSet.html)
+
+[`VkCopyDescriptorSet`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkCopyDescriptorSet.html)
+is simpler (thank goodness). It takes the location to write from
+in <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSet.html">VkDescriptorSet</a>
+srcSet</code>, `uint32_t srcBinding`, and `uint32_t
+srcArrayElement`, and the location to write to in <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSet.html">VkDescriptorSet</a>
+dstSet</code>, `uint32_t dstBinding`, and `uint32_t
+dstArrayElement`. The amount of data to copy is given in
+`uint32_t descriptorCount`. These are all pretty
+self-explanatory. `descriptorCount` can be used for updating more
+than one binding in the same manner as in
+[`VkWriteDescriptorSet`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkWriteDescriptorSet.html).
+
 #### Binding descriptor sets
 
 [`vkCmdBindDescriptorSets()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindDescriptorSets.html)
