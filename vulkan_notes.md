@@ -6427,6 +6427,19 @@ self-explanatory. `descriptorCount` can be used for updating more
 than one binding in the same manner as in
 [`VkWriteDescriptorSet`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkWriteDescriptorSet.html).
 
+##### Updating descriptor sets with templates
+
+If you have a group of descriptors you use in several different
+descriptor sets, updating them in all of these sets can get
+expensive, and involves a lot of redundant work for the driver.
+_Descriptor update templates_ were added to the core in Vulkan
+1.1 to help with this situation. A descriptor update template is
+an object that describes a mapping from data in host memory to a
+group of descriptors; they're represented by
+[`VkDescriptorUpdateTemplate`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorUpdateTemplate.html)
+handles and created with
+[`vkCreateDescriptorUpdateTemplate()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateDescriptorUpdateTemplate.html).
+
 #### Binding descriptor sets
 
 [`vkCmdBindDescriptorSets()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindDescriptorSets.html)
