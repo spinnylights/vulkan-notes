@@ -6090,14 +6090,18 @@ These are the fields in [`VkDescriptorSetLayoutBinding`](https://www.khronos.org
   will be presented to a shader. There is a wide variety of
   descriptor types, as you'll see if you click the link. We'll
   discuss them in detail in "Layout qualifiers" as well, so we
-  can also talk about them from the GLSL side.
-* `uint32_t descriptorCount`: If you're going to bind an array of
-  descriptors, you can use this field to set the size of the
-  array, which will also be its size in GLSL. Otherwise, it
-  should usually be `1`. You can set it to `0`, but then nothing
-  will be bound, meaning you should not access this binding from
-  any shader. Bindings whose existence is implied by the size of
-  <code><a
+  can also talk about them from the GLSL side. One thing we
+  should touch on here is that if you use
+  `VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC` or
+  `VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC`, you can specify
+  offsets into these buffers dynamically at binding time, one for
+  each element specified by `descriptorCount`.
+* `uint32_t descriptorCount`: If you're going to bind an array,
+  you can use this field to specify its size, which will also be
+  its size in GLSL. Otherwise, this should usually be `1`. You can
+  set it to `0`, but then nothing will be bound, meaning you
+  should not access this binding from any shader. Bindings whose
+  existence is implied by the size of <code><a
   href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayoutCreateInfo.html">VkDescriptorSetLayoutCreateInfo</a>::bindingCount</code>
   but don't correspond to any `binding` will be treated as having
   a `descriptorCount` of `0` and thus should not be used,
