@@ -6584,6 +6584,96 @@ and
 [Linux](https://vulkan.gpuinfo.org/displaydevicelimit.php?name=maxBoundDescriptorSets&platform=linux)
 as of June 2021).
 
+Aside from a pipeline bind point,
+[`vkCmdBindDescriptorSets()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindDescriptorSets.html)
+also expects a pipeline layout which describes the descriptor
+sets to be bound. Aside from this, it has `uint32_t firstSet` and
+`uint32_t descriptorSetCount` fields defining the number of the
+first set to bind to and the number of descriptors to bind
+starting from there, as well as a corresponding array of
+descriptor sets.
+
+The other two fields are `uint32_t dynamicOffsetCount` and `const
+uint32_t* pDynamicOffsets`. You only need to make use of these if
+you're binding descriptors of type
+`VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC` or
+`VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC`. You might remember
+our brief mention of these types back in "Descriptor set
+layouts"; the idea with these is you can use `pDynamicOffsets`
+here to specify offsets into the buffer at binding time.
+`pDynamicOffsets` has one element for each array element in each
+dynamic-type descriptor, arranged in the same order as they
+appear in each descriptor and then by the order in which the
+descriptors are numbered, with lower numbers coming first. This
+is handy if you're using one large buffer to store a lot of
+different data, as we explored back in "Memory mangement".
+
+At the time that commands which involve the bound pipeline are
+executed (draw commands for graphics pipelines, dispatch commands
+for compute pipelines), you need to have bound all the
+descriptors used by the shaders in the pipeline. Descriptors
+_not_ used by the shaders don't need to be bound, though, even if
+they're specified by the pipeline layout.
+
+All the bound descriptor sets have to be _compatible_ with the
+pipeline layout specified in the bind call. The layout itself
+also has to be compatible with the bound pipeline when commands
+that involve it are executed. "Compatible" means that the
+descriptor set layouts and push constant ranges are defined the
+same, number for number.
+
+In ["Pipeline Layout
+Compatability"](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#descriptorsets-compatibility),
+the spec says something rather odd. It says,
+
+> When binding a descriptor set (see [Descriptor Set
+> Binding](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#descriptorsets-binding))
+> to set number N, if the previously bound descriptor sets for
+> sets zero through N-1 were all bound using compatible pipeline
+> layouts, then performing this binding does not _disturb_ any of
+> the lower numbered sets. If, additionally, the previously bound
+> descriptor set for set N was bound using a pipeline layout
+> compatible for set N, then the bindings in sets numbered
+> greater than N are also not _disturbed_.
+
+(Emphasis mine.) The spec does not define what "disturbed" means
+in this context, so it's hard to make heads or tails of this
+paragraph. This issue has been [touched
+on](https://github.com/KhronosGroup/Vulkan-Docs/issues/1485) in
+the spec repo (albeit with regards to push constants), and the
+main point seems to be that as long as you make sure that the
+most recent bound descriptors sets covering the layout, push
+constants, and bound pipeline are all compatible when you record
+your draw or dispatch commands, things should be okay, basically.
+
+#### Updating push constants
+
+We talked about how to set up push constants in "Pipeline
+layouts", but not actually how to assign values to them. The way
+to do this is to use
+[`vkCmdPushConstants()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdPushConstants.html).
+
+This takes a pipeline layout describing the push constant ranges
+and a bitmask of shader stage flags for the shader stages that
+will access the push constants. It also takes an offset into the
+push constant range to start the update at and a size of the
+range to update, both in bytes. Aside from this, there's just a
+`const void* pValues` field for an array that has the new push
+constant values. Refreshing!
+
+You can update push constant values in-between shader stages, and
+the subsequent stages will see any new values you've set along
+with the old values for push constants you haven't touched.
+
+Of course, the layout used when updating the push constants must
+be compatible with the layout of the bound pipeline when commands
+that make use of it are issued, as with descriptor sets. The spec
+says the same sorts of strange things about this—"Binding a
+pipeline with a layout that is not compatible with the push
+constant layout does not _disturb_ the push constant values"
+(emphasis mine). See "Binding descriptor sets" above for more on
+this.
+
 ### Qualifiers
 
 Qualifiers are keywords used in declarations before the type name
