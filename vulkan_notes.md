@@ -6430,15 +6430,68 @@ than one binding in the same manner as in
 ##### Updating descriptor sets with templates
 
 If you have a group of descriptors you use in several different
-descriptor sets, updating them in all of these sets can get
-expensive, and involves a lot of redundant work for the driver.
+descriptor sets, specifying write operations for all of those
+sets can involve a lot of redundant work for the driver if that
+group of descriptors only really needs to be written to once.
 _Descriptor update templates_ were added to the core in Vulkan
 1.1 to help with this situation. A descriptor update template is
 an object that describes a mapping from data in host memory to a
-group of descriptors; they're represented by
+descriptor set. They're represented by
 [`VkDescriptorUpdateTemplate`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorUpdateTemplate.html)
 handles and created with
-[`vkCreateDescriptorUpdateTemplate()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateDescriptorUpdateTemplate.html).
+[`vkCreateDescriptorUpdateTemplate()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateDescriptorUpdateTemplate.html),
+which takes parameters in a
+[`VkDescriptorUpdateTemplateCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorUpdateTemplateCreateInfo.html).
+
+The main field in
+[`VkDescriptorUpdateTemplateCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorUpdateTemplateCreateInfo.html)
+is an array, <code>const <a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorUpdateTemplateEntry.html">VkDescriptorUpdateTemplateEntry</a>\*
+pDescriptorUpdateEntries</code>. Each of these defines a
+descriptor update operation. Similarly to the other structs for
+updating descriptors, it has `uint32_t dstBinding`, `uint32_t
+dstArrayElement`, `uint32_t descriptorCount`, and <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorType.html">VkDescriptorType</a>
+descriptorType</code> fields for the binding number, starting
+array element, number of descriptors to update, and descriptor
+type respectively.  Like with
+[`VkWriteDescriptorSet`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkWriteDescriptorSet.html),
+`uint32_t descriptorCount` can be larger than the remaining array
+elements in the current descriptor, with the same rules. However,
+the remaining two fields in
+[`VkDescriptorUpdateTemplateCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorUpdateTemplateCreateInfo.html)
+are `size_t offset` and `size_t stride`.
+
+These two fields specify a region of host memory. Notably, they
+don't specify a _specific_ region of host memory—that comes later
+when you call
+[`vkUpdateDescriptorSetWithTemplate()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkUpdateDescriptorSetWithTemplate.html),
+which takes a pointer. `size_t offset`, as you would expect, is
+the distance in bytes from the pointer to the first block of
+descriptor update information. `size_t stride` specifies the
+distance between successive blocks of descriptor set update
+information, also in bytes. The reason for `stride` is in case
+you've stored the information in structs alongside other data.
+
+[`VkDescriptorUpdateTemplateCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorUpdateTemplateCreateInfo.html)
+also has a field <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorUpdateTemplateType.html">VkDescriptorUpdateTemplateType</a>
+templateType</code>, but the only value it can take on in core
+Vulkan is `VK_DESCRIPTOR_UPDATE_TEMPLATE_TYPE_DESCRIPTOR_SET`. As
+such, the other fields in
+[`VkDescriptorUpdateTemplateCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorUpdateTemplateCreateInfo.html)
+are of no concern to us here.
+
+Once you've created an update template, you can use it to update
+descriptors with the aforementioned
+[`vkUpdateDescriptorSetWithTemplate()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkUpdateDescriptorSetWithTemplate.html).
+This is really easy—it just takes a descriptor set, an update
+template, and a pointer to the location to start reading the
+update information from.
+
+When you're done with your update template, you can destroy it
+with
+[`vkDestroyDescriptorUpdateTemplate()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroyDescriptorUpdateTemplate.html).
 
 #### Binding descriptor sets
 
