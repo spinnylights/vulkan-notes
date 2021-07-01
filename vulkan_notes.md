@@ -6493,6 +6493,22 @@ When you're done with your update template, you can destroy it
 with
 [`vkDestroyDescriptorUpdateTemplate()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkDestroyDescriptorUpdateTemplate.html).
 
+#### A brief glance at push constants
+
+_Push constants_ are another way of getting data into shaders
+aside from descriptors. Unlike descriptors, they don't wrap
+memory-backed resources, so they are lighter-weight and thus more
+performant than descriptors in many cases. They aren't
+represented by a distinct object; instead, a pipeline layout
+defines a set of _push constant ranges_, which specify an offset
+and a size over some unformatted block of memory somewhere. No
+allocations or anything are performed at this time—the layout's
+push constant ranges are purely descriptive. When a pipeline made
+with the layout is bound to a command buffer, you can use a
+command to write data to the memory described by the layout.
+You declare the actual format of this data shader-side in an
+interface block, at which point you can make use of it.
+
 #### Binding descriptor sets
 
 [`vkCmdBindDescriptorSets()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindDescriptorSets.html)
