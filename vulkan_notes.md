@@ -6565,7 +6565,7 @@ descriptor sets.
 #### Binding descriptor sets
 
 [`vkCmdBindDescriptorSets()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindDescriptorSets.html)
-is meant to be recorded to a command buffer after
+is meant to be recorded to a command buffer in conjunction with
 [`vkCmdBindPipeline()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindPipeline.html).
 The field <code><a
 href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineBindPoint.html">VkPipelineBindPoint</a>
