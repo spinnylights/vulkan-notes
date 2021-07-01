@@ -6509,6 +6509,55 @@ command to write data to the memory described by the layout.
 You declare the actual format of this data shader-side in an
 interface block, at which point you can make use of it.
 
+#### Pipeline layouts
+
+Pipeline layouts represent a kind of blueprint for the resources
+a pipeline will have available during execution. They're
+represented by
+[`VkPipelineLayout`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineLayout.html)
+handles and created with
+[`vkCreatePipelineLayout()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreatePipelineLayout.html).
+
+[`vkCreatePipelineLayout()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreatePipelineLayout.html)
+takes its parameters in a
+[`VkPipelineCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineLayoutCreateInfo.html);
+from examining this structure we can see that a pipeline layout
+is basically an array of descriptor set layouts and an array of
+push constant ranges. We already know what descriptor set layouts
+are (see "Descriptor set layouts" if not), and we just touched on
+push constant ranges a moment ago in "A brief glance at push
+constants".
+
+A pipeline layout's push constant ranges are each defined with a
+[`VkPushConstantRange`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPushConstantRange.html).
+This has a `uint32_t offset` and a `uint32_t size`, which are
+specified in bytes and should be multiples of 4. As I mentioned
+in "A brief glance at push constants", you don't actually
+describe a format for the memory that will be used by the push
+constants here; that happens later, in your shaders.
+
+Speaking of, the other field in
+[`VkPushConstantRange`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPushConstantRange.html)
+is <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkShaderStageFlags.html">VkShaderStageFlags</a>
+stageFlags</code>, which describes the shader stages that will
+have access to the push constant range. If you try to access the
+push constants in the range from a shader that isn't included
+here, you'll get undefined values from them.
+
+A pipeline layout is used in the creation of a pipeline to define
+its descriptor and push constant interfaces. Pipeline layouts are
+also used when binding descriptor sets and updating push
+constants, in lieu of the actual bound pipeline object. This
+level of indirection might seem a bit strange, but it does mean
+that if you have multiple different pipelines which share the
+same layout, you can use the same layout object for each. It also
+means that if you bind a pipeline to a command buffer, then bind
+a set of compatible descriptor sets, then bind a different
+pipeline of the same type and with the same layout, the new
+pipeline will be able to work with the previously-bound
+descriptor sets.
+
 #### Binding descriptor sets
 
 [`vkCmdBindDescriptorSets()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindDescriptorSets.html)
