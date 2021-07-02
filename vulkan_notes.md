@@ -7235,9 +7235,11 @@ they cannot:
 layout(location = 2, component = 3) in dvec2 broken; // ERROR
 ```
 
-There is one exeception, though—arrays declared with a component
-qualifier get their elements from the specified component of each
-successive location over their length:
+By the same token, matrices, blocks, and structures cannot be
+qualified with `component`. There is one exeception,
+though—arrays declared with a component qualifier get their
+elements from the specified component of each successive location
+over their length:
 
 ```glsl
 layout(location = 0) vec4 v_a;
@@ -7254,6 +7256,9 @@ layout(location = 0, component = 3) zs[4];
  * zs[3] == v_d.z
  */
 ```
+
+If the array contains a matrix, structure, or block, though, it
+can't take `component`.
 
 You should also be careful not to accidentally assign the same
 location and component to two different variables in a block;
