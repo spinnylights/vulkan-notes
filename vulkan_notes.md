@@ -2579,16 +2579,16 @@ and
 We'll talk broadly about how it works and whether or not you
 might want to use it.
 
-It comes as a header-only library. Thankfully it has no
+VMA comes as a header-only library. Thankfully it has no
 dependencies aside from Vulkan. It's written in C++ but exposes a
-C interface, although this does mean that you need to use a C++
-compiler to compile the part of your code where you include the
-full implementation of the library (you could also just compile
-it into a regular, non-header-only library if you're writing a C
-application and need to use a C compiler). It assumes by default
-that you're statically linking with Vulkan, but you can configure
-it otherwise and also hand it the function pointers it needs if
-you're loading Vulkan functions at runtime. (See
+C interface. If you're writing your application in C, this of
+course means that you'll either need to compile VMA into a
+regular, non-header-only library to link with or you'll need to
+compile at least part of your codebase with a C++ compiler. VMA
+assumes by default that you're statically linking with Vulkan,
+but you can configure it otherwise, and also hand it the function
+pointers it needs if you're loading Vulkan functions at runtime.
+(See
 [here](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/quick_start.html)
 and
 [here](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/configuration.html)
