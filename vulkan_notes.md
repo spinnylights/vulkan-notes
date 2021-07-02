@@ -2642,9 +2642,9 @@ mapping"](https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/
 in the VMA docs for more info.
 
 There's no special support for binding a single large buffer and
-storing different kinds of data in it by offset. You can allocate
-such a buffer with VMA, but you have to take care of managing it
-afterwards.
+storing different kinds of data in it by offset, like we talked
+about in "Sub-allocating". You can allocate such a buffer with
+VMA, but you have to take care of managing it afterwards.
 
 When allocating a new block, VMA will automatically allocate a
 smaller block than the default size if allocating a default-sized
