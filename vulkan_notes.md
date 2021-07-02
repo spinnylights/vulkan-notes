@@ -7415,6 +7415,50 @@ to use a more sophisticated code design than these examples show;
 some well-written classes would make this code much easier to
 understand and maintain in a more complicated setting.)
 
+One last point. Remember how we set `VK_VERTEX_INPUT_RATE_VERTEX`
+for
+[`VkVertexInputBindingDescription::inputRate`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkVertexInputBindingDescription.html)?
+There's actually one other possible value for that field,
+`VK_VERTEX_INPUT_RATE_INSTANCE`. This means that the vertex input
+binding will index into its buffer based on the _instance index_
+instead of the vertex index.
+
+The instance index comes from the parameters `uint32_t
+instanceCount` and `uint32_t firstInstance` in draw commands like
+[`vkCmdDraw()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDraw.html).
+If you set `instanceCount` to a value greater than one, the draw
+command will loop over the specified vertex indices
+`instanceCount` times. The instance index will start at
+`firstInstance` and be incremented for each loop. In GLSL, you
+can get the current value of the instance index from the vertex
+shader using the built-in variable `gl_instanceIndex`.
+
+So, `VK_VERTEX_INPUT_RATE_INSTANCE` can be used to pass data to
+the vertex shader by instance instead of by vertex. This can be
+used to perform _instanced rendering_ (also known as
+_instancing_). Instanced rendering is a technique where the same
+mesh is rendered in many different places in the scene
+efficiently; it's commonly used for things like grass where the
+mesh has only a few vertices but needs to be rendered over and
+over.
+
+To do this, you can have a vertex input binding with a
+`VK_VERTEX_INPUT_RATE_INSTANCE` input rate and tie it to a buffer
+with position and rotation information for each instance of the
+mesh you want to render. Then you can set `instanceCount` in your
+draw command to however many elements you have in your
+position+rotation buffer. If you pull your position information
+from that input binding in your vertex shader, the rest will take
+care of itself.
+
+Of course, there are lots of other things you can do with this
+feature—any time you have a set of vertex data you want to render
+repeatedly and have something change on each iteration, this may
+come in handy. In some cases you can also do without a
+`VK_VERTEX_INPUT_RATE_INSTANCE` binding and just use
+`gl_instanceIndex`, like if you want to compute the varying data
+procedurally in the vertex shader.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
