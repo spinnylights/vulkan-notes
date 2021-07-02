@@ -2839,7 +2839,7 @@ that otherwise wouldn't have it. Vulkan 1.0+ environments also
 sometimes support timeline semaphores via the extension.
 
 Binary semaphores have two states: signaled and unsignaled. When
-a binary semaphore begins to be waited on, it becomes unsignaled;
+you start to wait on a binary semaphore, it becomes unsignaled;
 it can then be signaled from elsewhere, after which the wait
 operation will finish. This property means that waiting and
 signalling operations on binary semaphores need to be carefully
@@ -3221,7 +3221,7 @@ should be separated with a memory barrier.
 
 Pipeline barriers are similar to events in that they provide a
 mechanism for synchronizing the execution of commands within a
-queue. However, they do not have internal state; they merely
+queue. However, they don't have internal state; they merely
 create a dependency between commands that come before and after
 them in the submission order.
 
@@ -4381,8 +4381,9 @@ have to, and although they're often used in the production of
 visual imagery, they aren't always. One thing that does stand out
 about them compared to other kinds of programs is that they're
 mainly intended to be run with hundreds or thousands of
-invocations operating in parallel, and synchronization between
-these invocations is generally the programmer's responsibility.
+invocations operating in parallel, with synchronization between
+these invocations generally being the programmer's
+responsibility.
 
 Of course, Vulkan is more specific about what a shader is. The
 spec describes shaders as "[specifications of] programmable
@@ -4412,9 +4413,9 @@ by a non-profit. Anyone is free to make suggestions, point out
 problems, submit revisions, etc. to the spec and the maintainers
 will listen. Development of both the spec and the associated
 language tooling happens out in the open, and the tools are all
-free software. What's more, the non-profit that maintains GLSL
-just so happens to be the same one that maintains Vulkan, so
-they've both been designed to play nice together.
+free software. What's more, the non-profit that maintains GLSL is
+the same one that maintains Vulkan, so they've both been designed
+to play nice together.
 
 What follows is a comprehensive discussion of GLSL from the
 perspective of use with Vulkan. It does not assume prior graphics
@@ -4435,7 +4436,7 @@ As it happens, GLSL has its own definition of "shader". To GLSL,
 "shader" is another term for "translation unit". "A computer
 program written in a shading language, which is a programming
 language used to write shaders"—we're already back where we
-started. How's that for circular reasoning?
+started. Circular reasoning?
 
 ### Character set
 
@@ -6968,11 +6969,11 @@ layout(binding=0, set=0) uniform material {
 
 This declares a uniform block called `material` which groups
 together three uniforms, `ndx`, `rough`, and `metal`. The
-optional identifier after the block is called its _instance
-name_, and if included the members are scoped into a namespace
-under it. For instance, `mats[2].ndx` would be in scope after
-this, but not plain `ndx`. However, if we had declared `material`
-this way:
+optional identifier `mats` after the block is called its
+_instance name_, and if included the members are scoped into a
+namespace under it. For instance, `mats[2].ndx` would be in scope
+after this, but not plain `ndx`. However, if we had declared
+`material` this way:
 
 ```glsl
 layout(binding=0, set=0) uniform material {
