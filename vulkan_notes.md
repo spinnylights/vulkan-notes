@@ -7133,6 +7133,14 @@ layout(location = 1, component = 2) in double snd_d_com; // snd_d_com   == d_spa
 layout(location = 1, component = 2) in vec2   snd_half;  // snd_half.xy == span.za
 ```
 
+Be mindful of alignment when using `component`—this is easy
+overall since GLSL mostly has 32-bit types, but the compiler will
+turn up its nose if you try to start a `double` at component `1`:
+
+```glsl
+layout(location = 0, component = 1) in double broken; // ERROR
+```
+
 You might be wondering what happens if you use `location` with a
 variable that spans more than 128 bits. In this case, the span of
 memory covered by the variable overlaps the next locations:
