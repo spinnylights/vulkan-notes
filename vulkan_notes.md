@@ -7229,6 +7229,192 @@ supported for each shader stage. You can see what they are in
 Locations](https://www.khronos.org/registry/vulkan/specs/1.0/html/chap15.html#interfaces-iointerfaces-limits)
 in the Vulkan spec.
 
+###### In the vertex shader
+
+`location` and `component` are used in the vertex shader to
+declare input variables that receive _vertex attribute_ data via
+_vertex input bindings_ established during pipeline creation and
+associated with buffers via a command. In plainer language, this
+is how vertex shaders receive information like vertex position
+and other sorts of per-vertex data.
+
+Let's say you've got a vertex shader with the following
+interface block:
+
+```glsl
+layout(location = 0) in vert {
+    vec4 pos;
+    vec3 color;
+    layout(location = 1, component = 3) float alpha;
+};
+```
+
+and you have the following structs declared in C++:
+
+```cpp
+struct Position {
+    float pos[4];
+};
+
+struct Color {
+    float rgba[4];
+};
+
+struct Vertex {
+    Position pos;
+    Color col;
+};
+```
+
+(In practice you'd probably use types from a linear algebra
+library here, but let's keep this simple.)
+
+Now let's say you've got a `VkBuffer verts` whose members are
+instances of `Vertex`, one for each vertex shader invocation.
+You'd like to make draw calls using this buffer.
+
+When you're creating your graphics pipeline, take note of the
+<code>const <a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineVertexInputStateCreateInfo.html">VkPipelineVertexInputStateCreateInfo</a>\*
+pVertexInputState</code> array field in
+[`VkGraphicsPipelineCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkGraphicsPipelineCreateInfo.html).
+[`VkPipelineVertexInputStateCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineVertexInputStateCreateInfo.html)
+specifies two arrays, <code>const <a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkVertexInputBindingDescription.html">VkVertexInputBindingDescription\*</a>
+pVertexBindingDescriptions</code> and <code>const <a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkVertexInputAttributeDescription.html">VkVertexInputAttributeDescription\*</a>
+pVertexAttributeDescriptions</code>.
+
+[`VkVertexInputBindingDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineVertexInputStateCreateInfo.html)
+is the coarser of the two. This has fields `uint32_t binding` and
+`uint32_t stride`. `binding` is the vertex input binding number
+and can be whatever you like; it has no direct bearing on your
+vertex shader. `stride` gives the distance between two elements
+in the buffer that will be bound for this buffer. (There's also
+an `inputRate` field, but we'll come back to that in a bit.) For
+our `VkBuffer verts`, we might declare the following:
+
+```cpp
+constexpr uint32_t vert_bind_n = 0;
+
+VkVertexInputBindingDescription vert_desc {
+    .binding   = vert_bind_n,
+    .stride    = sizeof(Vertex),
+    .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+};
+```
+
+[`VkVertexInputAttributeDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineVertexInputStateCreateInfo.html)
+is where you actually set up the shader interface. It has a
+`uint32_t binding` field that corresponds to
+[`VkVertexInputBindingDescription::binding`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineVertexInputStateCreateInfo.html),
+and a `uint32_t offset` field that describes an offset in bytes
+for the attribute relative to the start of an element in the
+input binding. It also has a `uint32_t location` field for the
+number of the location in the shader, and a <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkFormat.html">VkFormat</a>
+format</code>
+field for the format of the attrbute data. Since we have two
+locations, we'll need two of these:
+
+```cpp
+VkVertexInputAttributeDescription pos_desc {
+    .location = 0,
+    .binding  = vert_bind_n,
+    .format   = VK_FORMAT_R32G32B32A32_SFLOAT,
+    .offset   = 0,
+};
+
+VkVertexInputAttributeDescription col_desc {
+    .location = 1,
+    .binding  = vert_bind_n,
+    .format   = VK_FORMAT_R32G32B32A32_SFLOAT,
+    .offset   = sizeof(Position),
+};
+```
+
+(You can use
+[SPIRV-Reflect](https://github.com/KhronosGroup/SPIRV-Reflect) to
+avoid duplicating the location numbers between your vertex
+attribute descriptions and vertex shaders.)
+
+Note that `format` has to be set to a format with
+`VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT` set in its
+[`VkFormatProperties::bufferFeatures`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkFormatProperties.html)
+after calling
+[`vkGetPhysicalDeviceFormatProperties()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetPhysicalDeviceFormatProperties.html)
+for it. Fortunately, many formats have mandatory support for use
+with vertex buffers; you can see which under
+[43.3. Required Format Support](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/chap43.html#features-required-format-support) in the Vulkan spec.
+
+Now we can set up our
+[`VkPipelineVertexInputStateCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineVertexInputStateCreateInfo.html):
+
+```cpp
+std::vector<VkVertexInputBindingDescription> bind_descs { vert_desc };
+
+std::vector<VkVertexInputAttributeDescription> attr_descs {
+    pos_desc,
+    col_desc,
+};
+
+VkPipelineVertexInputStateCreateInfo vert_input_inf {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+    .pNext = nullptr,
+    .flags = 0,
+    .vertexBindingDescriptionCount   = bind_descs.size(),
+    .pVertexBindingDescriptions      = bind_descs.data(),
+    .vertexAttributeDescriptionCount = attr_descs.size(),
+    .pVertexAttributeDescriptions    = attr_descs.data(),
+}
+```
+
+Now let's say we've made a graphics pipeline using
+`vert_input_inf` and we've bound it to a command buffer. To make
+our data in `VkBuffer verts` available to its vertex shader, we
+can use
+[`vkCmdBindVertexBuffers()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindVertexBuffers.html).
+
+This command can be used to attach a set of buffers to a set of
+vertex input bindings in a relatively arbitrary manner. It has
+`uint32_t firstBinding` and `uint32_t bindingCount` fields
+denoting the number of the binding to start with and how many
+bindings to set up from that number on. It also has array fields
+<code>const <a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkBuffer.html">VkBuffer</a>\*
+pBuffers</code>
+and <code>const <a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDeviceSize.html">VkDeviceSize</a>\*
+pOffsets</code>, which both have one element per `bindingCount`.
+The elements of `pOffsets` give offsets into the corresponding
+elements of `pBuffers` for where the data for the binding starts.
+
+We've only got one buffer and one binding, so this will be
+straightforward:
+
+```cpp
+std::vector<VkBuffer>     vert_buffs        { verts };
+std::vector<VkDeviceSize> vert_buff_offsets { 0 };
+
+vkCmdBindVertexBuffers(cmd_buff, // to which we've bound our graphics pipeline
+                       vert_bind_n,
+                       vert_buffs.size(),
+                       vert_buffs.data(),
+                       vert_buff_offsets.data());
+
+```
+
+Now any subsequent draw command executions from this command
+buffer will pass the data in `verts` to the vertex shading stage
+of our bound graphics pipeline. (In practice, you can also bind
+the vertex buffers first, as long as both the vertex buffers and
+the pipeline are bound when you record the first draw command.)
+
+(As a side note, in a real application, I lightly encourage you
+to use a more sophisticated code design than these examples show;
+some well-written classes would make this code much easier to
+understand and maintain in a more complicated setting.)
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
