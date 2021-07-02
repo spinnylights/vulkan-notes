@@ -7118,6 +7118,10 @@ layout(location = 1) in float  fst_com;   // fst_com     == span.x
 layout(location = 1) in double fst_d_com; // fst_d_com   == d_span.x
 ```
 
+(Note that in practice two different variables aren't allowed to
+share a location qualifier, so this wouldn't compile—it's just
+for show.)
+
 Of course, you might want to cover a part of the slot that
 doesn't start at the beginning. This is where `component` comes
 in; it basically specifies an offset in multiples of 32 bits:
@@ -7223,8 +7227,8 @@ layout(location = 2, component = 3) in dvec2 broken; // ERROR
 ```
 
 You should also be careful not to accidentally assign the same
-location and component to two different variables, as this is
-also in error:
+location and component to two different variables in a block;
+this is in error, as we discussed earlier:
 
 ```glsl
 layout(location = 1) out broken_blk {
