@@ -7261,11 +7261,11 @@ and you have the following structs declared in C++:
 
 ```cpp
 struct Position {
-    float pos[4];
+    std::array<float, 4> pos;
 };
 
 struct Color {
-    float rgba[4];
+    std::array<float, 4> rgba;
 };
 
 struct Vertex {
