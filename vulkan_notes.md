@@ -7258,6 +7258,10 @@ layout(location = 1) out broken_blk {
 }
 ```
 
+As a reminder on this basis, most of the above examples would not
+actually compile as a result of location and component aliasing.
+It's just easier to show things this way.
+
 There is a limit on the number of input and output locations
 supported for each shader stage. You can see what they are in
 [Table 11. Shader Input and Output
