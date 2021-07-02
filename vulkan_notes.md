@@ -7220,10 +7220,31 @@ As you can see, the block member location qualifiers don't need
 to come in a particular order, either.
 
 You might also be wondering if variables declared with
-`component` can overlap the next location. Sadly not:
+`component` can overlap the next location. For the most part,
+they cannot:
 
 ```glsl
 layout(location = 2, component = 3) in dvec2 broken; // ERROR
+```
+
+There is one exeception, though—arrays declared with a component
+qualifier get their elements from the specified component of each
+successive location over their length:
+
+```glsl
+layout(location = 0) vec4 v_a;
+layout(location = 1) vec4 v_b;
+layout(location = 2) vec4 v_c;
+layout(location = 3) vec4 v_d;
+
+layout(location = 0, component = 3) zs[4];
+
+/**
+ * zs[0] == v_a.z
+ * zs[1] == v_b.z
+ * zs[2] == v_c.z
+ * zs[3] == v_d.z
+ */
 ```
 
 You should also be careful not to accidentally assign the same
