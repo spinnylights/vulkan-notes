@@ -7200,13 +7200,15 @@ members take their locations following from _that_ location:
 ```glsl
 layout(location = 1) ivec4 v_a;
 layout(location = 2) ivec4 v_b;
+layout(location = 3) ivec4 v_c;
+layout(location = 4) ivec4 v_d;
 
 layout(location = 1) in int_blk {
-    int n_x;                                 // n_x == v_a.x
-    layout(location = 1, component = 3) n_a; // n_a == v_a.a
-    int m_x;                                 // m_x == v_b.x
-    layout(location = 1, component = 1) n_y; // n_y == v_a.y
-    int n_z;                                 // n_z == v_a.z
+    int n_x;                                     // n_x == v_a.x
+    layout(location = 3, component = 1) int p_y; // p_y == v_c.y
+    int q_x;                                     // q_x == v_d.x
+    layout(location = 2) int o_z;                // o_z == v_b.z
+    int p_x;                                     // p_x == v_b.x
 }
 ```
 
