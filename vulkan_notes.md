@@ -2829,10 +2829,14 @@ check the state of a semaphore from elsewhere, including ways to
 wait until the state of a semaphore takes on a certain value.
 
 As of Vulkan 1.2, semaphores come in two types, _binary_ and
-_timeline_. Earlier versions have only binary semaphores in their
-core APIs, but Vulkan 1.0 and up can support timeline semaphores via
-the extension
+_timeline_; timeline semaphores were promoted from the extension
 [`VK_KHR_timeline_semaphore`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VK_KHR_timeline_semaphore.html).
+Earlier versions of Vulkan have only binary semaphores in their
+core APIs. However, the
+[Vulkan-ExtensionLayer](https://github.com/KhronosGroup/Vulkan-ExtensionLayer/)
+provides support for timeline semaphores even in environments
+that otherwise wouldn't have it. Vulkan 1.0+ environments also
+sometimes support timeline semaphores via the extension.
 
 Binary semaphores have two states: signaled and unsignaled. When
 a binary semaphore begins to be waited on, it becomes unsignaled;
@@ -2922,9 +2926,13 @@ of waiting on binary semaphores.
 A recent extension to Vulkan,
 [`VK_KHR_synchronization2`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VK_KHR_synchronization2.html),
 makes significant changes to the semaphore API (as well as other
-things). We will look at how to work both with this extension as
-well as the core API. The Khronos Group [encourages the use of
-this
+things). Like
+[`VK_KHR_timeline_semaphore`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VK_KHR_timeline_semaphore.html),
+you can use this extension even in environments that don't
+support it by using the
+[Vulkan-ExtensionLayer](https://github.com/KhronosGroup/Vulkan-ExtensionLayer/).
+We'll look at how to work both with this extension as well as
+the core API. The Khronos Group [encourages the use of this
 extension](https://www.khronos.org/blog/vulkan-sdk-offers-developers-a-smooth-transition-path-to-synchronization2)
 and intends for it to be easier to work with than the older APIs.
 
