@@ -2646,10 +2646,9 @@ storing different kinds of data in it by offset, like we talked
 about in "Sub-allocating". You can allocate such a buffer with
 VMA, but you have to take care of managing it afterwards.
 
-When allocating a new block, VMA will automatically allocate a
-smaller block than the default size if allocating a default-sized
-block would go over the memory budget (unless the resource in
-question is too large).
+When allocating a new block, VMA will automatically attempt to
+allocate a smaller block than its (configurable) default size if
+allocating a default-sized block would go over the memory budget.
 
 It permits memory aliasing but doesn't really provide special
 support for it.
