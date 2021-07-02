@@ -6698,6 +6698,53 @@ constant layout does not _disturb_ the push constant values"
 (emphasis mine). See "Binding descriptor sets" above for more on
 this.
 
+#### Physical storage buffer access
+
+This feature was promoted to Vulkan 1.2 from
+[`VK_KHR_buffer_device_address`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VK_KHR_buffer_device_address.html).
+Unfortunately, it still depends on support from the SPIR-V side,
+and the necessary features are not in core SPIR-V at this time,
+being enabled instead via
+[`SPV_KHR_physical_storage_buffer`](https://htmlpreview.github.io/?https://github.com/KhronosGroup/SPIRV-Registry/blob/master/extensions/KHR/SPV_KHR_physical_storage_buffer.html).
+It's potentially a very useful feature and I feel like I should
+touch on it here since it's part of core Vulkan now, but in
+practice you still can't count on universal support for it on the
+shader side at this time. As such, I'm only going to briefly
+mention what it's about and link to the relevant specs in case
+you want to know more.
+
+Basically, this feature exposes two functions,
+<code><a href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDeviceAddress.html">VkDeviceAddress</a> <a href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetBufferDeviceAddress.html">vkGetBufferDeviceAddress()</a></code>
+and
+<code>uint64\_t <a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetBufferOpaqueCaptureAddress.html">vkGetBufferOpaqueCaptureAddress()</a></code>,
+which can be used to get the address of a
+[`VkBuffer`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkBuffer.html)
+on the device. You can then store this address in e.g. a uniform
+buffer, and in theory you could then read it from a shader and
+use it as a pointer to the buffer's data. This could facilitate
+lightweight and flexible interaction between the host and shader,
+conceivably.
+
+However, SPIR-V only supports this via an extension, as we just
+discussed. Futhermore, as we have now learned, GLSL doesn't have
+a built-in pointer type. There is an extension
+[`GLSL_EXT_buffer_reference`](https://github.com/KhronosGroup/GLSL/blob/master/extensions/ext/GLSL_EXT_buffer_reference.txt)
+that uses
+[`SPV_KHR_physical_storage_buffer`](https://htmlpreview.github.io/?https://github.com/KhronosGroup/SPIRV-Registry/blob/master/extensions/KHR/SPV_KHR_physical_storage_buffer.html)
+to support this feature, as well as two extensions that build on
+it,
+[`GLSL_EXT_buffer_reference2`](https://github.com/KhronosGroup/GLSL/blob/master/extensions/ext/GLSL_EXT_buffer_reference2.txt)
+and
+[`GLSL_EXT_buffer_reference_uvec2`](https://github.com/KhronosGroup/GLSL/blob/master/extensions/ext/GLSL_EXT_buffer_reference_uvec2.txt).
+There is some discussion of all this in a [talk by one of the
+spec
+authors](https://www.youtube.com/watch?v=KLZsAJQBR5o&t=2493s)
+(except
+[`GLSL_EXT_buffer_reference2`](https://github.com/KhronosGroup/GLSL/blob/master/extensions/ext/GLSL_EXT_buffer_reference2.txt)
+and
+[`GLSL_EXT_buffer_reference_uvec2`](https://github.com/KhronosGroup/GLSL/blob/master/extensions/ext/GLSL_EXT_buffer_reference_uvec2.txt)).
+
 ### Qualifiers
 
 Qualifiers are keywords used in declarations before the type name
