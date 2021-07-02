@@ -2016,9 +2016,9 @@ std::optional<uint32_t> find_mem_type(uint32_t supported_types,
 {
     for (uint32_t i = 0; i < phys_dev_mem_props.memoryTypeCount; ++i) {
         bool type_supported = (1 << i) & supported_types;
-        bool fits_reqs = (memoryTypes[i].propertyFlags & reqs) == reqs;
+        bool fits_reqmnts = (memoryTypes[i].propertyFlags & reqs) == reqs;
 
-        if (type_supported && fits_reqs) {
+        if (type_supported && fits_reqmnts) {
             return i;
         }
     }
