@@ -6663,11 +6663,12 @@ the spec says something rather odd. It says,
 in this context, so it's hard to make heads or tails of this
 paragraph. This issue has been [touched
 on](https://github.com/KhronosGroup/Vulkan-Docs/issues/1485) in
-the spec repo (albeit with regards to push constants), and the
-main point seems to be that as long as you make sure that the
-most recent bound descriptors sets covering the layout, push
-constants, and bound pipeline are all compatible when you record
-your draw or dispatch commands, things should be okay, basically.
+the spec repo (albeit with regards to push constants, which are
+also described this way), and the main point seems to be that as
+long as you make sure that the most recent bound descriptors sets
+covering the layout, push constants, and bound pipeline are all
+compatible when you record your draw or dispatch commands, things
+should be okay, basically.
 
 #### Updating push constants
 
