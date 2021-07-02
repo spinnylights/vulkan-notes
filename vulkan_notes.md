@@ -910,14 +910,37 @@ in the spec cover this topic in detail.
 The most commonly-used draw commands can be categorized based on
 whether or not they take a vertex index buffer. Without an index
 buffer, vertices are assembled one-by-one into primitives based
-on their index in the vertex buffer. With an index buffer, the
-order in which to assemble the vertices into primitives can be
-specified explicitly. The advantage of using an index buffer is
-that vertices can be reused, which avoids the need to duplicate
-vertices used to assemble more than one primitive. 3D model
-formats often work this way. In either case, the primitive
-toplogy in use dictates how the vertices are assembled once an
-ordering is established.
+on their index in the vertex buffer. The trouble with this is
+that, during tessellation, a certain number of vertex buffer
+elements will be needed to make up each primitive; for example,
+in the most common case of triangles, you would need three
+elements per primitive (we'll get into all this in detail later).
+If you wanted to render a square then, you might think you would
+need four vertices, one for each corner—but if you weren't using
+an indexed draw command, you would actually need six elements in
+your vertex buffers for this, because it takes two triangles to
+make a square:
+
+![A rectangle with overlapping
+vertices.](pics/overlapping_verts.svg)
+
+Unfortunately, two of the elements in your vertex buffers would
+be redundant in this case, because they would perfectly duplicate
+the data of two of the other elements. I've drawn the vertices in
+question slightly offset from each other here, but in practice
+they would perfectly overlap, bloating your vertex buffers and
+thus slowing down your rendering process.
+
+With an index buffer, you can specify the order in which to
+assemble the vertices into primitives explicitly. The advantage
+of this is that vertices can be reused, which avoids the need to
+duplicate vertices used to assemble more than one primitive. Even
+if you don't mind the extra overhead, the models output by 3D
+modeling programs usually work this way, so it's worth getting
+comfortable with indexed draws regardless.
+
+In either case, the primitive toplogy in use dictates how the
+vertices are assembled once an ordering is established.
 
 The two most straightforward draw commands are
 [`vkCmdDraw()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDraw.html)
