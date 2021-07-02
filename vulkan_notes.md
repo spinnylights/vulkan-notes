@@ -7074,6 +7074,161 @@ declarations. You can see a chart of what supports what in the
 GLSL spec, section [4.4 Layout
 Qualifiers](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#layout-qualifiers).
 
+##### `location` and `component`
+
+These layout qualifiers can be used in any kind of shader aside
+from compute shaders (naturally). That said, they play a special
+role in the vertex shader input interface and the fragment shader
+output interface, where they define things like how the vertex
+shader receives vertex data or where the fragment shader outputs
+color data. In the other shading stages, they're just used to
+pass data in from earlier stages and out to later ones.
+
+`location` can be used with variable declarations, block
+declarations, and block member declarations.  `component` should
+be paired with `location` if used, and can only be used with
+input variable and input block member declarations (not whole
+blocks). Both of them should be declared with a constant integral
+expression, like so:
+
+```glsl
+const int starting_loc = 3;
+layout(location = starting_loc + 2, component = 2) out vec2 a;
+```
+
+`location` connotes the start of a 128-bit shader interface slot.
+As such, to have a variable cover a space within a single
+`location` slot, it should be of 16-, 32-, or 64-bit scalar or
+vector type; if 64-bit, only 2-component vectors will do. For
+instance:
+
+```glsl
+layout(location = 1) in vec4   span;      // spans the whole slot
+layout(location = 1) in dvec2  d_span;    // also spans the whole slot
+layout(location = 1) in vec2   fst_half;  // fst_half.xy == span.xy
+layout(location = 1) in float  fst_com;   // fst_com     == span.x
+layout(location = 1) in double fst_d_com; // fst_d_com   == d_span.x
+```
+
+Of course, you might want to cover a part of the slot that
+doesn't start at the beginning. This is where `component` comes
+in; it basically specifies an offset in multiples of 32 bits:
+
+```glsl
+layout(location = 1, component = 0) in float  fst_com_2; // fst_com_2   == fst_com
+layout(location = 1, component = 1) in float  snd_com;   // snd_com     == span.y
+layout(location = 1, component = 2) in double snd_d_com; // snd_d_com   == d_span.y
+layout(location = 1, component = 2) in vec2   snd_half;  // snd_half.xy == span.za
+```
+
+You might be wondering what happens if you use `location` with a
+variable that spans more than 128 bits. In this case, the span of
+memory covered by the variable overlaps the next locations:
+
+```glsl
+layout(location = 2) in vec4 v_a;
+layout(location = 3) in vec4 v_b;
+
+layout(location = 2) in mat4x2 m;     //  m[0] == v_a;  m[1] == v_b
+layout(location = 2) in vec4   vs[2]; // vs[0] == v_a; vs[1] == v_b
+
+layout(location = 4) in dvec2 d_v_a;
+layout(location = 5) in dvec2 d_v_b;
+
+layout(location = 4) in dvec4 d_v_ab; // d_v_ab.xy == d_v_a; d_v_ab.za == d_v_b
+```
+
+This even works with a block or structure:
+
+```glsl
+layout(location = 2) in vs_blk {
+    vec4 blk_a;
+    vec4 blk_b;
+};
+
+// blk_a == v_a
+// blk_b == v_b
+
+layout(location = 2) in struct vs_strc {
+    vec4 a;
+    vec4 b;
+} vs_strc_s;
+
+// vs_strc_s.a == v_a
+// vs_strc_s.b == v_b
+```
+
+You should note that types which take up less than 128 bits still
+consume a whole location if used in a block or structure:
+
+```glsl
+layout(location = 1) vec2 v_a_64;
+layout(location = 2) vec2 v_b_64;
+
+layout(location = 1) in vs_blk_64 {
+    vec2 blk_a_64; // blk_a_64 == v_a_64
+    vec2 blk_b_64; // blk_b_64 == v_b_64
+};
+```
+
+Struct members are not allowed to have their own location
+qualifiers. However, block members can; if we wanted to get
+around the above rule, we could do the following:
+
+```glsl
+layout(location = 1) vec4 v_a_128;
+
+layout(location = 1) in vs_blk_64 {
+    vec2 blk_a_64;                                     // blk_a_64 == v_a_128.xy
+    layout(location = 1, component = 1) vec2 blk_b_64; // blk_b_64 == v_a_128.za
+};
+```
+
+If you declare a block with a location qualifier, its members
+take their locations in order following it until one of the
+members has its own location qualifier. After that, the next
+members take their locations following from _that_ location:
+
+```glsl
+layout(location = 1) ivec4 v_a;
+layout(location = 2) ivec4 v_b;
+
+layout(location = 1) in int_blk {
+    int n_x;                                 // n_x == v_a.x
+    layout(location = 1, component = 3) n_a; // n_a == v_a.a
+    int m_x;                                 // m_x == v_b.x
+    layout(location = 1, component = 1) n_y; // n_y == v_a.y
+    int n_z;                                 // n_z == v_a.z
+}
+```
+
+As you can see, the block member location qualifiers don't need
+to come in a particular order, either.
+
+You might also be wondering if variables declared with
+`component` can overlap the next location. Sadly not:
+
+```glsl
+layout(location = 2, component = 3) in dvec2 broken; // ERROR
+```
+
+You should also be careful not to accidentally assign the same
+location and component to two different variables, as this is
+also in error:
+
+```glsl
+layout(location = 1) out broken_blk {
+    vec4 v;
+    layout(location = 1) vec4 v_again; // ERROR
+}
+```
+
+There is a limit on the number of input and output locations
+supported for each shader stage. You can see what they are in
+[Table 11. Shader Input and Output
+Locations](https://www.khronos.org/registry/vulkan/specs/1.0/html/chap15.html#interfaces-iointerfaces-limits)
+in the Vulkan spec.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
