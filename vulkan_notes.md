@@ -7101,6 +7101,10 @@ shader receives vertex data or where the fragment shader outputs
 color data. In the other shading stages, they're just used to
 pass data in from earlier stages and out to later ones.
 
+You have to provide `location` qualifiers either explicitly or
+implicitly for all the inputs and outputs you declare yourself
+(i.e. those that aren't built-in).
+
 `location` can be used with variable declarations, block
 declarations, and block member declarations.  `component` should
 be paired with `location` if used, and can only be used with
