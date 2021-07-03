@@ -6765,7 +6765,7 @@ laid the groundwork, we can now discuss them.
 
 #### Storage qualifiers
 
-When declaring a variable, a single storage qualifier can be
+When declaring a variable, a _single_ storage qualifier can be
 specified before the type name, which can determine aspects of
 the variable's mutability, linkage, and interpolation strategy.
 There are also a few auxiliary storage qualifiers that can be
