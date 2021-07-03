@@ -7551,6 +7551,44 @@ layout(location = 3) out vec4 v;
 layout(location = 3) in vec4 vs[];
 ```
 
+###### In the fragment shader
+
+The available locations for inputs in the fragment shader match
+the outputs of the previous stage. However, the outputs of the
+fragment shader are special. Its available output locations match
+the color attachments of the current subpass, as I mentioned
+offhand back in "Subpass descriptions".
+
+You might recall from that section that `VkSubpassDescription`
+has an array field <code>const <a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkAttachmentReference.html">VkAttachmentReference</a>\*
+pColorAttachments</code>. You might also recall that attachments
+are essentially image views from the point of view of the render
+pass. Each output location available in the fragment shader
+corresponds to a texel of one of the elements of
+`pColorAttachments[]` at the corresponding index—`layout(location
+= 0) in vec4 tex` corresponds to a texel of
+`pColorAttachments[0]` and so on.
+
+My choice of `vec4` for `tex` was not arbitrary—you can use other
+types, but `vec4` is fairly natural because each of the four
+components of one of these locations corresponds to the R, G, B,
+and A values for the texel in question (`uvec4` or the like might
+make more sense if the image has an integral format, of course).
+
+If you do split one of these outputs up by component, note that
+the different variables need to have the same type:
+
+```glsl
+location(layout = 0, component = 1) out float b;
+location(layout = 0, component = 2) out int   g; // ERROR
+```
+
+Technically, you aren't writing directly to the underlying image
+with these, but rather passing input to the _blend equation_.
+We'll talk about this more when we discuss `index` and when we
+cover blending.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
