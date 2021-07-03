@@ -6991,6 +6991,15 @@ qualifier used in its block; for instance, `ndx` above could have
 been declared as `flat uniform int ndx;` with the same outcome.
 This accomplishes nothing, though.
 
+The compiler will throw an error if you declare an input block in
+a vertex shader or an output block in a fragment shader. Regular
+input or output variables are okay in these cases, though. If
+this limitation strikes you as rather arbitrary, the GLSL spec
+says ["These uses are reserved for future
+use"](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#storage-qualifiers)
+on this topic, so outside of long-term GLSL spec planning and
+such you could be forgiven for feeling that way right now.
+
 In `VkPhysicalDeviceLimits`,
 `maxPerStageDescriptorUniformBuffers` and
 `maxPerStageDescriptorStorageBuffers` indicate the maximum number
