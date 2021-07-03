@@ -6120,8 +6120,8 @@ These are the fields in [`VkDescriptorSetLayoutBinding`](https://www.khronos.org
   descriptorType</code>: This describes how the bound resource(s)
   will be presented to a shader. There is a wide variety of
   descriptor types, as you'll see if you click the link. We'll
-  discuss them in detail in "Layout qualifiers" as well, so we
-  can also talk about them from the GLSL side. One thing we
+  discuss them in detail after we've gone over GLSL qualifiers,
+  so we can also talk about them from the GLSL side. One thing we
   should touch on here is that if you use
   `VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC` or
   `VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC`, you can specify
