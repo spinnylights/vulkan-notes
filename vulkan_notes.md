@@ -6536,7 +6536,8 @@ memory-backed resources, so they are lighter-weight and thus more
 performant than descriptors in many cases. They aren't
 represented by a distinct object; instead, a pipeline layout
 defines a set of _push constant ranges_, which specify an offset
-and a size over some unformatted block of memory somewhere. No
+and a size over some unformatted block of memory somewhere, and
+of which only one can be available to a given shader stage. No
 allocations or anything are performed at this time—the layout's
 push constant ranges are purely descriptive. When a pipeline made
 with the layout is bound to a command buffer, you can use a
@@ -6576,9 +6577,10 @@ Speaking of, the other field in
 is <code><a
 href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkShaderStageFlags.html">VkShaderStageFlags</a>
 stageFlags</code>, which describes the shader stages that will
-have access to the push constant range. If you try to access the
-push constants in the range from a shader that isn't included
-here, you'll get undefined values from them.
+have access to the push constant range. You can only expose one
+push constant range to a given shader stage; Vulkan won't allow
+you to set the same bit in `stageFlags` for two or more of the
+push constant ranges in a given pipeline layout.
 
 A pipeline layout is used in the creation of a pipeline to define
 its descriptor and push constant interfaces. Pipeline layouts are
