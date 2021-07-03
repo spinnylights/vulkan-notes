@@ -7224,10 +7224,10 @@ members has its own location qualifier. After that, the next
 members take their locations following from _that_ location:
 
 ```glsl
-layout(location = 1) ivec4 v_a;
-layout(location = 2) ivec4 v_b;
-layout(location = 3) ivec4 v_c;
-layout(location = 4) ivec4 v_d;
+layout(location = 1) in ivec4 v_a;
+layout(location = 2) in ivec4 v_b;
+layout(location = 3) in ivec4 v_c;
+layout(location = 4) in ivec4 v_d;
 
 layout(location = 1) in int_blk {
     int n_x;                                     // n_x == v_a.x
@@ -7256,12 +7256,12 @@ elements from the specified component of each successive location
 over their length:
 
 ```glsl
-layout(location = 0) vec4 v_a;
-layout(location = 1) vec4 v_b;
-layout(location = 2) vec4 v_c;
-layout(location = 3) vec4 v_d;
+layout(location = 0) in vec4 v_a;
+layout(location = 1) in vec4 v_b;
+layout(location = 2) in vec4 v_c;
+layout(location = 3) in vec4 v_d;
 
-layout(location = 0, component = 3) zs[4];
+layout(location = 0, component = 3) in zs[4];
 
 /**
  * zs[0] == v_a.z
