@@ -6567,12 +6567,30 @@ constants".
 A pipeline layout's push constant ranges are each defined with a
 [`VkPushConstantRange`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPushConstantRange.html).
 This has a `uint32_t offset` and a `uint32_t size`, which are
-specified in bytes and should be multiples of 4. As I mentioned
-in "A brief glance at push constants", you don't actually
-describe a format for the memory that will be used by the push
-constants here; that happens later, in your shaders.
+specified in bytes and should be multiples of 4. Note that
+`offset` must be less than
+`VkPhysicalDeviceLimits::maxPushConstantsSize`, and that `size`
+must be less than `VkPhysicalDeviceLimits::maxPushConstantsSize -
+offset`. This is likely to be _very_ small—at the time of
+writing, the two most common values for `maxPushConstantsSize`
+are `128` and `256` by far, with a few recent macOS/iOS
+environments supporting `4096` (see
+[here](https://vulkan.gpuinfo.org/displaydevicelimit.php?name=maxPushConstantsSize)).
 
-Speaking of, the other field in
+Given the tiny size of the memory available for a push constant
+range, you might be confused as to why the API bothers with
+`offset` and `size` parameters. The reason is because data in
+push constant memory must adhere to the `std430` layout as
+described in the [OpenGL
+spec](https://www.khronos.org/registry/OpenGL/specs/gl/glspec46.core.pdf),
+section "7.6.2.2 Standard Uniform Block Layout". We'll talk about
+this more when we discuss the `push_constant` layout qualifier in
+GLSL; in brief, that layout has rather coarse alignment
+requirements for certain GLSL types, so being able to specify
+`offset` and `size` here helps you make the best use of the space
+you do have available.
+
+Speaking of GLSL, the other field in
 [`VkPushConstantRange`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPushConstantRange.html)
 is <code><a
 href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkShaderStageFlags.html">VkShaderStageFlags</a>
