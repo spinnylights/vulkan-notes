@@ -7028,13 +7028,12 @@ or the format it's stored in.
 They are written with `layout`, `(`, one or more layout qualifier
 phrases separated by commas, and `)`, in that order. A layout
 qualifier phrase can consist of a layout qualifier name by
-itself, the keyword `shared`, or a layout qualifier name, ` = `,
-and an constant integral expression, with optional spaces around
-the `=`. For example:
+itself, or a layout qualifier name, ` = `, and an constant
+integral expression, with optional spaces around the `=`. For
+example:
 
 ```glsl
 layout(triangle_strip, max_vertices = 60)
-layout(shared, row_major)
 layout(stream=1)
 ```
 
