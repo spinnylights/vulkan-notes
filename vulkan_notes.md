@@ -7094,12 +7094,13 @@ Qualifiers](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.ht
 ##### `location` and `component`
 
 These layout qualifiers can be used in any kind of shader aside
-from compute shaders (naturally). That said, they play a special
-role in the vertex shader input interface and the fragment shader
-output interface, where they define things like how the vertex
-shader receives vertex data or where the fragment shader outputs
-color data. In the other shading stages, they're just used to
-pass data in from earlier stages and out to later ones.
+from compute shaders, as they're paired with `in` and `out`
+storage qualifiers. That said, they play a special role in the
+vertex shader input interface and the fragment shader output
+interface, where they define things like how the vertex shader
+receives vertex data or where the fragment shader outputs color
+data. In the other shading stages, they're just used to pass data
+in from earlier stages and out to later ones.
 
 You have to provide `location` qualifiers either explicitly or
 implicitly for all the inputs and outputs you declare yourself
