@@ -6129,8 +6129,8 @@ These are the fields in [`VkDescriptorSetLayoutBinding`](https://www.khronos.org
   each element specified by `descriptorCount`.
 * `uint32_t descriptorCount`: If you're going to bind an array,
   you can use this field to specify its size, which will also be
-  its size in GLSL. Otherwise, this should usually be `1`. You can
-  set it to `0`, but then nothing will be bound, meaning you
+  its size in GLSL. Otherwise, this should usually be `1`. You
+  can set it to `0`, but then nothing will be bound, meaning you
   should not access this binding from any shader. Bindings whose
   existence is implied by the size of <code><a
   href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayoutCreateInfo.html">VkDescriptorSetLayoutCreateInfo</a>::bindingCount</code>
