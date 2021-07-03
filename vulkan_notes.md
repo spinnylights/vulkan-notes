@@ -7524,6 +7524,33 @@ come in handy. In some cases you can also do without a
 `gl_instanceIndex`, like if you want to compute the varying data
 procedurally in the vertex shader.
 
+###### In the tessellation control, tessellation evaluation, and geometry shader
+
+Input variables qualified with `location` in these shaders are
+part of their interfaces with other shading stages, so the rules
+around them are not as involved as with vertex and fragment
+shaders. The available locations for inputs in a certain stage
+match those of the outputs of the previous stage. One thing to be
+mindful of is that, as we discussed in "Storage qualifiers",
+non-`patch` inputs for all three as well as non-`patch`
+tessellation control outputs are always arrays.  However, when
+considering how many locations one of these variables consumes in
+one of these shaders, you should disregard the outer level of
+arrayness:
+
+```glsl
+// in the vertex shader
+
+layout(location = 3) out vec4 v;
+```
+
+```glsl
+// in the tessellation control shader
+
+// only consumes location 3 regardless of vs's length
+layout(location = 3) in vec4 vs[];
+```
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
