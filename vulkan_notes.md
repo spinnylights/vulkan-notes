@@ -7746,6 +7746,338 @@ out acccording to `std140`—if the block has the layout qualifier
 `push_constant`, it's laid out by `std430` instead, without
 exception.
 
+##### `push_constant`
+
+This layout qualifier is what you use to access push constants,
+unsurprisingly. You have to apply it to a `uniform` block, and
+there can only be one such block per shader stage. You can give
+it an instance name if you want:
+
+```glsl
+layout(push_constant) uniform push_cs {
+    int   meow;
+    float cow;
+} my_lovely_push_cs_inst_name;
+```
+
+As you might recall from "Pipeline layouts", you can only supply
+one push constant range to a given shader stage when creating a
+pipeline layout, so whichever range you specified for the shader
+stage in question is the one you'll access. If the current stage
+has no push constant range specified in its pipeline, you'll get
+undefined values for the variables in this block, so watch out!
+Similarly, it's up to you to make sure that the variables you
+declare in the block properly cover the push constant range—if
+you go past the end of it you'll also get undefined values after
+that. Push constants are rather dangerous; at least they're
+read-only.
+
+If you just read the previous section "`std140` and `std430`",
+you'll know that `push_constant` blocks are laid out according to
+`std430`. If you haven't read that section, you can take a gander
+at it to learn about how GLSL expects the contents of the buffer
+backing a `push_constant` block to be laid out. You might
+remember that a push constant range in a pipeline layout is only
+described by a size and offset (see "Pipeline layouts"); it's
+here in GLSL that we actually describe the format of its data.
+
+Let's consider an example. We'll use the following class:
+
+```cpp
+template<typename Data>
+class PushConsts {
+public:
+    static constexpr uint32_t max_size = 128;
+
+    static constexpr uint32_t size()
+    {
+        constexpr std::size_t data_size = sizeof(Data);
+
+        static_assert(data_size <= max_size,
+                      "Your push constant data is too large for some "
+                      "environments");
+
+        return static_cast<uint32_t>(data_size);
+    }
+
+    PushConsts(Data d)
+        :dat{std::make_unique<Data>(d)}
+    {}
+
+    PushConsts(const PushConsts&) =delete;
+    PushConsts& operator=(PushConsts) =delete;
+
+    PushConsts(PushConsts&&) =default;
+    PushConsts& operator=(PushConsts&&) =default;
+
+    ~PushConsts() =default;
+
+    Data* data() { return dat.get(); }
+
+private:
+    std::unique_ptr<Data> dat;
+};
+```
+
+Say we want to send a view matrix and a constantly-shfting wacky
+background color to our shaders as push constants. The view
+matrix will be a standard `mat4x4`. Just to make things a bit
+spicy, let's say that we need to maintain really high precision
+around the background color for some reason, to the point that we
+want to send it in a `dvec3`.
+
+We can see from the chart in "`std140` and `std430`" that a
+`dvec3` needs to be aligned on a 32-byte boundary. The chart also
+tells us that a `mat4x4` is the same as a `vec4[4]`, meaning it
+needs to be aligned on a 16-byte boundary. However, the matrix
+will take up more space—64 bytes, to be exact. A `dvec3` is
+smaller, at 24 bytes.
+
+This implies that the most efficient arrangement of our data is
+to put the matrix first and the vector afterwards. We need 64 +
+24 = 88 bytes of space with this scheme, which is within the
+minimum `maxPushConstantsSize` of 128 bytes:
+
+```cpp
+struct PushConstsData {
+    std::array<float, 16> view_mat;
+    std::array<double, 3> backg_col;
+};
+
+PushConsts<PushConstsData> push_cs {
+    {
+        .view_mat  = { /* components */ },
+        .backg_col = { /* components */ },
+    },
+};
+```
+
+When we're ready, we can initialize our push constants like this:
+
+```cpp
+vkCmdPushConstants(cmd_buff,
+                   pipe_layout,
+                   VK_SHADER_STAGE_VERTEX_BIT
+                   | VK_SHADER_STAGE_FRAGMENT_BIT, // or w/e
+                   0,
+                   push_cs.size(),
+                   push_cs.data());
+```
+
+Then in our shaders, we can declare the following:
+
+```glsl
+layout(push_constant) uniform push_cs {
+    mat4x4 view;
+    dvec3  backg_col;
+};
+```
+
+Now, perhaps the fragment shader doesn't really need access to
+the view matrix, and the vertex shader doesn't really need access
+to the background color. We might choose to do this instead:
+
+```glsl
+// vertex
+
+layout(push_constant) uniform vert_push_cs {
+    mat4x4 view;
+};
+```
+
+```glsl
+// fragment
+
+layout(push_constant) uniform frag_push_cs {
+    layout(offset = 64) dvec3 backg_col;
+};
+```
+
+When creating our pipeline layout, we might then use the
+following push constant ranges:
+
+```cpp
+const auto vert_push_size = sizeof(push_cs.data()->view_mat);
+const auto frag_push_size = sizeof(push_cs.data()->backg_col);
+
+VkPushConstantRange vert_range {
+    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+    .offset     = 0,
+    .size       = vert_push_size,
+};
+
+VkPushConstantRange frag_range {
+    .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+    .offset     = vert_push_size,
+    .size       = frag_push_size,
+};
+```
+
+With this approach, it is actually necessary to specify an offset
+here both in the fragment shader and in the push constant range
+for the fragment shader. Otherwise, `backg_col` in `frag_push_cs`
+will come from the beginning of push constant memory and thus
+what its value will be is undefined, since we specified an offset
+past that point in `frag_range`. You also need to make sure to
+give your `push_constant` blocks different names or the compiler
+won't like it (an interface block with the same name must have
+the same definition across linked shaders).
+
+Now, I hope you'll forgive me if I get on a soapbox for just a
+moment. In my opinion, the extra complexity involved in
+coordinating the offsets for different shading stages between
+pipeline layouts and shader code just ain't worth it in most
+cases. Keeping the format of push constant memory straight
+between Vulkan and your shaders is bad enough in general without
+the extra bug surface introduced by managing different ranges of
+it for each shading stage. If you find that your application's
+performance is limited by whether or not you write or read 8
+bytes vs. 64 bytes of push constant memory per frame or what have
+you, go ahead and fuss about these details, but otherwise I would
+recommend starting from the beginning of push constant memory
+every time you call `vkCmdPushConstants()`. Your code will be
+much simpler and less likely to have baffling problems, and with
+a little planning you won't have to specify any offsets at all.
+
+If you can fit all the data you need for a frame in push constant
+memory at once, you can even write out the definition of the
+`push_constant` block in a separate file and copy it into the
+relevant shader source files as part of your build process so you
+don't have to duplicate its definition. Then you can call
+`vkCmdPushConstants()` once per frame with that frame's data and
+not have to worry about it after that. Otherwise, I would write
+all the data you need from the start of the range before each
+relevant shading stage.
+
+For instance, let's say that we want two `mat4x4`s in push
+constant memory for our vertex shader, but we still want to have
+that background color available in our fragment shader. Two
+`mat4x4`s will take up all of the available 128 bytes. We can do
+this:
+
+```glsl
+// vertex
+
+layout(push_constant) uniform vert_push_cs {
+    mat4x4 view;
+    mat4x4 other;
+};
+```
+
+```glsl
+// fragment
+
+layout(push_constant) uniform frag_push_cs {
+    dvec3 backg_col;
+};
+```
+
+We can also make the following modifications to our `PushConsts`
+class:
+
+```cpp
+template<typename Data>
+class PushConsts {
+public:
+    // ...
+
+    static constexpr uint32_t offset = 0;
+
+    PushConsts(Data d, VkShaderStageFlags s)
+        :dat{std::make_unique<Data>(d)},
+         stgs{s}
+    {}
+
+    // ...
+
+    VkShaderStageFlags stages() const { return stgs; }
+
+    VkPushConstantRange range() const
+    {
+        return {
+            .stageFlags = stages(),
+            .offset     = offset,
+            .size       = size(),
+        };
+    }
+
+    void push(VkCommandBuffer buff, VkPipelineLayout pipel) const
+    {
+        vkCmdPushConstants(buff, pipel, stages(), offset, size(), data());
+    }
+
+private:
+    // ...
+    VkShaderStageFlags stgs;
+};
+```
+
+We can set up our push constant objects and push constant ranges
+as follows:
+
+```cpp
+struct VertPushCData {
+    std::array<float, 16> view_mat;
+    std::array<float, 16> other_mat;
+};
+
+struct FragPushCData {
+    std::array<double, 3> backg_col;
+}
+
+PushConsts<VertPushCData> vert_push_cs {
+    {
+        .view_mat  = { /* components */ },
+        .other_mat = { /* components */ },
+    },
+    VK_SHADER_STAGE_VERTEX_BIT,
+};
+
+PushConsts<FragPushCData> frag_push_cs {
+    {
+        .backg_col = { /* components */ },
+    },
+    VK_SHADER_STAGE_FRAGMENT_BIT,
+};
+
+std::vector<VkPushConstantRange> push_c_rngs {
+    vert_push_cs.range(),
+    frag_push_cs.range(),
+};
+```
+
+Then we can set up the following subpass dependency during render
+pass creation:
+
+```cpp
+VkSubpassDependency vert_frag_push_cs_dep {
+    .srcSubpass   = vert_subp_ndx, // i.e. 0
+    .dstSubpass   = frag_subp_ndx, // i.e. 1
+    .srcStageMask = VK_PIPELINE_STAGE_NONE_KHR,
+    .dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+    // ...
+};
+```
+
+Finally we can proceed as follows when recording commands in the
+render pass:
+
+```cpp
+// ...
+vert_push_cs.push(cmd_buff, pipe_lay);
+vkCmdBeginRenderPass(/* ... */);
+// ...
+frag_push_cs.push(cmd_buff, pipe_lay);
+vkCmdNextSubpass(/* ... */); // start subpass at frag_subp_ndx
+// ...
+```
+
+Of course, depending on the circumstances, it might make more
+sense to store some of this data in a regular uniform buffer
+somewhere and save ourselves the synchronization hassle. You'll
+have to test and see what's faster and/or easier to work with and
+then make your own decisions.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
