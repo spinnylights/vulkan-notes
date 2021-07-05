@@ -3776,7 +3776,7 @@ render pass.
 _Subpass dependencies_, represented by
 [`VkSubpassDependency`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubpassDependency.html),
 are the part of the render pass where its "synchronization
-primitive" aspect is brought out most fully. It can be used to
+primitive" aspect is brought out most fully. They can be used to
 define synchronization and access scopes between subpasses in the
 render pass (see "Scopes and dependencies"). This is done by
 specifying a source and destination subpass and setting a series
