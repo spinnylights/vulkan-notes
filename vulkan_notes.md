@@ -6577,6 +6577,9 @@ of writing, the two most common values for `maxPushConstantsSize`
 are `128` and `256` by far, with a few recent macOS/iOS
 environments supporting `4096` (see
 [here](https://vulkan.gpuinfo.org/displaydevicelimit.php?name=maxPushConstantsSize)).
+`128` is the required minimum (see ["32.1 Limit
+Requirements"](https://www.khronos.org/registry/vulkan/specs/1.1/html/vkspec.html#limits-minmax)
+in the Vulkan spec).
 
 Given the tiny size of the memory available for a push constant
 range, you might be confused as to why the API bothers with
