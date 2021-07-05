@@ -7687,6 +7687,65 @@ uniform buff {
 The compiler will stop you if you try to give a member an offset
 less than that of a previous member, explicitly or implicitly.
 
+##### `std140` and `std430`
+
+These qualifiers can only be applied to `uniform` and `buffer`
+blocks, and dictate the memory layout of the block they're
+applied to.  In practice, you probably won't use them much,
+because
+
+* `std140` is the default layout for `uniform` blocks,
+* `std430` is the default layout for `buffer` blocks,
+* you're not allowed to apply `std430` to `uniform` blocks, and
+* you probably wouldn't want to apply `std140` to a `buffer`
+  block because it's almost the same as `std430` but slightly
+  stricter.
+
+We should explore them anyway, though, so you understand how to
+lay out data in your buffers for use in GLSL.
+
+Both layouts are described in the [OpenGL
+spec](https://www.khronos.org/registry/OpenGL/specs/gl/glspec46.core.pdf),
+section "7.6.2.2 Standard Uniform Block Layout". You can look at
+the spec for the fine details, but I figure I might as well sum
+them up here just for your convenience. We'll talk about `std430`
+first, because as I said it's almost the same as `std140` but
+slightly looser.
+
+The spec describes `std430` in terms of "basic machine units"
+instead of a more concrete unit. I'm going to proceed in terms of
+8-bit bytes—if you're working with a platform where that doesn't
+hold, I feel confident you'll be able to account for the
+difference.
+
+Type                     | Alignment (B)
+----------------------   | -------------
+`bool`                   | size not specified; don't use
+`int`, `uint`, `float`   |  4
+`double`                 |  8
+`vec2`, `ivec2`, `uvec2` |  8
+`dvec2`                  | 16
+`vec3`, `ivec3`, `uvec3` | 16
+`dvec3`                  | 32
+`vec4`, `ivec4`, `uvec4` | 16
+`dvec4`                  | 32
+array                    | same as one element
+column-major matrix      | like a (columns)-sized array of (rows)-component vectors
+row-major matrix         | like a (rows)-sized array of (columns)-component vectors
+structure                | same as the member with the largest alignment value
+
+Arrays and structures will have padding applied at the end if
+needed to provide the correct alignment for the data following
+them.
+
+`std140` is exactly the same as this, except that the alignment
+of an array or structure is rounded up to a multiple of 16.
+
+There is one exception to the rule that `uniform` blocks are laid
+out acccording to `std140`—if the block has the layout qualifier
+`push_constant`, it's laid out by `std430` instead, without
+exception.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
