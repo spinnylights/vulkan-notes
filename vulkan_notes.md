@@ -7616,6 +7616,47 @@ with these, but rather passing input to the _blend equation_.
 We'll talk about this more when we discuss `index` and when we
 cover blending.
 
+##### `set` and `binding`
+
+Whereas `location` and `component` go with `in` and `out`, `set`
+and `binding` go with `uniform` and `buffer`. This is the shader
+side of the descriptor interface we discussed from the Vulkan
+perspective in "Resource descriptors". As you might imagine,
+`set` corresponds to an index into
+[`VkDescriptorSetLayoutCreateInfo::pBindings`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayoutCreateInfo.html),
+and `binding` corresponds to the
+[`VkDescriptorSetLayoutBinding::binding`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayoutBinding.html)
+within the descriptor set specified by `set`. A binding can be
+accessed from any shader stage specified in its
+[`VkDescriptorSetLayoutBinding::stageFlags`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayoutBinding.html).
+
+If the binding is an array (i.e. if it has a
+[`VkDescriptorSetLayoutBinding::descriptorCount`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSetLayoutBinding.html)
+greater than `1`), you can declare it as an array in the shader
+as well:
+
+```glsl
+layout(set = 2, binding = 3) uniform sampler2D samps[5];
+```
+
+If you don't declare it as an array, you'll implicitly be
+accessing the first element of the binding:
+
+```glsl
+// fst_samp == samps[0] above
+layout(set = 2, binding = 3) uniform sampler2D fst_samp;
+```
+
+Similarly, any declaration with `uniform` or `buffer` that omits
+`set` or `binding` is equivalent to the same declaration with a
+`set` or `binding` of `0`.
+
+You might remember back in "Descriptor set layouts" how I
+suggested we wait until we'd gone over qualiiers to talk about
+the different descriptor set types. Hold that thought—we've still
+got a ways to go until we can fully cover how to interact with
+descriptors in GLSL.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
