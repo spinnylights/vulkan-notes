@@ -2739,7 +2739,7 @@ _execution dependencies_. However, there is a special type of
 execution dependency that is important enough to consider on
 its own. These are _memory dependencies_, which are used to
 synchronize memory access. They are the most common type of
-execution dependency encoutered in Vulkan.
+execution dependency encountered in Vulkan.
 
 Some operations read from or write to locations in memory.
 Execution dependencies that are not memory dependencies cannot
