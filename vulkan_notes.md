@@ -7657,6 +7657,36 @@ the different descriptor set types. Hold that thought—we've still
 got a ways to go until we can fully cover how to interact with
 descriptors in GLSL.
 
+##### `offset`
+
+This layout qualifier can only be applied to members of `uniform`
+and `buffer` blocks. You can use it to specify where exactly the
+block member starts from the beginning of the buffer that backs
+the block.
+
+Say we have a buffer in Vulkan whose contents are equivalent to
+those of the following array:
+
+```cpp
+int32_t buff[] = { 3, -6, 993, 48, -231 };
+```
+
+Now say we have the following block in a shader that's backed by
+this buffer:
+
+```glsl
+uniform buff {
+    int a;
+    layout(offset = 128) int b;
+};
+
+// a == 3
+// b == 48
+```
+
+The compiler will stop you if you try to give a member an offset
+less than that of a previous member, explicitly or implicitly.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
