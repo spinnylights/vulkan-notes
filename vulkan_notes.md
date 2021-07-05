@@ -2742,19 +2742,14 @@ synchronize memory access. They are the most common type of
 execution dependency encountered in Vulkan.
 
 Some operations read from or write to locations in memory.
-Execution dependencies that are not memory dependencies cannot
-guarantee that data which has been written by an operation
-will be ready for reading by a later operation, or that one
-set of data will be written to a location before another set
-of data is written there. Memory dependencies between two
-operations guarantee that the first operation will finish
-writing before the location it's writing to is made
-_available_ to later operations, and that the data is made
-_visible_ to the second operation before it begins. An
-available value stays available until its location is written
+Memory dependencies between two operations guarantee that the
+first operation will finish writing before the location it's
+writing to is made _available_ to later operations, and that the
+data is made _visible_ to the second operation before it begins.
+An available value stays available until its location is written
 to again or freed; if an available value becomes visible to a
-type of memory access, it can then be read from or written to
-by memory accesses of that type as long as it stays available.
+type of memory access, it can then be read from or written to by
+memory accesses of that type as long as it stays available.
 
 To be more precise, a synchronization command that involves a
 memory dependency has _access scopes_. These are derived from its
@@ -2767,6 +2762,12 @@ memory accesses performed in **A**, and **Bm** is likewise for
 order will mean that memory writes in **Am∩Sm₁** will be made
 available, and that available memory writes in **Am∩Sm₁** will be
 made visible to **Bm∩Sm₂**.
+
+Execution dependencies that are not memory dependencies cannot
+guarantee that data which has been written by an operation will
+be ready for reading by a later operation, or that one set of
+data will be written to a location before another set of data is
+written there.
 
 ### Memory access synchronization between device and host
 
