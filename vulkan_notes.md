@@ -6581,20 +6581,23 @@ environments supporting `4096` (see
 Requirements"](https://www.khronos.org/registry/vulkan/specs/1.1/html/vkspec.html#limits-minmax)
 in the Vulkan spec).
 
-Given the tiny size of the memory available for a push constant
-range, you might be confused as to why the API bothers with
-`offset` and `size` parameters. The reason is because data in
-push constant memory must adhere to the `std430` layout as
-described in the [OpenGL
-spec](https://www.khronos.org/registry/OpenGL/specs/gl/glspec46.core.pdf),
-section "7.6.2.2 Standard Uniform Block Layout". We'll talk about
-this more when we discuss the `push_constant` layout qualifier in
-GLSL; in brief, that layout has rather coarse alignment
-requirements for certain GLSL types, so being able to specify
-`offset` and `size` here helps you make the best use of the space
-you do have available.
+In practice, the API treats push constants as occupying a single
+block of memory `maxPushConstantsSize` bytes long. When you call
+[`vkCmdPushConstants()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdPushConstants.html),
+the `offset` and `size` parameters you specify are decoupled from
+any of the `offset` and `size` parameters you set when creating a
+pipeline layout. Each of these just specifies some part of push
+constant memory. This allows you to give shader stages access
+only to the push constants they actually need, and also to use
+[`vkCmdPushConstants()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdPushConstants.html)
+to update only the push constants that actually need it.
 
-Speaking of GLSL, the other field in
+Push constants need to be laid out in memory in a certain way in
+order for them to be read properly on the shader side. We'll talk
+about this more when we discuss the `push_constant` layout
+qualifier.
+
+Speaking of shaders, the other field in
 [`VkPushConstantRange`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPushConstantRange.html)
 is <code><a
 href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkShaderStageFlags.html">VkShaderStageFlags</a>
