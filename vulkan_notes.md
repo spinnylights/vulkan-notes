@@ -6572,8 +6572,8 @@ specified in bytes and should be multiples of 4. Note that
 `offset` must be less than
 `VkPhysicalDeviceLimits::maxPushConstantsSize`, and that `size`
 must be less than `VkPhysicalDeviceLimits::maxPushConstantsSize -
-offset`. This is likely to be _very_ small—at the time of
-writing, the two most common values for `maxPushConstantsSize`
+offset`. These limits are likely to be _very_ small—at the time
+of writing, the two most common values for `maxPushConstantsSize`
 are `128` and `256` by far, with a few recent macOS/iOS
 environments supporting `4096` (see
 [here](https://vulkan.gpuinfo.org/displaydevicelimit.php?name=maxPushConstantsSize)).
