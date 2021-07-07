@@ -8084,6 +8084,85 @@ somewhere and save ourselves the synchronization hassle. You'll
 have to test and see what's faster and/or easier to work with and
 then make your own decisions.
 
+##### `column_major` and `row_major`
+
+These are for setting how matrices are laid out in memory. They
+can be applied to `uniform` and `buffer` blocks as well as their
+members, and can also be used to set the default for all
+`uniform` or `buffer` blocks. If you don't set a default,
+`column_major` will be the default for both.
+
+```glsl
+// now all matrices in `uniform` blocks are `row_major` by
+// default for this shader
+layout(row_major) uniform;
+
+// but this block goes against the new default
+layout(column_major) uniform col {
+    // this matrix is `column_major`
+    mat4x4 col_mat;
+    // this matrix is `row_major`
+    layout(row_major) row_mat;
+    // this matrix is `column_major`
+    mat4x4 col_mat_2;
+    // this vector is unaffected either way
+    vec4 oblivious;
+};
+```
+
+As you can see, both qualifiers only affect matrices, and each
+only overrides its counterpart.
+
+As described in "`std430` and `std140`", `column_major` means
+that if the matrix has _m_ columns and _n_ rows, it's laid out in
+memory like an _m_-sized array of _n_-sized vectors, with
+`row_major` being the other way around.
+
+Let's consider an example. Say we have the following matrix:
+
+```
+┃ 9 6 2 4 ┃
+┃ 1 0 3 5 ┃
+```
+
+From the perspective of C or C++ as well as conventional computer
+hardware, memory is one-dimensional, so we wouldn't be able to
+lay this out in memory exactly as we would write it in
+mathematical notation. The two major conventions are like this:
+
+```cpp
+std::array<int, 8> col_maj = { 9, 1, 6, 0, 2, 3, 4, 5, };
+std::array<int, 8> row_maj = { 9, 6, 2, 4, 1, 0, 3, 5, };
+```
+
+As you can see, in `col_maj` the values are stored going first
+from the top down and then from left-to-right, whereas in
+`row_maj` they're stored going left-to-right first and then
+from the top down.
+
+If we had a buffer with the data from `col_maj` followed
+immediately by the data from `row_maj`, we might access it in
+GLSL like this:
+
+```glsl
+uniform mats {
+    mat4x2 col_maj;
+    layout(row_major) mat4x2 row_maj;
+}
+```
+
+Note that after this point both matrices would appear identical
+in GLSL:
+
+```glsl
+vec2 first_col = { 9, 1 };
+col_maj[0] == first_col; // true
+row_maj[0] == first_col; // true
+```
+
+GLSL always thinks of matrices in column-major terms aside from
+cases of memory layout.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
