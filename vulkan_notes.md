@@ -7829,10 +7829,10 @@ want to send it in a `dvec3`.
 
 We can see from the chart in "`std140` and `std430`" that a
 `dvec3` needs to be aligned on a 32-byte boundary. The chart also
-tells us that a `mat4x4` is the same as a `vec4[4]`, meaning it
-needs to be aligned on a 16-byte boundary. However, the matrix
-will take up more space—64 bytes, to be exact. A `dvec3` is
-smaller, at 24 bytes.
+tells us that a `mat4x4` is the same as a `vec4[4]` for alignment
+purposes, meaning it needs to be aligned on a 16-byte boundary.
+However, the matrix will take up more space—64 bytes, to be
+exact. A `dvec3` is smaller, at 24 bytes.
 
 This implies that the most efficient arrangement of our data is
 to put the matrix first and the vector afterwards. We need 64 +
