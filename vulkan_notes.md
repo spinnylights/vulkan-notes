@@ -8188,14 +8188,14 @@ Let's consider an example. Say we have the following matrix:
 ┃ 1 0 3 5 ┃
 ```
 
-From the perspective of C or C++ as well as conventional computer
-hardware, memory is one-dimensional, so we wouldn't be able to
+Since memory is one-dimensional from the perspective of C or C++
+as well as conventional computer hardware, we wouldn't be able to
 lay this out in memory exactly as we would write it in
 mathematical notation. The two major conventions are like this:
 
 ```cpp
-std::array<int, 8> col_maj = { 9, 1, 6, 0, 2, 3, 4, 5, };
-std::array<int, 8> row_maj = { 9, 6, 2, 4, 1, 0, 3, 5, };
+int col_maj[] = { 9, 1, 6, 0, 2, 3, 4, 5, };
+int row_maj[] = { 9, 6, 2, 4, 1, 0, 3, 5, };
 ```
 
 As you can see, in `col_maj` the values are stored going first
@@ -8223,7 +8223,7 @@ col_maj[0] == first_col; // true
 row_maj[0] == first_col; // true
 ```
 
-GLSL always thinks of matrices in column-major terms aside from
+GLSL always thinks of matrices in column-major terms, aside from
 cases of memory layout.
 
 ## Shaders
