@@ -8108,6 +8108,12 @@ layout(column_major) uniform col {
     // this vector is unaffected either way
     vec4 oblivious;
 };
+
+// this block still has the default setting
+buffer also_col {
+    // this matrix is `column_major`
+    mat4x4 col_mat_also;
+}
 ```
 
 As you can see, both qualifiers only affect matrices, and each
