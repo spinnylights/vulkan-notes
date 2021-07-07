@@ -7122,6 +7122,238 @@ declarations. You can see a chart of what supports what in the
 GLSL spec, section [4.4 Layout
 Qualifiers](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#layout-qualifiers).
 
+##### `std140` and `std430`
+
+These qualifiers can only be applied to `uniform` and `buffer`
+blocks, and dictate the memory layout of the block they're
+applied to.  In practice, you probably won't use them much,
+because
+
+* `std140` is the default layout for `uniform` blocks,
+* `std430` is the default layout for `buffer` blocks,
+* you're not allowed to apply `std430` to `uniform` blocks, and
+* you probably wouldn't want to apply `std140` to a `buffer`
+  block because it's almost the same as `std430` but slightly
+  more restrictive.
+
+We should explore them anyway, though, so you understand how to
+lay out data in your buffers for use in GLSL.
+
+Both layouts are described in the [OpenGL
+spec](https://www.khronos.org/registry/OpenGL/specs/gl/glspec46.core.pdf),
+section "7.6.2.2 Standard Uniform Block Layout". You can look at
+the spec for the fine details, but I figure I might as well sum
+them up here just for your convenience. We'll talk about `std430`
+first, because as I said it's almost the same as `std140` but
+slightly more permissive.
+
+The spec describes `std430` in terms of "basic machine units"
+instead of a more concrete unit. I'm going to proceed in terms of
+8-bit bytes—if you're working with a platform where that doesn't
+hold, I feel confident you'll be able to account for the
+difference.
+
+Type                     | Alignment (B)
+----------------------   | -------------
+`bool`                   | size not specified; don't use
+`int`, `uint`, `float`   |  4
+`double`                 |  8
+`vec2`, `ivec2`, `uvec2` |  8
+`dvec2`                  | 16
+`vec3`, `ivec3`, `uvec3` | 16
+`dvec3`                  | 32
+`vec4`, `ivec4`, `uvec4` | 16
+`dvec4`                  | 32
+array                    | same as one element
+column-major matrix      | like a (columns)-sized array of (rows)-component vectors
+row-major matrix         | like a (rows)-sized array of (columns)-component vectors
+structure                | same as the member with the largest alignment value
+
+Arrays and structures will have padding applied at the end if
+needed to provide the correct alignment for the data following
+them.
+
+`std140` is exactly the same as `std430`, except that the
+alignment of an array or structure is rounded up to a multiple of
+16.
+
+There is one exception to the rule that `uniform` blocks are laid
+out acccording to `std140`—if the block has the layout qualifier
+`push_constant`, it's laid out by `std430` instead, without
+exception.
+
+##### `align` and `offset`
+
+These layout qualifiers can be used to get fine-grained control
+over memory formatting in GLSL. `align` can be applied to
+`uniform` and `buffer` blocks as well as their members, whereas
+`offset` can only be applied to their members. Both take a
+parameter in bytes.
+
+`align` must be set to a power of 2. If applied to a block
+member, it determines the minimum alignment of that member; if
+applied to a block, it's as if the qualifier was applied to every
+member of the block. Note that if the alignment is smaller than
+dictated by the overall block layout as described in "`std430`
+and `std140`", the alignment specified by the layout wins out.
+
+`offset` must be set to a multiple of the base alignment for the
+type of the block member as specified in "`std430` and `std140`".
+It specifies the distance the block member will start from the
+beginning of the buffer.
+
+Say we have a buffer in Vulkan whose contents are equivalent to
+those of the following array:
+
+```cpp
+int32_t buff[] = { 3, -6, 993, -129, 48, -231, 9, -402, 39, };
+```
+
+Now say in a shader we have the following block that's backed by
+this buffer:
+
+```glsl
+uniform buff {
+    int a;
+    layout(offset = 20) int b;
+    layout(align = 16) int c;
+};
+```
+
+In this case, `a` would be `3`, `b` would be `-231`, and `c`
+would be `39`.
+
+If we had instead declared the block like this:
+
+```glsl
+layout(align = 16) uniform buff {
+    int a;
+    int b;
+    int c;
+};
+```
+
+then `a` would be `3`, `b` would be `48` and `c` would be `39`.
+
+Both `align` and `offset` can be applied to a block member. In
+this case, the specified offset is considered first; if it's not
+a multiple of the specified alignment, the next position past the
+specified offset that does fit the alignment is used.
+
+For instance, if we had declared our block like this:
+
+```glsl
+layout(align = 8) uniform buff {
+    layout(offset = 12) int a;
+    int b;
+    int c;
+};
+```
+
+then `a` would be `48`, `b` would be `9`, and `c` would be `39`.
+
+The compiler will stop you if you try to position a member such
+that it would overlap with another, either explicitly or
+implicitly:
+
+```glsl
+layout(align = 8) uniform buff {
+    layout(offset = 12) int a;
+    int b;
+    layout(offset = 20) int c; // ERROR
+};
+```
+
+As you've probably intuited, these qualifiers have no effect on
+the internal layout of the member, which is still handled in
+accordance with the block layout rules. They only adjust where
+the member's data is located in the block as a whole.
+
+##### `column_major` and `row_major`
+
+These are for setting how matrices are laid out in memory. They
+can be applied to `uniform` and `buffer` blocks as well as their
+members, and can also be used to set the default for all
+`uniform` or `buffer` blocks. If you don't set a default,
+`column_major` will be the default for both.
+
+```glsl
+// now all matrices in `uniform` blocks are `row_major` by
+// default for this shader
+layout(row_major) uniform;
+
+// but this block goes against the new default
+layout(column_major) uniform col {
+    // this matrix is `column_major`
+    mat4x4 col_mat;
+    // this matrix is `row_major`
+    layout(row_major) row_mat;
+    // this matrix is `column_major`
+    mat4x4 col_mat_2;
+    // this vector is unaffected either way
+    vec4 oblivious;
+};
+
+// this block still has the default setting
+buffer also_col {
+    // this matrix is `column_major`
+    mat4x4 col_mat_also;
+}
+```
+
+As you can see, both qualifiers only affect matrices, and each
+only overrides its counterpart.
+
+As described in "`std430` and `std140`", `column_major` means
+that if the matrix has _m_ columns and _n_ rows, it's laid out in
+memory like an _m_-sized array of _n_-sized vectors, with
+`row_major` being the other way around.
+
+Let's consider an example. Say we have the following matrix:
+
+```
+┃ 9 6 2 4 ┃
+┃ 1 0 3 5 ┃
+```
+
+Since memory is one-dimensional from the perspective of C or C++
+as well as conventional computer hardware, we wouldn't be able to
+lay this out in memory exactly as we would write it in
+mathematical notation. The two major conventions are like this:
+
+```cpp
+int col_maj[] = { 9, 1, 6, 0, 2, 3, 4, 5, };
+int row_maj[] = { 9, 6, 2, 4, 1, 0, 3, 5, };
+```
+
+As you can see, in `col_maj` the values are stored going first
+from the top down and then from left-to-right, whereas in
+`row_maj` they're stored going left-to-right first and then
+from the top down.
+
+If we had a buffer with the data from `col_maj` followed
+immediately by the data from `row_maj`, we might access it in
+GLSL like this:
+
+```glsl
+uniform mats {
+    mat4x2 col_maj;
+    layout(row_major) mat4x2 row_maj;
+}
+```
+
+Note that after this point both matrices would appear identical
+in GLSL:
+
+```glsl
+vec2 first_col = { 9, 1 };
+col_maj[0] == first_col; // true
+row_maj[0] == first_col; // true
+```
+
+GLSL always thinks of matrices in column-major terms, aside from
+cases of memory layout.
+
 ##### `location` and `component`
 
 These layout qualifiers can be used in any kind of shader aside
@@ -7662,153 +7894,6 @@ the different descriptor set types. Hold that thought—we've still
 got a ways to go until we can fully cover how to interact with
 descriptors in GLSL.
 
-##### `std140` and `std430`
-
-These qualifiers can only be applied to `uniform` and `buffer`
-blocks, and dictate the memory layout of the block they're
-applied to.  In practice, you probably won't use them much,
-because
-
-* `std140` is the default layout for `uniform` blocks,
-* `std430` is the default layout for `buffer` blocks,
-* you're not allowed to apply `std430` to `uniform` blocks, and
-* you probably wouldn't want to apply `std140` to a `buffer`
-  block because it's almost the same as `std430` but slightly
-  more restrictive.
-
-We should explore them anyway, though, so you understand how to
-lay out data in your buffers for use in GLSL.
-
-Both layouts are described in the [OpenGL
-spec](https://www.khronos.org/registry/OpenGL/specs/gl/glspec46.core.pdf),
-section "7.6.2.2 Standard Uniform Block Layout". You can look at
-the spec for the fine details, but I figure I might as well sum
-them up here just for your convenience. We'll talk about `std430`
-first, because as I said it's almost the same as `std140` but
-slightly more permissive.
-
-The spec describes `std430` in terms of "basic machine units"
-instead of a more concrete unit. I'm going to proceed in terms of
-8-bit bytes—if you're working with a platform where that doesn't
-hold, I feel confident you'll be able to account for the
-difference.
-
-Type                     | Alignment (B)
-----------------------   | -------------
-`bool`                   | size not specified; don't use
-`int`, `uint`, `float`   |  4
-`double`                 |  8
-`vec2`, `ivec2`, `uvec2` |  8
-`dvec2`                  | 16
-`vec3`, `ivec3`, `uvec3` | 16
-`dvec3`                  | 32
-`vec4`, `ivec4`, `uvec4` | 16
-`dvec4`                  | 32
-array                    | same as one element
-column-major matrix      | like a (columns)-sized array of (rows)-component vectors
-row-major matrix         | like a (rows)-sized array of (columns)-component vectors
-structure                | same as the member with the largest alignment value
-
-Arrays and structures will have padding applied at the end if
-needed to provide the correct alignment for the data following
-them.
-
-`std140` is exactly the same as `std430`, except that the
-alignment of an array or structure is rounded up to a multiple of
-16.
-
-There is one exception to the rule that `uniform` blocks are laid
-out acccording to `std140`—if the block has the layout qualifier
-`push_constant`, it's laid out by `std430` instead, without
-exception.
-
-##### `align` and `offset`
-
-These layout qualifiers can be used to get fine-grained control
-over memory formatting in GLSL. `align` can be applied to
-`uniform` and `buffer` blocks as well as their members, whereas
-`offset` can only be applied to their members. Both take a
-parameter in bytes.
-
-`align` must be set to a power of 2. If applied to a block
-member, it determines the minimum alignment of that member; if
-applied to a block, it's as if the qualifier was applied to every
-member of the block. Note that if the alignment is smaller than
-dictated by the overall block layout as described in "`std430`
-and `std140`", the alignment specified by the layout wins out.
-
-`offset` must be set to a multiple of the base alignment for the
-type of the block member as specified in "`std430` and `std140`".
-It specifies the distance the block member will start from the
-beginning of the buffer.
-
-Say we have a buffer in Vulkan whose contents are equivalent to
-those of the following array:
-
-```cpp
-int32_t buff[] = { 3, -6, 993, -129, 48, -231, 9, -402, 39, };
-```
-
-Now say in a shader we have the following block that's backed by
-this buffer:
-
-```glsl
-uniform buff {
-    int a;
-    layout(offset = 20) int b;
-    layout(align = 16) int c;
-};
-```
-
-In this case, `a` would be `3`, `b` would be `-231`, and `c`
-would be `39`.
-
-If we had instead declared the block like this:
-
-```glsl
-layout(align = 16) uniform buff {
-    int a;
-    int b;
-    int c;
-};
-```
-
-then `a` would be `3`, `b` would be `48` and `c` would be `39`.
-
-Both `align` and `offset` can be applied to a block member. In
-this case, the specified offset is considered first; if it's not
-a multiple of the specified alignment, the next position past the
-specified offset that does fit the alignment is used.
-
-For instance, if we had declared our block like this:
-
-```glsl
-layout(align = 8) uniform buff {
-    layout(offset = 12) int a;
-    int b;
-    int c;
-};
-```
-
-then `a` would be `48`, `b` would be `9`, and `c` would be `39`.
-
-The compiler will stop you if you try to position a member such
-that it would overlap with another, either explicitly or
-implicitly:
-
-```glsl
-layout(align = 8) uniform buff {
-    layout(offset = 12) int a;
-    int b;
-    layout(offset = 20) int c; // ERROR
-};
-```
-
-As you've probably intuited, these qualifiers have no effect on
-the internal layout of the member, which is still handled in
-accordance with the block layout rules. They only adjust where
-the member's data is located in the block as a whole.
-
 ##### `push_constant`
 
 This layout qualifier is what you use to access push constants,
@@ -7835,7 +7920,7 @@ you go past the end of it you'll also get undefined values after
 that. Push constants are rather dangerous; at least they're
 read-only.
 
-If you just read the previous section "`std140` and `std430`",
+If you've read the previous section "`std140` and `std430`",
 you'll know that `push_constant` blocks are laid out according to
 `std430`. If you haven't read that section, you can take a gander
 at it to learn about how GLSL expects the contents of the buffer
@@ -8140,91 +8225,6 @@ sense to store some of this data in a regular uniform buffer
 somewhere and save ourselves the synchronization hassle. You'll
 have to test and see what's faster and/or easier to work with and
 then make your own decisions.
-
-##### `column_major` and `row_major`
-
-These are for setting how matrices are laid out in memory. They
-can be applied to `uniform` and `buffer` blocks as well as their
-members, and can also be used to set the default for all
-`uniform` or `buffer` blocks. If you don't set a default,
-`column_major` will be the default for both.
-
-```glsl
-// now all matrices in `uniform` blocks are `row_major` by
-// default for this shader
-layout(row_major) uniform;
-
-// but this block goes against the new default
-layout(column_major) uniform col {
-    // this matrix is `column_major`
-    mat4x4 col_mat;
-    // this matrix is `row_major`
-    layout(row_major) row_mat;
-    // this matrix is `column_major`
-    mat4x4 col_mat_2;
-    // this vector is unaffected either way
-    vec4 oblivious;
-};
-
-// this block still has the default setting
-buffer also_col {
-    // this matrix is `column_major`
-    mat4x4 col_mat_also;
-}
-```
-
-As you can see, both qualifiers only affect matrices, and each
-only overrides its counterpart.
-
-As described in "`std430` and `std140`", `column_major` means
-that if the matrix has _m_ columns and _n_ rows, it's laid out in
-memory like an _m_-sized array of _n_-sized vectors, with
-`row_major` being the other way around.
-
-Let's consider an example. Say we have the following matrix:
-
-```
-┃ 9 6 2 4 ┃
-┃ 1 0 3 5 ┃
-```
-
-Since memory is one-dimensional from the perspective of C or C++
-as well as conventional computer hardware, we wouldn't be able to
-lay this out in memory exactly as we would write it in
-mathematical notation. The two major conventions are like this:
-
-```cpp
-int col_maj[] = { 9, 1, 6, 0, 2, 3, 4, 5, };
-int row_maj[] = { 9, 6, 2, 4, 1, 0, 3, 5, };
-```
-
-As you can see, in `col_maj` the values are stored going first
-from the top down and then from left-to-right, whereas in
-`row_maj` they're stored going left-to-right first and then
-from the top down.
-
-If we had a buffer with the data from `col_maj` followed
-immediately by the data from `row_maj`, we might access it in
-GLSL like this:
-
-```glsl
-uniform mats {
-    mat4x2 col_maj;
-    layout(row_major) mat4x2 row_maj;
-}
-```
-
-Note that after this point both matrices would appear identical
-in GLSL:
-
-```glsl
-vec2 first_col = { 9, 1 };
-col_maj[0] == first_col; // true
-row_maj[0] == first_col; // true
-```
-
-GLSL always thinks of matrices in column-major terms, aside from
-cases of memory layout.
 
 ## Shaders
 
