@@ -7679,10 +7679,10 @@ uniform buff {
     int a;
     layout(offset = 128) int b;
 };
-
-// a == 3
-// b == 48
 ```
+
+In this case, `a` would receive the value `3`, whereas `b` would
+receive the value `48`.
 
 The compiler will stop you if you try to give a member an offset
 less than that of a previous member, explicitly or implicitly.
