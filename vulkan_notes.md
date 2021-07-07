@@ -7699,7 +7699,7 @@ because
 * you're not allowed to apply `std430` to `uniform` blocks, and
 * you probably wouldn't want to apply `std140` to a `buffer`
   block because it's almost the same as `std430` but slightly
-  stricter.
+  more restrictive.
 
 We should explore them anyway, though, so you understand how to
 lay out data in your buffers for use in GLSL.
@@ -7710,7 +7710,7 @@ section "7.6.2.2 Standard Uniform Block Layout". You can look at
 the spec for the fine details, but I figure I might as well sum
 them up here just for your convenience. We'll talk about `std430`
 first, because as I said it's almost the same as `std140` but
-slightly looser.
+slightly more permissive.
 
 The spec describes `std430` in terms of "basic machine units"
 instead of a more concrete unit. I'm going to proceed in terms of
