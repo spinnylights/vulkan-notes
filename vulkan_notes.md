@@ -7738,8 +7738,9 @@ Arrays and structures will have padding applied at the end if
 needed to provide the correct alignment for the data following
 them.
 
-`std140` is exactly the same as this, except that the alignment
-of an array or structure is rounded up to a multiple of 16.
+`std140` is exactly the same as `std430`, except that the
+alignment of an array or structure is rounded up to a multiple of
+16.
 
 There is one exception to the rule that `uniform` blocks are laid
 out acccording to `std140`—if the block has the layout qualifier
