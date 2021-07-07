@@ -7662,36 +7662,6 @@ the different descriptor set types. Hold that thought—we've still
 got a ways to go until we can fully cover how to interact with
 descriptors in GLSL.
 
-##### `offset`
-
-This layout qualifier can only be applied to members of `uniform`
-and `buffer` blocks. You can use it to specify where exactly the
-block member starts from the beginning of the buffer that backs
-the block.
-
-Say we have a buffer in Vulkan whose contents are equivalent to
-those of the following array:
-
-```cpp
-int32_t buff[] = { 3, -6, 993, 48, -231 };
-```
-
-Now say we have the following block in a shader that's backed by
-this buffer:
-
-```glsl
-uniform buff {
-    int a;
-    layout(offset = 128) int b;
-};
-```
-
-In this case, `a` would receive the value `3`, whereas `b` would
-receive the value `48`.
-
-The compiler will stop you if you try to give a member an offset
-less than that of a previous member, explicitly or implicitly.
-
 ##### `std140` and `std430`
 
 These qualifiers can only be applied to `uniform` and `buffer`
@@ -7751,6 +7721,36 @@ There is one exception to the rule that `uniform` blocks are laid
 out acccording to `std140`—if the block has the layout qualifier
 `push_constant`, it's laid out by `std430` instead, without
 exception.
+
+##### `offset`
+
+This layout qualifier can only be applied to members of `uniform`
+and `buffer` blocks. You can use it to specify where exactly the
+block member starts from the beginning of the buffer that backs
+the block.
+
+Say we have a buffer in Vulkan whose contents are equivalent to
+those of the following array:
+
+```cpp
+int32_t buff[] = { 3, -6, 993, 48, -231 };
+```
+
+Now say we have the following block in a shader that's backed by
+this buffer:
+
+```glsl
+uniform buff {
+    int a;
+    layout(offset = 128) int b;
+};
+```
+
+In this case, `a` would receive the value `3`, whereas `b` would
+receive the value `48`.
+
+The compiler will stop you if you try to give a member an offset
+less than that of a previous member, explicitly or implicitly.
 
 ##### `push_constant`
 
