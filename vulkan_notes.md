@@ -7055,7 +7055,7 @@ inputs/outputs at the boundary between two shading stages.
 Layout qualifiers are used in concert with interface qualifiers
 (see "Interface blocks") to declare things about how the shader
 receives and outputs data, such as the place the data comes from
-or the format it's stored in.
+or how it's represented in memory.
 
 They are written with `layout`, `(`, one or more layout qualifier
 phrases separated by commas, and `)`, in that order. A layout
