@@ -7722,35 +7722,92 @@ out acccording to `std140`—if the block has the layout qualifier
 `push_constant`, it's laid out by `std430` instead, without
 exception.
 
-##### `offset`
+##### `align` and `offset`
 
-This layout qualifier can only be applied to members of `uniform`
-and `buffer` blocks. You can use it to specify where exactly the
-block member starts from the beginning of the buffer that backs
-the block.
+These layout qualifiers can be used to get fine-grained control
+over memory formatting in GLSL. `align` can be applied to
+`uniform` and `buffer` blocks as well as their members, whereas
+`offset` can only be applied to their members. Both take a
+parameter in bytes.
+
+`align` must be set to a power of 2. If applied to a block
+member, it determines the minimum alignment of that member; if
+applied to a block, it's as if the qualifier was applied to every
+member of the block. Note that if the alignment is smaller than
+dictated by the overall block layout as described in "`std430`
+and `std140`", the alignment specified by the layout wins out.
+
+`offset` must be set to a multiple of the base alignment for the
+type of the block member as specified in "`std430` and `std140`".
+It specifies the distance the block member will start from the
+beginning of the buffer.
 
 Say we have a buffer in Vulkan whose contents are equivalent to
 those of the following array:
 
 ```cpp
-int32_t buff[] = { 3, -6, 993, 48, -231 };
+int32_t buff[] = { 3, -6, 993, -129, 48, -231, 9, -402, 39, };
 ```
 
-Now say we have the following block in a shader that's backed by
+Now say in a shader we have the following block that's backed by
 this buffer:
 
 ```glsl
 uniform buff {
     int a;
-    layout(offset = 128) int b;
+    layout(offset = 20) int b;
+    layout(align = 16) int c;
 };
 ```
 
-In this case, `a` would receive the value `3`, whereas `b` would
-receive the value `48`.
+In this case, `a` would be `3`, `b` would be `-231`, and `c`
+would be `39`.
 
-The compiler will stop you if you try to give a member an offset
-less than that of a previous member, explicitly or implicitly.
+If we had instead declared the block like this:
+
+```glsl
+layout(align = 16) uniform buff {
+    int a;
+    int b;
+    int c;
+};
+```
+
+then `a` would be `3`, `b` would be `48` and `c` would be `39`.
+
+Both `align` and `offset` can be applied to a block member. In
+this case, the specified offset is considered first; if it's not
+a multiple of the specified alignment, the next position past the
+specified offset that does fit the alignment is used.
+
+For instance, if we had declared our block like this:
+
+```glsl
+layout(align = 8) uniform buff {
+    layout(offset = 12) int a;
+    int b;
+    int c;
+};
+```
+
+then `a` would be `48`, `b` would be `9`, and `c` would be `39`.
+
+The compiler will stop you if you try to position a member such
+that it would overlap with another, either explicitly or
+implicitly:
+
+```glsl
+layout(align = 8) uniform buff {
+    layout(offset = 12) int a;
+    int b;
+    layout(offset = 20) int c; // ERROR
+};
+```
+
+As you've probably intuited, these qualifiers have no effect on
+the internal layout of the member, which is still handled in
+accordance with the block layout rules. They only adjust where
+the member's data is located in the block as a whole.
 
 ##### `push_constant`
 
