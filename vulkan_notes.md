@@ -5451,8 +5451,13 @@ than the array's size, as you would expect. Both signed and
 unsigned integer expressions can be used to access elements, but
 subscripting an array with an index less than `0` is undefined,
 so you may want to stick to unsigned integers for this purpose.
+
 This operator can also be used to access the components of
-matrices and vectors, with the same syntax.
+matrices and vectors, with the same syntax. In the case of
+matrices, applying a single subscript as in `my_mat[n]` returns a
+vector holding the values from the `n`th column of the matrix.
+Vector subscripting is the same as for an array of equivalent
+length.
 
 #### `.` (component/field selector)
 
