@@ -5546,6 +5546,10 @@ returned.
 
 ### Control flow
 
+You're likely to get the best performance if you branch based on
+the value of specialization constants; see `constant_id` under
+"Layout qualifiers" for more on this.
+
 #### Conditional
 
 ##### `if`-`else`
@@ -8225,6 +8229,181 @@ sense to store some of this data in a regular uniform buffer
 somewhere and save ourselves the synchronization hassle. You'll
 have to test and see what's faster and/or easier to work with and
 then make your own decisions.
+
+##### `constant_id`
+
+This qualifier is used to access _specialization constants_ from
+GLSL, which are constants set from the Vulkan side during
+pipeline creation. They're associated with a specific shader
+stage. The Vulkan spec
+[implies](https://www.khronos.org/registry/vulkan/specs/1.1-khr-extensions/html/chap10.html#pipelines-specialization-constants)
+that their intended purpose is for runtime shader configuration;
+their usage examples are supplying platform-specific information
+to a shader and setting the local workgroup size of a compute
+shader.
+
+Specialization constants have some advantages over uniform
+buffers because their values can be known at compile time. Nvidia
+[recommends](https://developer.nvidia.com/blog/vulkan-dos-donts/)
+the use of specialization constants (see "Pipelines" in that
+article) and notes that they may improve shader efficiency (at
+least on their hardware, of course). They also point out that you
+can use them over shader variants to cut down on the amount of
+shader bytecode you have to ship. Arm [also recommends their
+use](https://arm-software.github.io/vulkan_best_practice_for_mobile_developers/samples/performance/specialization_constants/specialization_constants_tutorial.html)
+for similar reasons; they note that their driver may remove
+unused code blocks and unroll loops if specialization constant
+state allows for this, and even go so far as to recommend that
+specialization constants be used for "all control flow" on this
+basis.
+
+The
+[`VkPipelineShaderStageCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineShaderStageCreateInfo.html)
+structure used to supply the shader code for a shader stage is
+also where you set values for specialization constants; it has an
+optional parameter <code>const <a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSpecializationInfo.html">VkSpecializationInfo</a>\*
+pSpecializationInfo</code>, which if used should point to a
+single
+[`VkSpecializationInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSpecializationInfo.html).
+This struct has a parameter `const void* pData` where you can
+pass the actual values for the specialization constants. Of
+course, since you pass a `void*`, Vulkan needs some way to know
+what you're handing it, which is why there's also a <code>const
+<a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSpecializationMapEntry.html">VkSpecializationMapEntry</a>\*
+pMapEntries</code> array parameter.
+
+[`VkSpecializationMapEntry`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSpecializationMapEntry.html)
+has `uint32_t offset` and `size_t size` parameters that bound a
+specialization constant value in the memory pointed to by
+`pData`. Its other parameter is `uint32_t constantID`. You can
+set this to whatever `uint32_t` you like, which you can then use
+to access the constant in GLSL.
+
+Here's an example class for storing specialization constant state
+in C++. It's perhaps mildly spooky as it internally employs
+`reinterpret_cast` and a `std::byte` pointer, but alas, such
+indiscretions can be hard to avoid when working with C APIs
+(Vulkan expects a `void*` to your data anyhow). By grinding
+everything into raw bits regardless of type, this also gives you
+the freedom to add whatever you'd like to the set of
+specialization constants; if you do anything wacky with this
+approach make sure you understand how your data will appear on
+the GLSL side. Note that in general Vulkan expects data in host
+endianness, e.g. when [receiving SPIR-V
+modules](https://www.khronos.org/registry/vulkan/specs/1.2/html/chap36.html#_versions_and_formats),
+[filling
+buffers](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdFillBuffer.html),
+etc., so the driver should have your back in that regard.
+
+```cpp
+class SpecConsts {
+public:
+    SpecConsts()
+    {
+        update_spec_inf();
+    }
+
+    template<class T>
+    void add(T n)
+    {
+        std::size_t size   = sizeof(n);
+        std::size_t id     = m_entries.size();
+        std::size_t offset = dat.size();
+
+        if (id >= UINT32_MAX) {
+            throw std::runtime_error("maximum Vulkan specialization map entry "
+                                     "count exceeded");
+        }
+
+        if (offset > UINT32_MAX) {
+            throw std::runtime_error("maximum Vulkan specialization map entry "
+                                     "offset exceeded");
+        }
+
+        m_entries.push_back({
+            .constantID = static_cast<uint32_t>(id),
+            .offset     = static_cast<uint32_t>(offset),
+            .size       = size,
+        });
+
+        std::byte* p = reinterpret_cast<std::byte*>(&n);
+        for (std::size_t i = 0; i < size; ++i) {
+            dat.push_back(p[i]);
+        }
+
+        update_spec_inf();
+    }
+
+    void add(bool n)
+    {
+        add(static_cast<VkBool32>(n));
+    }
+
+    const VkSpecializationInfo* spec_info()
+    {
+        return &spec_inf;
+    }
+
+private:
+    std::vector<std::byte> dat;
+    std::vector<VkSpecializationMapEntry> m_entries;
+    VkSpecializationInfo spec_inf;
+
+    void update_spec_inf()
+    {
+        spec_inf.mapEntryCount = static_cast<uint32_t>(m_entries.size());
+        spec_inf.pMapEntries   = m_entries.data();
+        spec_inf.dataSize      = dat.size();
+        spec_inf.pData         = dat.data();
+    }
+};
+```
+
+Over in GLSLand, `constant_id` should only be applied to a
+`bool`, `int`, `uint`, `float`, or `double`, and should not be
+applied to block members. (In the case of a `bool`, you should
+store a `VkBool32` on the Vulkan side and set `size` accordingly
+in the corresponding map entry; `SpecConsts` does this
+automatically for a C++ `bool`.) The variable in question should
+also be `const`. `constant_id` takes as a parameter the value of
+`constandID` in the map entry; in C++:
+
+```cpp
+SpecConsts scs;
+scs.add(true);     // constantID = 0
+scs.add(-23);      // constantID = 1
+scs.add(13);       // constantID = 2
+scs.add(777.777f); // constantID = 3
+scs.add(DBL_MAX);  // constantID = 4
+
+VkPipelineShaderStageCreateInfo pss_cinf {
+    // ...
+    .pSpecializationInfo = scs.spec_info(),
+};
+```
+
+and then in GLSL:
+
+```glsl
+layout(constant_id = 0) const bool   frst; // true
+layout(constant_id = 1) const int    scnd; // -23
+layout(constant_id = 2) const uint   thrd; // 13
+layout(constant_id = 3) const float  frth; // 777.777
+layout(constant_id = 4) const double ffth; // ~1.7976931348623157e+308
+```
+
+You can give variables declared with `constant_id` a default
+value that it will be set to if it doesn't receive a value from
+the Vulkan side. For instance, in this case we could declare
+
+```glsl
+layout(constant_id = 5) const int sxth = 999;
+```
+
+and `sxth` would be set to `999` because we didn't specify a
+value for a `constantID` of `5` in our `VkSpecializationInfo`.
 
 ## Shaders
 
