@@ -7061,12 +7061,18 @@ Layout qualifiers are used in concert with interface qualifiers
 receives and outputs data, such as the place the data comes from
 or how it's represented in memory.
 
-They are written with `layout`, `(`, one or more layout qualifier
-phrases separated by commas, and `)`, in that order. A layout
-qualifier phrase can consist of a layout qualifier name by
-itself, or a layout qualifier name, ` = `, and an constant
-integral expression, with optional spaces around the `=`. For
-example:
+The layout qualifiers we cover here are those that can be used in
+all shading stages. There are also some that only have use in a
+specific stage; those are harder to understand without describing
+the whole environment of that shader stage, so we'll go into them
+in that context instead.
+
+Layout qualifiers are declared with `layout`, `(`, one or more
+layout qualifier phrases separated by commas, and `)`, in that
+order. A layout qualifier phrase can consist of a layout
+qualifier name by itself, or a layout qualifier name, ` = `, and
+an constant integral expression, with optional spaces around the
+`=`. For example:
 
 ```glsl
 layout(triangle_strip, max_vertices = 60)
