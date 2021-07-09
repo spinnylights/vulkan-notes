@@ -8477,6 +8477,20 @@ atan(y,x) ┤ x == 0 && y > 0,  π/2
 `acosh()`, and `atanh()`. `acosh(x)` is undefined if `x < 1`, and
 `atanh(x)` is undefined if `x >= 1`.
 
+#### Exponential functions
+
+There's `exp()` and `log()` for base-_e_ and `exp2()` and
+`log2()` for base-2. `log(x)` and `log2(x)` are undefined for `x
+<= 0`.
+
+There's also `pow()`, `sqrt()`, and `inversesqrt()`. `pow(x,y)`
+gives <i>x<sup>y</sup></i> and is undefined for `x < 0` and for
+`x == 0 && y <= 0`. `sqrt(x)` gives √_x_ and is undefined for `x
+< 0`. `inversesqrt(x)` gives `1 / sqrt(x)` and is undefined for
+`x <= 0`. `sqrt()` and `inversesqrt()` will work with 64-bit
+floating point arguments (`double`, `dvec4`, etc.) as well as
+32-bit.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
