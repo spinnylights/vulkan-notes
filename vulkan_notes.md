@@ -8411,6 +8411,30 @@ layout(constant_id = 5) const int sxth = 999;
 and `sxth` would be set to `999` because we didn't specify a
 value for a `constantID` of `5` in our `VkSpecializationInfo`.
 
+### The general-purpose standard library
+
+GLSL has a variety of built-in functions and variables. Many of
+them exist only to support specific shader stages, and like the
+shader-stage-specific layout qualifiers, we'll cover those in our
+detailed exploration of them. Some of them are available in any
+shader, though, and that's what we'll talk about here.
+
+All the built-in functions are covered in the GLSL spec under
+["8. Built-In
+Functions"](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#built-in-functions),
+so you can look there if you have questions that aren't answered
+here.
+
+Most of these functions perform mathematical operations. They
+aren't guaranteed to have direct hardware support, although their
+presence in the spec presumably indicates that at least some
+vendors have considered supporting one or another of them.
+
+Unless otherwise specified, these functions can accept both
+scalars and vectors as input, and operate component-wise on
+vectors. Some operate on whole vectors, and some operate on
+matrices; these will be noted.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
