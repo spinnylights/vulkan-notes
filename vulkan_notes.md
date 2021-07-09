@@ -8435,6 +8435,48 @@ scalars and vectors as input, and operate component-wise on
 vectors. Some operate on whole vectors, and some operate on
 matrices; these will be noted.
 
+#### Trig
+
+All of these map over 32-bit floating point values. They will
+never cause a divide-by-zero error, but they are undefined for
+some inputs, particularly those that would result in zero
+division or those which are outside the domain of the equivalent
+real-valued mathematical functions.
+
+##### Units
+
+There are two functions `degrees()` and `radians()` for
+converting between degrees and radians. `degrees(n) == 180*n / π`
+and `radians(n) == π*n / 180`, as you would expect.
+
+##### The trig functions
+
+There's `sin()`, `cos()`, and `tan()`, all of which take an
+argument in radians and behave as you would expect. There are
+also their inverses, `asin()`, `acos()`, and `atan()`.
+
+`asin(x)` and `acos(x)` give undefined results for `|x| > 1`.
+
+`atan()` is overloaded; it supports the traditional interface of
+both `atan()` and `atan2()`, i.e.
+
+```
+          ╭
+          │ x  > 0,           atan(y/x)
+          │ x  < 0 && y < 0,  atan(y/x) - π
+          │ x  < 0 && y > 0,  atan(y/x) + π
+atan(y,x) ┤ x == 0 && y > 0,  π/2
+          │ x == 0 && y < 0,  -π/2
+          │ x == 0 && y == 0, undefined
+          ╰
+```
+
+##### The hyperbolic trig functions
+
+`sinh()`, `cosh()`, `tanh()`, and their inverses `asin()`,
+`acosh()`, and `atanh()`. `acosh(x)` is undefined if `x < 1`, and
+`atanh(x)` is undefined if `x >= 1`.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
