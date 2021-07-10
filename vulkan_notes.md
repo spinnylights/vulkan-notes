@@ -8687,6 +8687,65 @@ bits. The result is undefined if a NaN or infinity would be
 produced. `unpackDouble2x32()` performs the same operation in
 reverse.
 
+#### Integer operations
+
+##### Safe arithmetic
+
+`uaddCarry()`, `usubBorrow()`, and `u/imulExtended()`. The `u*`
+functions take arguments of unsigned integral type, while
+`imulExtended()` takes signed integral arguments.
+
+`uaddCarry(x, y, carry)` returns `x + y` modulo 2<sup>32</sup>,
+setting `carry` to `1` if the result would have overflowed and to
+`0` otherwise. This effectively allows you to carry out unsigned
+integer addition with an extra bit of precision. `usubBorrow()`
+is similar; `usubBorrow(x, y, borrow)` returns `x - y`, giving
+2<sup>32</sup> plus the result and setting `borrow` to `1` if
+negative, `0` otherwise.
+
+`umulExtended()` and `imulExtended()` perform multiplication of
+32-bit integers and give a 64-bit result; `u/imulExtended(x, y,
+msb, lsb)` returns the high bits of `x * y` in `msb` and the low
+bits in `lsb`.
+
+##### Bitfield
+
+`bitfieldExtract()`, `bitfieldInsert()`, `bitfieldReverse()`,
+`bitCount()`, `findLSB()`, and `findMSB()`. These are for working
+with integral types as collections of bits.
+
+`bitfieldExtract(val, offset, bits)` returns `bits` bits from
+`val` starting at `offset`, stored in the low bits of the result.
+`val` can be of signed or unsigned integral type but `offset` and
+`bits` are always `int`, so if `val` is a vector the same
+`offset` and `bits` will be used for all its components. However,
+the result is undefined if `bits` or `val` is negative. It's also
+undefined if `offset + bits` is greater than the number of bits
+in `val`. If `val` is a signed type, the result will be
+sign-extended from the highest bit in the selection.
+
+`bitfieldInsert(base, insert, offset, bits)` takes `bits` bits
+from `insert` starting from the low bits and gives a result with
+those bits inserted at `offset` and all other bits taken from
+`base`. As with `bitfieldExtract()`, `offset` and `bits` are both
+`ints`s, but the result is undefined if either is negative.
+`bits` can be `0`, though, in which case the result will be equal
+to `base`.
+
+`bitfieldReverse(n)` returns `n` with its bits reversed. It takes
+both signed and unsigned arguments.
+
+`bitCount(n)` returns the number of one bits in `n`. It takes
+both signed and unsigned arguments but always returns a signed
+argument for some reason.
+
+`findLSB(n)` returns the index of the lowest one bit in `n`. If
+`n == 0`, it returns `-1`.
+
+`findMSB(n)` returns the highest one bit of `n` if it's unsigned
+or positive and the highest zero bit if it's negative. It returns
+`-1` if `n == 0` or `n == -1`.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
