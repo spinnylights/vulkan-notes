@@ -8491,6 +8491,92 @@ gives <i>x<sup>y</sup></i> and is undefined for `x < 0` and for
 floating point arguments (`double`, `dvec4`, etc.) as well as
 32-bit.
 
+#### Basic real-valued functions
+
+These are defined over a wider variety of types; they all map
+over 32-bit and 64-bit floating point values at least.
+
+##### `abs()`
+
+`abs(x)` gives |_x_|.
+
+##### `sign()`
+
+This is defined as:
+
+```
+        ╭
+        │ x  > 0, 1
+sign(x) ┤ x == 0, 0
+        │ x  < 0, -1
+        ╰
+```
+
+It maps over signed integers as well as floating-point values.
+
+##### `fma()`
+
+In general, `fma(a,b,c) == a*b + c`. However, `fma()` is always
+considered a single operation; if `a*b + c` is consumed by a
+variable qualified with `precise`, it's considered to be two
+operations, with the attendant potential differences in
+precision.
+
+##### Rounding
+
+There's `floor()`, `ceil()`, `trunc()`, `round()`, and
+`roundEven()`. The type of the value they return matches that of
+the input (i.e. if `x` is a `double`, `floor(x)` returns a
+`double` as well).
+
+`floor(x)` maps `x` to the nearest integer `<= x`, whereas
+`ceil(x)` maps `x` to the nearest integer `>= x`.
+
+`trunc(x)` maps `x` to the nearest integer in the direction of 0.
+
+`round(x)` maps `x` to the nearest integer. If the fractional
+part of `x` is `0.5`, `x` is rounded in an implementation-defined
+direction (probably optimized for speed). If you want more
+predictable rounding behavior, you can use `roundEven(x)`, which
+rounds `x` towards the nearest even integer when it has a
+fractional part of `0.5`.
+
+##### Fractions
+
+`fract()`, `mod()`, and `modf()`.
+
+`fract(x) == x - floor(x)`.
+
+`mod(x,y) == x - y*floor(x/y)`. This has overloads for scalar `y`
+even if `x` is a vector, although the component types should
+match (i.e. if `x` is a `dvec4`, `y` can be a `double`).
+
+`modf()` takes two parameters and its second is `out`; `mod(x,y)`
+returns the fractional part of `x` and sets `y` to the integral
+part, like `math.h`'s `modf()`. The types of `x` and `y` should
+match. Both `y` and the return value will have the same sign as
+`x`.
+
+##### Maxima and minima
+
+`max()`, `min()`, and `clamp()`. These operate over all the
+numeric types, and also support the case where the arguments
+other than the first can be scalar even if the first argument is
+a vector.
+
+`max(x,y)` returns `y` if `x < y` and `x` otherwise.
+
+`min(x,y)` returns `y` if `y < x` and `x` otherwise.
+
+`clamp(x, min_n, max_n) == min(max(x, min_n), max_n)`, but is
+undefined if `min_n > max_n`.
+
+##### `step()`
+
+`step(thresh, x)` returns `0.0` if `x < thresh` and `1.0`
+otherwise. `thresh` can be scalar even if `x` is a vector,
+although both should be of floating-point type.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
