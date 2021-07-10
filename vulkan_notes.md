@@ -8604,6 +8604,24 @@ T smoothstep(float min, float max, T x)
 It's undefined for `min_n >= max_n`. `min_n` and `max_n` can be
 scalar even if `x` is a vector.
 
+#### Vector mixing
+
+`mix()` is also a function used to mix-and-match components
+between two vectors. With `mix(x,y,a)`, if `x`, `y`, and `a` are
+all vectors of the same length and `a` is a vector of `bool`s,
+`mix()` will return a new vector of the same length as the
+arguments that takes a component from `x` if the corresponding
+component of `a` is `false` and takes a component from `y` if the
+corresponding component of `a` is `true`. For example:
+
+```glsl
+ivec4 x = { 0, 0, 0, 0 };
+ivec4 y = { 1, 1, 1, 1 };
+bvec4 a = { true, false, true, false };
+
+mix(x,y,a) == { 1, 0, 1, 0 };
+```
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
