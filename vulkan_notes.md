@@ -8622,6 +8622,71 @@ bvec4 a = { true, false, true, false };
 mix(x,y,a) == { 1, 0, 1, 0 };
 ```
 
+#### Floating-point operations
+
+##### Infinity and NaN checks
+
+`isnan()` and `isinf()`. If the implementation doesn't support
+NaNs, `isnan()` will always return `false`. `isinf(x)` returns
+`true` if `x` holds a positive or a negative infinity.
+
+##### Bit-level
+
+`floatBitsToInt()` and `intBitsToFloat()`. These convert between
+a `float` and an `int` or `uint` value corresponding to its
+underlying representation (IEEE floats always have a sign bit so
+the choice of integral type is more-or-less immaterial). If a
+value corresponding to a NaN is passed into `intBitsToFloat()`
+the result is undefined.
+
+##### Significand and exponent
+
+`frexp()` and `ldexp()`. These work with both 32-bit and 64-bit
+floating point types.
+
+`frexp(x, exp)`, where `x` is a floating-point type and `exp` is
+a signed integral type, returns the significand of `x` and writes
+its exponent into `exp`. If the implementation supports signed 0,
+a `-0` input will return a `-0` significand. If `x` is a NaN or
+infinity, the result is undefined.
+
+`ldexp(x, exp)` performs the reverse of `frexp(x, exp)`,
+returning a floating-point value with a significand of `x` and an
+exponent of `exp`. If `exp > 128` for 32-bit input or `exp >
+1024` for 64-bit input, the result is undefined. If `exp < -126`
+for 32-bit input or `exp < -1022` for 64-bit input, the result
+may be flushed to 0. Correspondingly, splitting and then
+reconstructing a floating-point value with `frexp()` and
+`ldexp()` will result in the same value as long as the original
+value is finite and non-subnormal.
+
+##### Packing
+
+`un/packU/Snorm2x16()`, and `un/packU/Snorm4x8()` (i.e.
+`packSnorm4x8()`, `unpackUnorm2x16()`, etc.). These convert
+between a `uint` and a `vec2` (`*2x16`) or `vec4` (`*4x8`) with
+normalized (`0.0`–`1.0` for `*U*` and `-1.0`–`1.0` for `*S*`)
+components. The first component of the vector corresponds to the
+lowest bits of the `uint`, the last component corresponds to the
+highest bits, etc. Each component of the vector maps to the
+minimum and maximum values of the bits of the `uint` it
+corresponds to.
+
+`packHalf2x16()` and `unpackHalf2x16()`. These convert between a
+`uint` and a `vec2` by representing the components of the `vec2`
+as 16-bit floating point values and storing them in the high and
+low bits of the `uint`. The first component of the `vec2` is
+stored in the low bits of the `uint` and the second component is
+stored in the high bits. The 16-bit representation is done
+according to the host.
+
+`packDouble2x32()` and `unpackDouble2x32()`.
+`packdouble2x32(bits)`, where `bits` is a `uvec2`, returns a
+`double` with `bits[0]` as its low bits and `bits[1]` as its high
+bits. The result is undefined if a NaN or infinity would be
+produced. `unpackDouble2x32()` performs the same operation in
+reverse.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
