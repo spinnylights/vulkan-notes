@@ -5411,7 +5411,8 @@ operators, and increment/decrement operators are discussed under
 
 The logical binary operators (`&&`, `||`, `^^`) operate only on
 Booleans. This is also true of the logical NOT (`!`). There is a
-built-in function `not()` that accepts a vector, however.
+built-in function `not()` that accepts a vector, however (see
+"Vector comparison").
 
 #### `==`, `!=`
 
@@ -5426,7 +5427,8 @@ The relational operators only operate on scalar expressions.
 Their types must match or support an implicit conversion. The
 result is a Boolean. For componentwise relational comparison of
 vectors, there are built-in functions `lessThan()`,
-`greaterThan()`, `lessThanEqual()`, and `greaterThanEqual()`.
+`greaterThan()`, `lessThanEqual()`, and `greaterThanEqual()` (see
+"Vector comparison").
 
 #### `?:`
 
@@ -8745,6 +8747,33 @@ argument for some reason.
 `findMSB(n)` returns the highest one bit of `n` if it's unsigned
 or positive and the highest zero bit if it's negative. It returns
 `-1` if `n == 0` or `n == -1`.
+
+#### Vector comparison
+
+The comparison operators such as `==`, `<`, etc. always return
+scalars, and some of them won't operate on vectors. These
+functions perform the same role but are vector-oriented.
+
+There are two unary functions that don't have an equivalent in
+the scalar operators, `any()` and `all()`. They both take a
+Boolean vector. `any(v)` returns `true` if any of the components
+of `v` is true, whereas `all(v)` returns `true` only if all the
+components of `v` are true.
+
+The other functions have direct equivalents to scalar operators,
+so I've summarized them in this table. All return a Boolean
+vector equal in length to their argument(s), with the operation
+performed component-wise.
+
+Function           | Operator
+------------------ | --------
+lessThan()         | <
+lessThanEqual()    | <=
+greaterThan()      | >
+greaterThanEqual() | >=
+equal()            | ==
+notEqual()         | !=
+not()              | !
 
 ## Shaders
 
