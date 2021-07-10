@@ -8577,6 +8577,33 @@ undefined if `min_n > max_n`.
 otherwise. `thresh` can be scalar even if `x` is a vector,
 although both should be of floating-point type.
 
+#### Interpolation
+
+`mix()` does linear interpolation and `smoothstep()` does
+post-clamping Hermite interpolation.
+
+`mix(x,y,a) == x*(1 - a) + y*a`. `a` can be scalar even if `x`
+and `y` are vectors.
+
+`smoothstep(min_n, max_n, x)` returns `0.0` if `x <= min_n`,
+`1.0` if `x >= max_n`, and otherwise performs [smooth Hermite
+interpolation](https://en.wikipedia.org/wiki/Smoothstep) between
+`0.0` and `1.0` in proportion to how far `x` is between `min_n`
+and `max_n`. Sketched in C++:
+
+```cpp
+template<class T>
+T smoothstep(float min, float max, T x)
+{
+    T x_scal = (x - min_n) / (max_n - min_n);
+    T t = clamp(x_scal, 0.0, 1.0);
+    return t * t * (3 - 2*t);
+}
+```
+
+It's undefined for `min_n >= max_n`. `min_n` and `max_n` can be
+scalar even if `x` is a vector.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
