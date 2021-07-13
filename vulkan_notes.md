@@ -8710,8 +8710,8 @@ minv == { {  d / determinant(m), -b / determinant(m) }
 ```
 
 For relatively obvious reasons, `inverse(m)` is undefined in the
-case where `determinant(m)` is 0, i.e. it is singular. It's also
-undefined if the matrix is
+case where `determinant(m)` is 0, i.e. `m` is singular. It's also
+undefined if `m` is
 [ill-conditioned](https://blogs.mathworks.com/cleve/2017/07/17/what-is-the-condition-number-of-a-matrix/).
 
 #### Interpolation
