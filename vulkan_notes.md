@@ -8647,6 +8647,72 @@ vector<T> refract(vector<T> I, vector<T> N, T eta)
 }
 ```
 
+#### Matrix functions
+
+All of these work with both single- and double-precision floating
+point matrices and vectors.
+
+`matrixCompMult(x,y)` does component-wise multiplication of `x`
+and `y`, since `x * y` does linear-algebra-style matrix
+multiplication (see "Operators").
+
+`outerProduct(c,r)` returns _c ⊗ r_, where _c_ and _r_ are
+vectors:
+
+```glsl
+vec2 c = { m, n };
+vec3 r = { e, f, g };
+
+mat3x2 a = outerProduct(c,r);
+
+a == { { m*e, n*e },
+       { m*f, n*f },
+       { m*g, n*g } }; // true
+```
+
+`tranpose(m)` returns the transpose of the matrix _m_:
+
+```glsl
+mat3x2 m = { { a, d },
+             { b, e },
+             { c, f } };
+
+mat2x3 t = transpose(m);
+
+t == { { a, b, c },
+       { d, e, f } }; // true
+```
+
+`determinant(m)` returns the determinant of the matrix _m_ as a
+`float`:
+
+```glsl
+mat3 m = { { a, d, g, },
+           { b, e, h, },
+           { c, f, i, } };
+
+float d = determinant(m);
+
+d == a*e*i + b*g*f + c*d*h - a*f*h - b*d*i - c*g*e; // true
+```
+
+`inverse(m)` returns the inverse of _m_, i.e. the matrix
+<i>m<sup>-1</sup></i>:
+
+```glsl
+mat2 m = { { a, c },
+           { b, d } };
+
+mat2 minv = inverse(m);
+
+minv == { {  d / determinant(m), -b / determinant(m) }
+          { -c / determinant(m),  a / determinant(m) } };
+```
+
+For relatively obvious reasons, `inverse(m)` is undefined in the
+case where `determinant(m)` is equal to or very near zero (the
+spec is unclear about exactly how near).
+
 #### Interpolation
 
 `mix()` does linear interpolation and `smoothstep()` does
