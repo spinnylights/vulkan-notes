@@ -5387,7 +5387,25 @@ operations involving vectors or matrices happens componentwise.
 This includes operations between a scalar and a vector or matrix.
 The exception is multiplication in which both the operands are a
 vector or matrix, in which case the operation proceeds as in
-linear algebra.
+linear algebra; e.g.:
+
+```glsl
+mat2x2 A = { { 1, 2 }, { 3, 4 } };
+vec4 B = { 1, 2, 3, 4 };
+mat4x2 C = A * B;
+
+/* note that this matrix would normally be written
+ *     /  4  8 12 16 \
+ *     \  6 12 18 24 /
+ */
+C == { {  4,  6 },
+       {  8, 12 },
+       { 12, 18 },
+       { 16, 24 } }; // true
+```
+
+You can do component-wise multiplication of matrices using the
+function `matrixCompMult()` (see "Matrix functions").
 
 #### `<<`, `>>`, `&`, `^`, `|`, `~`
 
