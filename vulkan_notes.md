@@ -8540,7 +8540,7 @@ In general, `fma(a,b,c) == a*b + c`. However, `fma()` is always
 considered a single operation; if `a*b + c` is consumed by a
 variable qualified with `precise`, it's considered to be two
 operations, with the attendant potential differences in
-precision.
+precision and performance.
 
 ##### Rounding
 
