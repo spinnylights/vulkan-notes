@@ -8597,6 +8597,56 @@ undefined if `min_n > max_n`.
 otherwise. `thresh` can be scalar even if `x` is a vector,
 although both should be of floating-point type.
 
+#### Geometric vector functions
+
+All of these operate on vectors as a whole as opposed to
+component-wise.
+
+`length(a)` is ||_a_||, i.e. `sqrt(a.x*a.x, a.y*a.y, a.z*a.z)`.
+
+`distance(a,b)` is ||_a_ - _b_||, i.e. `length(a - b)`.
+
+`dot(a,b)` is _a_ · _b_, i.e. `a.x*b.x + a.y*b.y + a.z*b.z`.
+
+`cross(a,b)` is _a_ × _b_, i.e. `{ a.y*b.z - a.z*b.y, a.z*b.x -
+a.x*b.z, a.x*b.y - a.y*b.x }`.
+
+`normalize(a)` is `a / length(a)`, i.e. a vector of the same
+direction as `a` but with length 1.
+
+`faceforward(N, I, Nref)` returns `dot(I,Nref) < 0 ? N : -N`. If
+`I` is the eye-space position vector of a vertex, `N` and `Nref`
+are [surface
+normals](https://en.wikipedia.org/wiki/Normal_(geometry\)), and
+`Nref` is pointing away from the viewer, `faceforward()` will
+return `N` flipped to face the viewer.
+
+`reflect(I,N)`, where `I` is an [incident
+vector](https://en.wikipedia.org/wiki/Angle_of_incidence_(optics\))
+and `N` is a normal, returns the direction of reflection, i.e. `I
+- 2*dot(N,I)*N`.  (Naturally, `N` should be normalized.)
+
+`refract(I, N, eta)`, where `I` is an incident vector, `N` is a
+normal, and `eta` is a scalar equal to the ratio of [refractive
+indices](https://en.wikipedia.org/wiki/Refractive_index), returns
+the [refraction
+vector](https://en.wikipedia.org/wiki/Refraction). In C++-like
+pseudocode:
+
+```cpp
+template(class T)
+vector<T> refract(vector<T> I, vector<T> N, T eta)
+{
+    T k = 1.0 - eta*eta*(1.0 - dot(N,I)*dot(N,I));
+
+    if (k < 0.0) {
+        return vector<T>(0.0);
+    } else {
+        return eta*I - (eta*dot(N,I) + sqrt(k))*N;
+    }
+}
+```
+
 #### Interpolation
 
 `mix()` does linear interpolation and `smoothstep()` does
