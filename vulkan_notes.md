@@ -7342,8 +7342,8 @@ memory like an _m_-sized array of _n_-sized vectors, with
 Let's consider an example. Say we have the following matrix:
 
 ```
-┃ 9 6 2 4 ┃
-┃ 1 0 3 5 ┃
+/ 9 6 2 4 \
+\ 1 0 3 5 /
 ```
 
 Since memory is one-dimensional from the perspective of C or C++
