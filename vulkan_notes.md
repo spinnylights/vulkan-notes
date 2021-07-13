@@ -8437,23 +8437,30 @@ GLSL has a variety of built-in functions and variables. Many of
 them exist only to support specific shader stages, and like the
 shader-stage-specific layout qualifiers, we'll cover those in our
 detailed exploration of them. Some of them are available in any
-shader, though, and that's what we'll talk about here.
+shader stage, but are also easier to talk about in the context of
+the graphics pipeline, like the texture and image functions. Here
+we explore the more "general" functions, like those which support
+mathematics and bit-twiddling.
+
+These functions aren't guaranteed to have direct hardware
+support. However, they are implemented in the driver, at least
+generally speaking—even after compiling your shader into SPIR-V,
+these functions are usually called via an [extended instruction
+set](https://www.khronos.org/registry/spir-v/specs/unified1/SPIRV.html#_a_id_extinst_a_extended_instruction_sets).
+You can pass the `-H` flag to glslangValidator to get
+human-readable SPIR-V if you'd like to take a look for yourself
+(`-Od` turns off optimizations if you'd like to do that as well).
+
+Unless otherwise specified, these functions can accept both
+scalars and vectors as input, and operate component-wise on
+vectors. Some operate on whole vectors, and some operate on
+matrices; these will be noted.
 
 All the built-in functions are covered in the GLSL spec under
 ["8. Built-In
 Functions"](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.html#built-in-functions),
 so you can look there if you have questions that aren't answered
 here.
-
-Most of these functions perform mathematical operations. They
-aren't guaranteed to have direct hardware support, although their
-presence in the spec presumably indicates that at least some
-vendors have considered supporting one or another of them.
-
-Unless otherwise specified, these functions can accept both
-scalars and vectors as input, and operate component-wise on
-vectors. Some operate on whole vectors, and some operate on
-matrices; these will be noted.
 
 #### Trig
 
