@@ -8982,6 +8982,157 @@ simply as data that accompanies a vertex shader invocation—they
 _can_ represent the points in space that make up a 3D model, but
 they don't have to.
 
+##### The structure of a vertex
+
+The input variables you declare in your vertex shader describe
+the format of the vertex data it expects. For example, let's say
+we had the following input block declaration in a vertex shader:
+
+```glsl
+layout(location = 0) in mesh_attrs {
+    vec3 pos;
+    vec3 norm;
+};
+```
+
+If these are the only inputs declared in our vertex shader, we
+now have a precise specification of how to lay out our vertex
+data on the Vulkan side for submission. This declaration puts
+`pos` at location 0 and `norm` at location 1 (see "`location` and
+`component`" under "Layout qualifiers" if this is confusing to
+you). The declaration `vec3` tells us that we need 3 32-bit
+floating point values for each location (we'll get into the
+specifics in just a moment).
+
+Vertex data is stored in
+[`VkBuffer`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkBuffer.html)s.
+In this case, the data in our buffer might look like this:
+
+```cpp
+float mesh_attrs[] = { 6.98, 2.70, 9.91,
+                       0.31, 0.84, 0.45,
+                       1.86, 2.62, 5.87,
+                       0.44, 0.88, 0.20,
+                       /* ... */         };
+```
+
+One of the parameters used to create a graphics pipeline is a
+[`VkPipelineVertexInputStateCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineVertexInputStateCreateInfo.html).
+This consists mainly of two arrays: an array of
+[`VkVertexInputBindingDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkVertexInputBindingDescription.html)s
+and an array of
+[`VkVertexInputAttributeDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkVertexInputAttributeDescription.html)s.
+
+A
+[`VkVertexInputBindingDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkVertexInputBindingDescription.html)
+describes a place where a vertex buffer can be bound. This is
+done with the `uint32 binding` parameter, which you can set to
+whatever you like (within
+`VkPhysicalDeviceLimits::maxVertexInputBindings`, which is [most
+commonly 32 but can be as low as
+16](https://vulkan.gpuinfo.org/displaydevicelimit.php?name=maxVertexInputBindings)
+as of July 2021). It also has a `uint32_t stride` parameter,
+where you specify how wide an individual block of vertex input
+data is in the bound buffer (within
+`VkPhysicalDeviceLimits::maxVertexInputBindingStride`, which is
+[most commonly 2048 but is sometimes as high as
+16383](https://vulkan.gpuinfo.org/displaydevicelimit.php?name=maxVertexInputBindingStride)
+as of July 2021). The last parameter is <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkVertexInputRate.html">VkVertexInputRate</a>
+inputRate</code>, which says whether you're going to do an
+indexed draw with this buffer or not (more on that in a bit).
+
+In this case, our vertex input binding description for this
+buffer might look like this:
+
+```cpp
+uint32_t mesh_attrs_bind_ndx = 0;
+uint32_t mesh_attrs_stride = static_cast<uint32_t>(sizeof(float) * 6);
+
+std::vector<VkVertexInputBindingDescription> bind_descs {
+    {
+        .binding   = mesh_attrs_bind_ndx,
+        .stride    = mesh_attrs_stride,
+        .inputRate = VK_VERTEX_INPUT_RATE_INSTANCE,
+    },
+};
+```
+
+A
+[`VkVertexInputAttributeDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkVertexInputAttributeDescription.html)
+is a per-location description of the data in a vertex buffer. The
+location number is given in `uint32_t location`, and there's also
+a `uint32_t binding` parameter for the binding number of the
+bound vertex buffer. <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkFormat.html">VkFormat</a>
+format</code> describes the format of the data in memory for this
+location. Note that this format must be allowed as a vertex
+buffer format; fortunately, many formats are required to be
+supported for this use [by the
+spec](https://www.khronos.org/registry/vulkan/specs/1.2/html/chap33.html#features-required-format-support)
+including all those you would probably want, but you can check
+with
+[`vkGetPhysicalDeviceFormatProperties()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetPhysicalDeviceFormatProperties.html)
+if you'd like. The last parameter is `uint32_t offset`, which is
+where you specify the offset from the start of an individual
+element to begin reading data at (within
+`VkPhysicalDeviceLimits::maxVertexInputAttributeOffset`, which is
+[most commonly 2047 but is sometimes as high as
+4294970000](https://vulkan.gpuinfo.org/displaydevicelimit.php?name=maxVertexInputAttributeOffset)
+as of July 2021).
+
+In this case, our vertex input attribute descriptions might look
+like this (note that you can use
+[SPIRV-Reflect](https://github.com/KhronosGroup/SPIRV-Reflect) to
+get this information from your compiled shader sources):
+
+```cpp
+VkFormat coords_fmt = VK_FORMAT_R32G32B32_SFLOAT; // this means "3 32-bit
+                                                  // floats"...don't mind the
+                                                  // RGB stuff
+uint32_t mesh_attrs_pos_loc  = 0;
+uint32_t mesh_attrs_norm_loc = 1;
+
+uint32_t mesh_attrs_pos_offs  = 0;
+uint32_t mesh_attrs_norm_offs = static_cast<uint32_t>(sizeof(float) * 3);
+
+std::vector<VkVertexInputAttributeDescription> attr_descs {
+    {
+        .location = mesh_attrs_pos_loc,
+        .binding  = mesh_attrs_bind_ndx,
+        .format   = coords_fmt,
+        .offset   = mesh_attrs_pos_offs,
+    },
+
+    {
+        .location = mesh_attrs_norm_loc,
+        .binding  = mesh_attrs_bind_ndx,
+        .format   = coords_fmt,
+        .offset   = mesh_attrs_norm_offs,
+    },
+};
+```
+
+We could make a
+[`VkPipelineVertexInputStateCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineVertexInputStateCreateInfo.html)
+with these as follows:
+
+```cpp
+VkPipelineVertexInputStateCreateInfo vert_inpt_inf {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+    .pNext = nullptr,
+    .flags = 0,
+    .vertexBindingDescriptionCount   = bind_descs.size(),
+    .pVertexBindingDescriptions      = bind_descs.data(),
+    .vertexAttributeDescriptionCount = attr_descs.size(),
+    .pVertexAttributeDescriptions    = attr_descs.data(),
+};
+```
+
+If we make a graphics pipeline with these, it will know how to
+work with our vertex input buffer. But how do we actually use the
+buffer?
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
