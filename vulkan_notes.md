@@ -8942,6 +8942,14 @@ equal()            | ==
 notEqual()         | !=
 not()              | !
 
+### Rendering in detail
+
+We've arrived at last. Take a moment to savor the view from up
+here—we've had to clamber over a rather immense amount of
+material to make it to this spot. With all the knowledge you've
+gained, you're now in a good position to understand how Vulkan
+draws imagery front-to-back. Hurrah!!
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
