@@ -8950,6 +8950,29 @@ material to make it to this spot. With all the knowledge you've
 gained, you're now in a good position to understand how Vulkan
 draws imagery front-to-back. Hurrah!!
 
+#### Approaching the graphics pipeline
+
+We've touched on the graphics pipeline here and there, but of
+course we've glossed over a lot of the details until now. We're
+going to really pick it apart piece-by-piece from here on out,
+but we won't have fully covered it until the end of this section,
+since Vulkan's rendering behavior is deeply intertwined with the
+structure of the graphics pipeline.
+
+If you've taken a look at
+[`VkGraphicsPipelineCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkGraphicsPipelineCreateInfo.html),
+you'll have noted that it's one of the most baroque structures in
+all of Vulkan. A whole render pass is just _one_ of its
+parameters, after all! Luckily we've covered those already, so
+now we can get into the various `*State` parameters, which
+configure aspects of Vulkan's rendering behavior.
+
+Throughout this section, we'll weave back and forth between
+Vulkan and GLSL, showing how actions taken on one side impact the
+other. As you've heard, the graphics pipeline moves through a
+series of stages, so we can start at the beginning and walk
+through it until we reach the end.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
