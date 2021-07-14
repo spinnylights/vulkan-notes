@@ -8973,6 +8973,15 @@ other. As you've heard, the graphics pipeline moves through a
 series of stages, so we can start at the beginning and walk
 through it until we reach the end.
 
+#### Vertex processing
+
+Work in a graphics pipeline begins with the submission of
+vertices. What exactly a "vertex" is is up to you to some degree,
+however. Perhaps the most appropriate way to think of a vertex is
+simply as data that accompanies a vertex shader invocation—they
+_can_ represent the points in space that make up a 3D model, but
+they don't have to.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
