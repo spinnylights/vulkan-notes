@@ -6046,6 +6046,31 @@ back to GLSL from here on out, we'll take frequent trips over to
 the Vulkan side to talk about how to set things up appropriately
 over there based on what you might be doing in your shaders.
 
+### A brief glance at samplers
+
+Samplers have come up a few times before now and they get a few
+more mentions in the following section, so I figure we might as
+well touch on them briefly just so they don't seem totally opaque
+to you. They'll be easier to get into in detail when we're
+exploring rendering in-depth, so this isn't going to be an
+exhaustive exploration of them—just a brief summary so you have
+some idea of what they are.
+
+Samplers are objects for reading image data, usually texture data
+specifically. Obviously you can also read image data directly,
+but samplers facilitate things like MIP mapping and interpolated
+magnification. They're represented by
+[`VkSampler`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSampler.html)
+handles and created with
+[`vkCreateSampler()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateSampler.html),
+which takes a
+[`VkSamplerCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSamplerCreateInfo.html).
+
+You can attach them to a pipeline, but you don't actually
+associate them with an image at that time. Instead, you bind both
+an image view and a sampler to the pipeline and bring them
+together in a shader.
+
 ### Resource descriptors
 
 Buffers, buffer views, image views, samplers, and combined image
