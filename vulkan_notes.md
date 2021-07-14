@@ -8973,6 +8973,34 @@ other. As you've heard, the graphics pipeline moves through a
 series of stages, so we can start at the beginning and walk
 through it until we reach the end.
 
+### Graphics pipeline creation and binding
+
+Intricacies of
+[`VkGraphicsPipelineCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkGraphicsPipelineCreateInfo.html)
+aside, graphics pipelines are created with
+[`vkCreateGraphicsPipelines()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateGraphicsPipelines.html).
+This actually takes an array of
+[`VkGraphicsPipelineCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkGraphicsPipelineCreateInfo.html)s
+so you can batch pipeline creation for the sake of efficiency. It
+also takes a pipeline cache handle (see "Cache" under "Pipelines"
+if you need a refresher on that).
+
+Once you've got a graphics
+[`VkPipeline`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipeline.html)
+ready to go, you can bind it to a command buffer with
+[`vkCmdBindPipeline()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindPipeline.html).
+Aside from the command buffer and pipeline handles, this has a
+parameter <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineBindPoint.html">VkPipelineBindPoint</a>
+pipelineBindPoint</code>
+which specifies the type of pipeline to bind. In this case, you
+would use `VK_PIPELINE_BIND_POINT_GRAPHICS` (See "Binding to a
+command buffer" for more on this command.)
+
+This is also a good time to bind any descriptor sets you might
+want to use in conjunction with the pipeline—see "Binding
+descriptor sets" under "Resource descriptors" for more on that.
+
 ### Vertex processing
 
 Work in a graphics pipeline begins with the submission of
