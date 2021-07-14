@@ -8942,7 +8942,7 @@ equal()            | ==
 notEqual()         | !=
 not()              | !
 
-### Rendering in detail
+## Rendering in detail
 
 We've arrived at last. Take a moment to savor the view from up
 here—we've had to clamber over a rather immense amount of
@@ -8950,7 +8950,7 @@ material to make it to this spot. With all the knowledge you've
 gained, you're now in a good position to understand how Vulkan
 draws imagery front-to-back. Hurrah!!
 
-#### Approaching the graphics pipeline
+### Approaching the graphics pipeline
 
 We've touched on the graphics pipeline here and there, but of
 course we've glossed over a lot of the details until now. We're
@@ -8973,7 +8973,7 @@ other. As you've heard, the graphics pipeline moves through a
 series of stages, so we can start at the beginning and walk
 through it until we reach the end.
 
-#### Vertex processing
+### Vertex processing
 
 Work in a graphics pipeline begins with the submission of
 vertices. What exactly a "vertex" is is up to you to some degree,
@@ -8982,7 +8982,7 @@ simply as data that accompanies a vertex shader invocation—they
 _can_ represent the points in space that make up a 3D model, but
 they don't have to.
 
-##### The structure of a vertex
+#### The structure of a vertex
 
 The input variables you declare in your vertex shader describe
 the format of the vertex data it expects. For example, let's say
