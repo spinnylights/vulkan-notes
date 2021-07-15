@@ -9500,7 +9500,7 @@ buffer as `VK_VERTEX_INPUT_RATE_VERTEX`, set the second as
 number of stars you want to draw, you can get the effect without
 having to pass a lot of repetitive vertex information. (Of
 course, there are other strategies you could use aside from this
-too that might be even more efficient—this is just an example).
+too that might be even more efficient—this is just an example.)
 
 ###### Indexed draw
 
