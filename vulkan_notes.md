@@ -9255,6 +9255,31 @@ you need to read vertex indices past the 65,536 mark, you can
 still use 16-bit indices if you want as long as you don't have to
 address more than 65,536 vertices in total.
 
+##### Recording a draw command
+
+Aside from binding your graphics pipeline, any descriptor sets,
+vertex buffers, and possibly an index buffer, you also need to
+begin a render pass before you can record draw commands (see
+"Render passes"). The role the render pass plays in all this
+becomes particularly clear in the context of fragment shading, so
+we'll go into it more there, but for now you can just note that
+draw commands won't work outside of the context of a render pass.
+Once you've got all the context in place, you can kick off
+rendering (although, of course, that won't actually happen until
+you submit the command buffer to a queue).
+
+The most straightforward draw command is
+[`vkCmdDraw()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDraw.html).
+This does a non-indexed draw, so an index buffer isn't involved.
+As you might expect, it has `uint32_t firstVertex` and `uint32_t
+vertexCount` parameters for the index of the first vertex to
+start with in the vertex buffer and the number of vertices to use
+in the draw call from there. However, it also has `uint32_t
+firstInstance` and `uint32_t instanceCount` parameters, which
+might seem a little more cryptic to you right now. This can be
+used to submit the specified set of vertices more than once, also
+known as _instanced rendering_ or _instancing_.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
