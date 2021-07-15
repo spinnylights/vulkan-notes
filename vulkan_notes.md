@@ -9359,6 +9359,42 @@ having to pass a lot of repetitive vertex information. (Of
 course, there are other strategies you could use aside from this
 too that might be even more efficient—this is just an example).
 
+###### Indexed draw
+
+If you want to use an index buffer, you can use
+[`vkCmdDrawIndexed()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDrawIndexed.html)
+instead of
+[`vkCmdDraw()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDraw.html).
+This is almost the same. Instead of `uint32_t firstVertex` and
+`uint32_t vertexCount`, though, you have `uint32_t firstIndex`,
+`uint32_t indexCount`, and `int32_t vertexOffset`. These are
+pretty self-explanatory: `firstIndex` is the starting index into
+the index buffer, `indexCount` is the number of indices to use in
+the draw call, and `vertexOffset` is an offset added to the index
+pulled from the index buffer before using it to index into a vertex
+buffer.
+
+The indices pulled from the index buffer are zero-extended to 32
+bits before `vertexOffset` is added to them, so if you're using
+16-bit indices you don't have to fret about overflow as much as
+you might otherwise.
+
+Since
+[`vkCmdDrawIndexed()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDrawIndexed.html)
+has the same `uint32_t firstInstance` and `uint32_t
+instanceCount` parameters as
+[`vkCmdDraw()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDraw.html),
+you might wonder how this command handles instancing. It's pretty
+simple, really: each bound `VK_VERTEX_INPUT_RATE_VERTEX` buffer
+is indexed into based on the calculated vertex index from the
+index buffer, and each bound `VK_VERTEX_INPUT_RATE_INSTANCE`
+buffer is indexed into based on the instance index just like with
+[`vkCmdDraw()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDraw.html).
+The only difference in how the instance index is determined is
+that it's based on `uint32_t firstIndex` and `uint32_t
+indexCount` instead of `uint32_t firstVertex` and `uint32_t
+vertexCount`.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
