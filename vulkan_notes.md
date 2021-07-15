@@ -9161,6 +9161,14 @@ If we make a graphics pipeline with these, it will know how to
 work with our vertex input buffer. But how do we actually use the
 buffer?
 
+#### Vertex submission
+
+Work in a graphics pipeline can be initiated with a draw command
+once you've bound the pipeline in question and the vertex buffer
+you want to use to the command buffer. If you're going to do an
+indexed draw, you'll also want to bind an index buffer
+beforehand.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
