@@ -9538,6 +9538,52 @@ that it's based on `uint32_t firstIndex` and `uint32_t
 indexCount` instead of `uint32_t firstVertex` and `uint32_t
 vertexCount`.
 
+###### Indirect draw
+
+It may have occurred to you at some point that you could generate
+vertex data on the GPU. If you did think of this, it may not have
+been entirely clear how you should make use of such data
+afterwards, since the draw commands we've discussed so far get
+their vertex data from buffers bound to the command buffer on the
+host side prior to recording the draw call. A particularly
+efficient approach is to use an _indirect drawing command_, which
+gets its draw parameters from a buffer and can take data from
+vertex buffers specified mid-render.
+
+[`vkCmdDrawIndirect()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDrawIndirect.html)
+is the indirect equivalent of
+[`vkCmdDraw()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDraw.html).
+This has a parameter <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkBuffer.html">VkBuffer</a>
+buffer</code> which should be the handle to a buffer containing
+[`VkDrawIndirectCommand`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDrawIndirectCommand.html)
+structures. These structures specify the same parameters as taken
+by
+[`vkCmdDraw()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDraw.html),
+but of course they can be specified at any time before the
+[`vkCmdDrawIndirect()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDrawIndirect.html)
+executes. There's also <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDeviceSize.html">VkDeviceSize</a>
+offset</code> which specifies an offset in bytes where the
+[`VkDrawIndirectCommand`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDrawIndirectCommand.html)
+structures begin in the `buffer`, a `uint32_t drawCount`
+parameter for how many draws to perform (which can be zero), and
+a `uint32_t stride` parameter for how far apart each
+[`VkDrawIndirectCommand`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDrawIndirectCommand.html)
+structure is from the next.
+
+There's also
+[`vkCmdDrawIndexedIndirect()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDrawIndexedIndirect.html),
+which is naturally the indirect equivalent of
+[`vkCmdDrawIndexed()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDrawIndexed.html).
+This has the same parameters as
+[`vkCmdDrawIndirect()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDrawIndirect.html),
+but expects a buffer with
+[`VkDrawIndexedIndirectCommand`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDrawIndexedIndirectCommand.html)
+structures instead, which naturally express the same parameters
+as
+[`vkCmdDrawIndexed()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDrawIndexed.html).
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
