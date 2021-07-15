@@ -9067,8 +9067,8 @@ data is in the bound buffer (within
 16383](https://vulkan.gpuinfo.org/displaydevicelimit.php?name=maxVertexInputBindingStride)
 as of July 2021). The last parameter is <code><a
 href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkVertexInputRate.html">VkVertexInputRate</a>
-inputRate</code>, which says whether you're going to do an
-indexed draw with this buffer or not (more on that in a bit).
+inputRate</code>, which will be easier to explain shortly when we
+discuss draw commands.
 
 In this case, our vertex input binding description for this
 buffer might look like this:
@@ -9081,7 +9081,7 @@ std::vector<VkVertexInputBindingDescription> bind_descs {
     {
         .binding   = mesh_attrs_bind_ndx,
         .stride    = mesh_attrs_stride,
-        .inputRate = VK_VERTEX_INPUT_RATE_INSTANCE,
+        .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
     },
 };
 ```
