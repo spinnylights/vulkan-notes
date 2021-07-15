@@ -8777,7 +8777,7 @@ although both should be of floating-point type.
 All of these operate on vectors as a whole as opposed to
 component-wise.
 
-`length(a)` is ||_a_||, i.e. `sqrt(a.x*a.x, a.y*a.y, a.z*a.z)`.
+`length(a)` is ||_a_||, i.e. `sqrt(a.x*a.x + a.y*a.y + a.z*a.z)`.
 
 `distance(a,b)` is ||_a_ - _b_||, i.e. `length(a - b)`.
 
