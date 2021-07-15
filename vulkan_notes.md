@@ -9202,6 +9202,59 @@ if you don't mind the extra overhead, the models output by 3D
 modeling programs usually work this way, so it's still worth
 getting comfortable with indexed draws.
 
+##### Binding vertex and index buffers
+
+Once you've got your vertex data in a
+[`VkBuffer`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkBuffer.html),
+you can bind it to a command buffer with
+[`vkCmdBindVertexBuffers()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindVertexBuffers.html).
+You can bind a series of vertex buffers in one go with this
+command; it takes parameters `uint32_t firstBinding` and
+`uint32_t bindingCount` for the binding number to start with and
+the number of bindings to update starting from there,
+respectively. Aside from those, it takes an array of the vertex
+buffers themselves, as well as an array <code>const <a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDeviceSize.html">VkDeviceSize</a>\*
+pOffsets</code> which can be used to specify offsets to start at
+for each buffer.
+
+You can submit this command repeatedly for the same graphics
+pipeline; repeated submissions will update the relevant bindings
+with new data. If some of the vertex data stay the same between
+draw calls and other data change, you can put them in separte
+vertex buffers so that you only need to update the bindings for
+the data that change.
+
+The contents of an index buffer might look like this:
+
+```cpp
+uint16_t indices[] = { 0, 1, 2, 3, 1, 0, /* ... */ };
+```
+
+These are indices into the vertex buffer. They can be either
+16-bit or 32-bit unsigned integers. If you use 16-bit, it means
+less data to copy into the
+[`VkBuffer`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkBuffer.html)
+beforehand if you have 65,536 or less entries you need to address
+in the vertex buffer.
+
+You can bind an index buffer to your command buffer with
+[`vkCmdBindIndexBuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindIndexBuffer.html)
+(buffer buffer buffer). In addition to the index buffer handle
+itself, this takes a <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDeviceSize.html">VkDeviceSize</a>
+offset</code> into the buffer if you'd like, as well as a
+<code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkIndexType.html">VkIndexType</a>
+indexType</code> which you can use to specify whether you're
+using 16-bit or 32-bit indices. When you submit an indexed draw
+command, these indices will be read in, zero-extended to 32 bits
+if they have less than that, and then added to `offset` to
+calculate the ultimate index into the vertex buffer. So, even if
+you need to read vertex indices past the 65,536 mark, you can
+still use 16-bit indices if you want as long as you don't have to
+address more than 65,536 vertices in total.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
