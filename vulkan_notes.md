@@ -2808,10 +2808,153 @@ _fences_, _events_, _pipeline barriers_, and _render passes_. One
 of these—render passes—we have already explored briefly, but we
 will explore it in depth here. The others are new to us.
 
-Before we get into the details, here's a brief description of
-when you might want to use each:
+Before we get into the details, here's a table showing the rough
+capabilities of each. "Queue" means between batches of command
+buffers submitted to queue, whereas "Command" means within a
+single command buffer. "Pipeline" means between pipeline stages,
+whereas "buffer/image" means around buffer or image access. There
+are no command-level ways to perform an unsignal operation, so
+all the command-level signal operations mean "on".
 
- * **Semaphores**:
+<table>
+    <tr>
+        <th rowspan="3">Mechanism</th>
+        <th colspan="4">Host</th>
+        <th colspan="3">Queue</th>
+        <th colspan="4">Command</th>
+    </tr>
+    <tr>
+        <th colspan="2">Signal</th>
+        <th rowspan="2">Wait</th>
+        <th rowspan="2">Query</th>
+        <th colspan="2">Signal</th>
+        <th rowspan="2">Wait</th>
+        <th colspan="2">Signal</th>
+        <th colspan="2">Wait</th>
+    </tr>
+        <th>On</th>
+        <th>Off</th>
+        <th>On</th>
+        <th>Off</th>
+        <th>Pipeline</th>
+        <th>Buffer/image</th>
+        <th>Pipeline</th>
+        <th>Buffer/image</th>
+    <tr>
+    </tr>
+    <tr>
+        <td>Semaphores (timeline)</td>
+        <td>✔</td>
+        <td>n/a</td>
+        <td>✔</td>
+        <td>✔</td>
+        <td>✔</td>
+        <td>n/a</td>
+        <td>✔</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>Semaphores (binary)</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>✔</td>
+        <td>✔</td>
+        <td>✔</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>Fences</td>
+        <td></td>
+        <td>✔</td>
+        <td>✔</td>
+        <td>✔</td>
+        <td>✔</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>Events (w/ synchronization2)</td>
+        <td>✔</td>
+        <td>✔</td>
+        <td></td>
+        <td>✔</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>✔</td>
+        <td>✔</td>
+        <td>✔</td>
+        <td>✔</td>
+    </tr>
+    <tr>
+        <td>Events (w/out synchronization2)</td>
+        <td>✔</td>
+        <td>✔</td>
+        <td></td>
+        <td>✔</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>✔</td>
+        <td></td>
+        <td>✔</td>
+        <td>✔</td>
+    </tr>
+    <tr>
+        <td>Pipeline barriers</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>✔</td>
+        <td>✔</td>
+    </tr>
+    <tr>
+        <td>Render passes</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>✔</td>
+        <td>✔</td>
+    </tr>
+</table>
+
+As you can see, timeline semaphores overlap with the capabilities
+of both binary semaphores and fences. They're also easier to work
+with and potentially more efficient than either, so if they're
+available to you they're always a good default for coarse-grained
+synchronization.
+
+For fine-grained synchronization, events are useful for when the
+host needs to have some relationship with a specific operation
+happening in the execution of a command buffer. If not, the
+render pass and/or a pipeline barrier will probably carry less
+overhead. Pipeline barriers can be used outside of a render pass;
+within a render pass, they're just one of a variety of ways of
+creating dependencies.
 
 ### Semaphores
 
