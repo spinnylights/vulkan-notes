@@ -9280,6 +9280,85 @@ might seem a little more cryptic to you right now. This can be
 used to submit the specified set of vertices more than once, also
 known as _instanced rendering_ or _instancing_.
 
+###### Vertices and instances
+
+You might recall from just a bit ago in "The structure of a
+vertex" that
+[`VkVertexInputBindingDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkVertexInputBindingDescription.html)
+has a parameter <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkVertexInputRate.html">VkVertexInputRate</a>
+inputRate</code>, which we didn't really go into at the time.
+This is connected to these two "instance" parameters in
+[`vkCmdDraw()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDraw.html),
+and all of this has a connection to the language of the vertex
+shader itself.
+
+We've alluded a little bit to built-in variables in GLSL, but we
+have yet to actually look at any. In a vertex shader, these two
+variables are implicitly defined:
+
+```cpp
+in int gl_VertexIndex;
+in int gl_InstanceIndex;
+```
+
+When using
+[`vkCmdDraw()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDraw.html),
+`gl_VertexIndex` will take on the values `firstVertex`,
+`firstVertex + 1`, …, `firstVertex + (vertexCount - 1)`.
+`gl_InstanceIndex` will take on the values `firstInstance`,
+`firstInstance + 1`, …, `firstInstance + (instanceCount - 1)`,
+but it will only increment after one complete cycle through the
+vertices.
+
+```cpp
+VkCommandBuffer cmd_buff; // ready for a draw call
+uint32_t vert_cnt = 3;
+uint32_t inst_cnt = 3;
+uint32_t vert_fst = 0;
+uint32_t inst_fst = 0;
+
+vkCmdDraw(cmd_buff, vert_cnt, inst_cnt, vert_fst, inst_fst);
+
+// gl_VertexIndex == 0; gl_InstanceIndex == 0;
+// gl_VertexIndex == 1; gl_InstanceIndex == 0;
+// gl_VertexIndex == 2; gl_InstanceIndex == 0;
+// gl_VertexIndex == 0; gl_InstanceIndex == 1;
+// gl_VertexIndex == 1; gl_InstanceIndex == 1;
+// gl_VertexIndex == 2; gl_InstanceIndex == 1;
+// gl_VertexIndex == 0; gl_InstanceIndex == 2;
+// gl_VertexIndex == 1; gl_InstanceIndex == 2;
+// gl_VertexIndex == 2; gl_InstanceIndex == 2;
+```
+
+The purpose of <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkVertexInputRate.html">VkVertexInputRate</a>
+inputRate</code>
+in
+[`VkVertexInputBindingDescription`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkVertexInputBindingDescription.html)
+is to specify whether the bound vertex buffer will be indexed
+into by vertex index or by instance index. If it's set to
+`VK_VERTEX_INPUT_RATE_INSTANCE`, any input variables in the
+vertex shader associated with that input buffer will only have
+their values updated with each new _instance_ instead of each new
+vertex.
+
+One thing you could do with this is a classic starfield effect:
+
+[![Starfield
+effect](pics/StarfieldSimulation.gif)](pics/StarfieldSimulation.gif)
+
+Each of the stars has the exact same shape (a circle). You could
+therefore store the vertex information for a single, abstract
+circle in one vertex buffer and store the position of each star
+instance in another vertex buffer. If you set the first vertex
+buffer as `VK_VERTEX_INPUT_RATE_VERTEX`, set the second as
+`VK_VERTEX_INPUT_RATE_INSTANCE`, and set `instanceCount` to the
+number of stars you want to draw, you can get the effect without
+having to pass a lot of repetitive vertex information. (Of
+course, there are other strategies you could use aside from this
+too that might be even more efficient—this is just an example).
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
