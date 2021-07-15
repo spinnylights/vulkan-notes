@@ -9169,6 +9169,39 @@ you want to use to the command buffer. If you're going to do an
 indexed draw, you'll also want to bind an index buffer
 beforehand.
 
+##### What's an index buffer?
+
+We'll get into the details momentarily, but just so I don't leave
+you hanging, draw commands can be organized into indexed and
+non-indexed categories. The non-indexed commands just go through
+the vertex buffer and submit the vertices one-by-one. The trouble
+with this is that, during tessellation, a certain number of
+vertices will be needed to make up each primitive;
+for example, in the most common case of triangles, you would need
+three vertices per primitive (we'll get into all this in detail
+soon). If you wanted to render a square then, you might think
+you would need four vertices, one for each corner—but if you
+weren't using an indexed draw command, you would actually need
+six elements in your vertex buffers for this, because it takes
+two triangles to make a square:
+
+![A rectangle with overlapping
+vertices.](pics/overlapping_verts.svg)
+
+Unfortunately, two of the elements in your vertex buffers would
+be redundant in this case, because they would perfectly duplicate
+the data of two of the other elements. I've drawn the vertices in
+question slightly offset from each other here, but in practice
+they would perfectly overlap, bloating your vertex buffers.
+
+With an index buffer, you can specify the order in which to
+assemble the vertices into primitives explicitly. The advantage
+of this is that vertices can be reused, which avoids the need to
+duplicate vertices used to assemble more than one primitive. Even
+if you don't mind the extra overhead, the models output by 3D
+modeling programs usually work this way, so it's still worth
+getting comfortable with indexed draws.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
