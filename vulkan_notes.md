@@ -9613,10 +9613,8 @@ This variable is otherwise set to `0`.
 
 At the outset of a draw call, each vertex (i.e. a block of data
 being pulled out of your vertex buffers) becomes part of a
-_primitive_. This is a data structure that has particular
-significance during tessellation but plays some role either
-directly or indirectly in every shading stage of a graphics
-pipeline.
+_primitive_. This data structure plays some role either directly
+or indirectly in every shading stage of a graphics pipeline.
 
 A field <code>const <a
 href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineInputAssemblyStateCreateInfo.html">VkPipelineInputAssemblyStateCreateInfo</a>\*
