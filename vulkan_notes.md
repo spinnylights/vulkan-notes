@@ -9609,6 +9609,25 @@ in int gl_DrawID;
 
 This variable is otherwise set to `0`.
 
+### Primitive assembly
+
+At the outset of a draw call, each vertex (i.e. a block of data
+being pulled out of your vertex buffers) becomes part of a
+_primitive_. This is a data structure that has particular
+significance during tessellation but plays some role either
+directly or indirectly in every shading stage of a graphics
+pipeline.
+
+A field <code>const <a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineInputAssemblyStateCreateInfo.html">VkPipelineInputAssemblyStateCreateInfo</a>\*
+pInputAssemblyState</code> in
+[`VkGraphicsPipelineCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkGraphicsPipelineCreateInfo.html)
+configures primitive assembly.  This structure is at once simple
+and complex. The only essential field is <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPrimitiveTopology.html">VkPrimitiveTopology</a>
+topology</code>, which is an enum. However, this enum has a fair
+amount of conceptual density.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
