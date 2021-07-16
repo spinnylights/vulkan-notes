@@ -9119,7 +9119,7 @@ through it until we reach the end.
 
 ### Graphics pipeline creation and binding
 
-Intricacies of
+All the intricacies of
 [`VkGraphicsPipelineCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkGraphicsPipelineCreateInfo.html)
 aside, graphics pipelines are created with
 [`vkCreateGraphicsPipelines()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCreateGraphicsPipelines.html).
@@ -9401,9 +9401,9 @@ address more than 65,536 vertices in total.
 
 ##### Recording a draw command
 
-Aside from binding your graphics pipeline, any descriptor sets,
-vertex buffers, and possibly an index buffer, you also need to
-begin a render pass before you can record draw commands (see
+Aside from binding your graphics pipeline, vertex buffers,
+possibly an index buffer, and any descriptor sets, you also need
+to begin a render pass before you can record draw commands (see
 "Render passes"). The role the render pass plays in all this
 becomes particularly clear in the context of fragment shading, so
 we'll go into it more there, but for now you can just note that
