@@ -9438,13 +9438,23 @@ and all of this has a connection to the language of the vertex
 shader itself.
 
 We've alluded a little bit to built-in variables in GLSL, but we
-have yet to actually look at any. In a vertex shader, these two
+have yet to actually look at any. In a vertex shader, these four
 variables are implicitly defined:
 
 ```cpp
+in int gl_BaseVertex;
+in int gl_BaseInstance;
+
 in int gl_VertexIndex;
 in int gl_InstanceIndex;
 ```
+
+`gl_BaseVertex` is set to `firstVertex` for non-indexed draws;
+for an indexed draw, it's set to `vertexOffset` (we'll cover this
+in just a moment).
+
+`gl_BaseInstance` is set to `firstInstance` with all draw
+commands.
 
 When using
 [`vkCmdDraw()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDraw.html),
