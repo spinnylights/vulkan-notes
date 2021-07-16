@@ -9595,6 +9595,20 @@ structures instead, which naturally express the same parameters
 as
 [`vkCmdDrawIndexed()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdDrawIndexed.html).
 
+When performing an indirect draw, there's a special variable
+defined in the vertex shading language you can use to get the
+index of the current
+[`VkDrawIndirectCommand`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDrawIndirectCommand.html)
+or
+[`VkDrawIndexedIndirectCommand`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDrawIndexedIndirectCommand.html)
+being executed:
+
+```glsl
+in int gl_DrawID;
+```
+
+This variable is otherwise set to `0`.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
