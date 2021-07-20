@@ -9713,6 +9713,22 @@ The primitives of a line list topology specify discrete lines in
 space. This could be used for lasers, shattering wireframe
 models, or cartoon-style motion lines.
 
+##### Line strip
+
+![diagram](pics/line_strip.svg)
+
+Line strips have two nodes and one edge like line lists, but the
+second vertex of one line primitive also serves as the provoking
+vertex of the next line primitive. As a result, every vertex
+aside from the starting and ending vertices is present in two
+primitives, and the total number of primitives will be one less
+than the total number of vertices. The `topology` setting for
+this one is `VK_PRIMITIVE_TOPOLOGY_LINE_STRIP`.
+
+The primitives of a line strip topology specify subsegments of a
+single line segment in space. This could be used for neon signs,
+ropes, or symbolic sound or radio waves.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
