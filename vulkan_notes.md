@@ -9687,6 +9687,19 @@ although you can also use tessellation and geometry shading
 together. We'll get into all of this in more detail after this
 section.
 
+##### Point list
+
+![diagram](pics/point_list.svg)
+
+This is the simplest topology: one node, no edges. Each vertex
+defines a single primitive unto itself, with each being
+considered its own provoking vertex. There are as many primitives
+as vertices. The `topology` setting for this one is
+`VK_PRIMITIVE_TOPOLOGY_POINT_LIST`.
+
+The primitives of a point list topology specify discrete points
+in space. This could be used for sparks or fireflies.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
