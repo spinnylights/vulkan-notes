@@ -9657,6 +9657,36 @@ reading the diagrams:
 | ![diagram](pics/line_nodes.svg)     | Vertices in a line are grouped from left to right                       |
 | ![diagram](pics/triangle_nodes.svg) | Vertices in a triangle are grouped clockwise from the provoking vertex  |
 
+#### Primitive topologies
+
+At this stage, the edges of a primitive and its provoking vertex
+are mainly significant for fragment shading. If you're using flat
+shading, the data accompanying the provoking vertex for fragment
+shading (like material parameters) will be used for every vertex
+in the primitive. If not, the values of those data points will be
+interpolated along the edges of the primitive for every fragment.
+We'll discuss this in more detail when we talk about
+rasterization, but you can use this information here to help
+yourself imagine what each topology might be useful for.
+
+Also, any of these topologies can be used in conjunction with a
+geometry shader to guide the procedural generation of geometry in
+a scene. Which you should use depends on the kind of input data
+your geometry shader needs; the topologies with adjacency are
+intended specifically for this purpose, in case your geometry
+shader needs some extra context. Looking at the toplogies from this
+angle puts them in a different light than considering them from
+the perspective of fragment shading.
+
+The patch list topology is intended specifically for use with
+tessellation. The idea there is that you can pick a number of
+vertices to make up a _patch_ and then fill in the space between
+them using tessellation control and evaluation shaders. This
+presents an alternate route for procedurally generating geometry,
+although you can also use tessellation and geometry shading
+together. We'll get into all of this in more detail after this
+section.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
