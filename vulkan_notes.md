@@ -9780,6 +9780,31 @@ single triangle strip, your index buffer only needs to be a third
 as long as with a triangle list. If you only need to render a
 very long and complicated ribbon, that might be a win.
 
+##### Triangle fan
+
+![diagram](pics/triangle_fan.svg)
+
+The primitives of this topology are triangles that all share one
+vertex in common—the first vertex in the draw call. The name
+comes from how the triangles "fan out" from this center vertex.
+As you can see, the center vertex is always the last vertex in
+the primitive, so it's never the provoking vertex (otherwise it
+would influence multiple faces when flat shading). As with
+triangle strips, there will be two less primitives then vertices.
+The `topology` setting for this one is
+`VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN`.
+
+Like triangle strips, triangle fans have been largely replaced by
+indexed triangle lists in this day and age, and for the same
+reasons. That said, they're more efficient than triangle strips
+at representing convex polygons with more than four sides,
+because a triangle strip would have to repeat the center vertex
+over and over to describe the same geometry. If you found
+yourself back in the '90s and wanted to model, say, a wheel of
+cheese, two triangle fans for the top and bottom and a triangle
+strip for the side could help cut down on the number of
+overlapping vertices.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
