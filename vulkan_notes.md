@@ -9837,6 +9837,36 @@ primitives will be three less than the number of vertices. The
 This would be useful to physically model a rope or chain, or a
 stream of liquid depending on the level of detail you want.
 
+##### Triangle list with adjacency
+
+![diagram](pics/triangle_list_w_adj.svg)
+
+This one uses the triangle list pattern, but with a vertex
+in-between each vertex in a regular triangle list, making a
+larger triangle. The even-numbered vertices make up the "real"
+triangle primitive inside the larger triangle. There will be a
+sixth as many primitives as vertices, and the `topology` setting
+for this one is
+`VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY`.
+
+This is very nearly as general as a line list with adjacency, and
+could similarly be used for a complex fluid simulation or mesh
+deformation. The question of which to use is mainly an
+optimization matter, and a rather baroque one at that: to quote
+[this whitepaper from
+Nvidia](http://developer.download.nvidia.com/whitepapers/2007/SDK10/Cloth.pdf),
+
+> "A spring constraint involves two vertices; so it is processed
+> during the geometry shader stage as a line primitive. The
+> geometry shader can actually process more than one constraint in
+> one call since it can have up to six vertices as input by
+> declaring its input parameter as a triangle with adjacency. The
+> choice of the optimal number of input vertices is not
+> straightforward: On one hand, if fewer vertices are processed by
+> one geometry shader invocation, then more rendering passes are
+> required to process all constraints; on the other hand, geometry
+> shader performance degrades as more vertices are output."
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
