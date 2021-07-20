@@ -9748,6 +9748,38 @@ discuss more when we get into rasterization. In conjunction with
 indexing, this is the topology most commonly used for 3D model
 mesh data in this day and age.
 
+##### Triangle strip
+
+![diagram](pics/triangle_strip.svg)
+
+Triangle strips also have three nodes and three edges, but they
+share vertices between primitives. Going one-by-one through the
+vertices, each vertex and the two after it are used to make up a
+primitive, so they're all connected at the edges.  Note that the
+pattern is `{0,1,2}, {1,3,2}, {2,3,4}, {3,5,4}, …`, which helps
+to ensure they're all facing outwards (as before, we'll discuss
+this more when we get into rasterization). There will be two less
+primitives then there are vertices with this topology, and the
+`topology` setting for this one is
+`VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP`.
+
+The primitives of a triangle strip topology specify pieces of
+a surface in space. This used to be the most common topology used
+for mesh data. However, it may have occurred to you that you
+could get the exact same set of primitives this topology would
+give you by using triangle lists and indexing, and that approach
+is more flexible than using triangle strips. For arbitrary mesh
+data, one triangle strip may not be sufficient to represent the
+entire mesh, and it may still be necessary to repeat vertices in
+some cases. Using a triangle list and indexing ensures that you
+can represent the entire mesh without any redundant vertex data,
+and that you can fit it all into a single draw call.
+
+Of course, if you _can_ represent your mesh perfectly with a
+single triangle strip, your index buffer only needs to be a third
+as long as with a triangle list. If you only need to render a
+very long and complicated ribbon, that might be a win.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
