@@ -9729,6 +9729,25 @@ The primitives of a line strip topology specify subsegments of a
 single line segment in space. This could be used for neon signs,
 ropes, or symbolic sound or radio waves.
 
+##### Triangle list
+
+![diagram](pics/triangle_list.svg)
+
+Triangle lists have three nodes and three edges. The provoking
+vertex is connected to the vertex after it, that vertex is
+connected to the vertex after it, and that vertex is connected
+back to the provoking vertex. The next vertex starts a new
+primitive, so the total number of primitives will be a third of
+the number of vertices.  The `topology` setting for this one is
+`VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST`.
+
+The primitives of a triangle list topology specify discrete
+triangles in space. The section of a plane bounded by the edges
+of a triangle list primitive defines its _face_, which we'll
+discuss more when we get into rasterization. In conjunction with
+indexing, this is the topology most commonly used for 3D model
+mesh data in this day and age.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
