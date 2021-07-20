@@ -9626,6 +9626,37 @@ href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPr
 topology</code>, which is an enum. However, this enum has a fair
 amount of conceptual density.
 
+#### Anatomy of a primitive
+
+A primitive is a graph with vertex nodes. Each vertex in a
+primitive is assigned zero or more edges in accordance with the
+topology of the primitive and the position the vertex occurs at
+in the sequence of vertices.
+
+In some topologies there are _adjacency_ vertices and edges.
+These are only accessible in a geometry shader; to other shaders,
+it's as if they don't exist. Typically, you would do an indexed
+draw and use the adjacency vertices for the vertices surrounding
+the main ones.
+
+One vertex is labeled the _provoking vertex_ at this stage unless
+the patch list topology is used. This is generally the first
+non-adjacency vertex in the primitive.
+
+Each topology has a diagram accompanying it that illustrates the
+structure of the primitives it implies. Here's the key for
+reading the diagrams:
+
+| Symbol                              | Meaning                                                                 |
+|-------------------------------------|-------------------------------------------------------------------------|
+| ![diagram](pics/vertex.svg)         | The <i>x</i>th vertex in the draw call                                  |
+| ![diagram](pics/prov_vertex.svg)    | The provoking vertex                                                    |
+| ![diagram](pics/adj_vertex.svg)     | An adjacency vertex                                                     |
+| ![diagram](pics/edge.svg)           | A regular edge                                                          |
+| ![diagram](pics/adj_edge.svg)       | An adjacency edge                                                       |
+| ![diagram](pics/line_nodes.svg)     | Vertices in a line are grouped from left to right                       |
+| ![diagram](pics/triangle_nodes.svg) | Vertices in a triangle are grouped clockwise from the provoking vertex  |
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
