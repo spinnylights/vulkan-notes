@@ -9805,6 +9805,25 @@ cheese, two triangle fans for the top and bottom and a triangle
 strip for the side could help cut down on the number of
 overlapping vertices.
 
+##### Line list with adjacency
+
+![diagram](pics/line_list_w_adj.svg)
+
+Now we're getting into the "adjacency" topologies. This one is
+the simplest to describe: every four vertices makes up a
+primitive, with the outer vertices being the adjacency vertices
+and the second vertex being the provoking vertex. The number of
+primitives will be a fourth of the number of vertices. The
+`topology` setting for this one is
+`VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY`.
+
+One use for a line list with adjacency is to perform a GPU-driven
+fluid physics simulation, treating the nodes as particles and
+using the adjacency information to help refine the simulation.
+Out of all the topologies with adjacency, this one is the most
+general, so it's well-suited to something like liquid if you need
+to model droplets and so on.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
