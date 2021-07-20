@@ -9824,6 +9824,19 @@ Out of all the topologies with adjacency, this one is the most
 general, so it's well-suited to something like liquid if you need
 to model droplets and so on.
 
+##### Line strip with adjacency
+
+![diagram](pics/line_strip_w_adj.svg)
+
+True to its name, this one uses the line strip pattern, but with
+four vertices instead of two. As such, the total number of
+primitives will be three less than the number of vertices. The
+`topology` setting for this one is
+`VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY`.
+
+This would be useful to physically model a rope or chain, or a
+stream of liquid depending on the level of detail you want.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
