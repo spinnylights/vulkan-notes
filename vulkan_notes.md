@@ -9700,6 +9700,19 @@ as vertices. The `topology` setting for this one is
 The primitives of a point list topology specify discrete points
 in space. This could be used for sparks or fireflies.
 
+##### Line list
+
+![diagram](pics/line_list.svg)
+
+Line lists have two nodes and one edge. No vertices are shared
+between primitives, so there will be half as many primitives as
+there are vertices in the draw call. The `topology` setting for
+this one is `VK_PRIMITIVE_TOPOLOGY_LINE_LIST`.
+
+The primitives of a line list topology specify discrete lines in
+space. This could be used for lasers, shattering wireframe
+models, or cartoon-style motion lines.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
