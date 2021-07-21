@@ -9925,6 +9925,35 @@ produced with this topology is equal to the number of vertices
 divided by
 [`patchControlPoints`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineTessellationStateCreateInfo.html#_members).
 
+#### Primitive assembly restart
+
+The only other field of note in
+[`VkPipelineInputAssemblyStateCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineInputAssemblyStateCreateInfo.html)
+is <code><a
+href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkBool32.html">VkBool32</a>
+primitiveRestartEnable</code>. If this is set to `VkTrue`, you're
+performing an indexed draw, and you're using one of the "strip"
+or "fan" topologies, a special vertex index of "all 1s" (e.g.
+`0xFFFF` for `uint16_t` indices) will cause primitive assembly to
+restart. This discards any of the last few vertices that aren't
+yet part of a primitive, and then starts the primitive assembly
+over from the immediately following index and continues onwards
+from there. The last index for the draw call stays the same. This
+"all 1s" value is checked for before `vertexOffset` is added to
+the index.
+
+You're actually only allowed to set `primitiveRestartEnable` to
+`VkTrue` at all if you're using one of the "strip" or "fan"
+topologies; setting it to `VkTrue` under other circumstances will
+provoke a Vulkan error.
+
+As you can imagine, this could come in handy if you're modeling
+something that is easily represented by a series of discontinuous
+triangle strips or fans, like a large flat sheet or a gemstone,
+as it helps to cut down on redundant vertices. In practice,
+though, you'll probably end up just using a triangle list in this
+day and age if you're not porting an older application to Vulkan.
+
 ## Shaders
 
 In the context of Vulkan, the spec describes shaders as
