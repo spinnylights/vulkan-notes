@@ -9643,7 +9643,7 @@ href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPr
 topology</code>, which is an enum. However, this enum has a fair
 amount of conceptual density.
 
-#### Anatomy of a primitive
+#### Structure of a primitive
 
 A primitive is a graph with vertex nodes. Each vertex in a
 primitive is assigned zero or more edges in accordance with the
