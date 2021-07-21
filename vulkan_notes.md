@@ -9877,6 +9877,37 @@ deformation. It might be more efficient than a line list with
 adjacency depending on the specific case, but again, a compute
 shader may be more efficient than using either for this purpose.
 
+##### Triangle strip with adjacency
+
+![diagram](pics/triangle_strip_w_adj.svg)
+
+Roughly speaking, this one is similar to triangle strips in the
+way that triangle lists with adjacency are similar to triangle
+lists: the inner, "real" triangles form a triangle strip in the
+same manner as a triangle strip without adjacency. However, the
+ordering this forces on the vertices for the primitive as a whole
+is far more involved. As you can see, the first primitive is
+special-cased, and then an alternating pattern is used until the
+last primitive. The last primitive follows one of two patterns
+depending on whether the total number of primitives is even or
+odd. These three diagrams describe the whole algorithm in full:
+
+![diagram](pics/triangle_strip_w_adj_first.svg)
+
+![diagram](pics/triangle_strip_w_adj_mid.svg)
+
+![V = # of vertices; P = (V-4)/2 (integer division)](pics/triangle_strip_w_adj_last.svg)
+
+_P_ is the total number of primitives, if that wasn't already
+clear. The `topology` setting for this one is
+`VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY`.
+
+Similarly to how a triangle list with adjacency could be used in
+place of a line list with adjacency, a triangle strip with
+adjacency could make a more efficient substitute for a line-based
+topology or a triangle list with adjacency when designing a cloth
+simulation, especially if the cloth is in a shape that's easy to
+represent using a triangle strip (like a rectangle).
 
 
 ## Shaders
