@@ -9302,32 +9302,33 @@ VkPipelineVertexInputStateCreateInfo vert_inpt_inf {
 ```
 
 If we make a graphics pipeline with these, it will know how to
-work with our vertex input buffer. But how do we actually use the
-buffer?
+work with our vertex buffers. But how do we actually use these
+buffers?
 
 #### Vertex submission
 
 Work in a graphics pipeline can be initiated with a draw command
-once you've bound the pipeline in question and the vertex buffer
+once you've bound the pipeline in question and the vertex buffers
 you want to use to the command buffer. If you're going to do an
 indexed draw, you'll also want to bind an index buffer
 beforehand.
 
 ##### What's an index buffer?
 
-We'll get into the details momentarily, but just so I don't leave
-you hanging, draw commands can be organized into indexed and
-non-indexed categories. The non-indexed commands just go through
-the vertex buffer and submit the vertices one-by-one. The trouble
-with this is that, during tessellation, a certain number of
-vertices will be needed to make up each primitive;
-for example, in the most common case of triangles, you would need
-three vertices per primitive (we'll get into all this in detail
-soon). If you wanted to render a square then, you might think
-you would need four vertices, one for each corner—but if you
-weren't using an indexed draw command, you would actually need
-six elements in your vertex buffers for this, because it takes
-two triangles to make a square:
+We'll get into the technical details of binding vertex and index
+buffers and recording draw commands momentarily, but just so you
+know what I'm talking about while we do this, draw commands can
+be organized into indexed and non-indexed categories. The
+non-indexed commands just go through the vertex buffers and submit
+vertices one-by-one. The trouble with this is that, during
+tessellation, a certain number of vertices will be needed to make
+up each primitive; for example, in the most common case of
+triangles, you would need three vertices per primitive (we'll get
+into all this in detail soon). If you wanted to render a square
+then, you might think you would need four vertices, one for each
+corner—but if you weren't using an indexed draw command, you
+would actually need six elements in your vertex buffers for this,
+because it takes two triangles to make a square:
 
 ![A rectangle with overlapping
 vertices.](pics/overlapping_verts.svg)
@@ -9346,28 +9347,32 @@ if you don't mind the extra overhead, the models output by 3D
 modeling programs usually work this way, so it's still worth
 getting comfortable with indexed draws.
 
-##### Binding vertex and index buffers
+##### Binding vertex buffers
 
-Once you've got your vertex data in a
-[`VkBuffer`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkBuffer.html),
-you can bind it to a command buffer with
+Once you've got your vertex buffers ready, you can bind them to a
+command buffer with
 [`vkCmdBindVertexBuffers()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindVertexBuffers.html).
-You can bind a series of vertex buffers in one go with this
-command; it takes parameters `uint32_t firstBinding` and
-`uint32_t bindingCount` for the binding number to start with and
-the number of bindings to update starting from there,
-respectively. Aside from those, it takes an array of the vertex
-buffers themselves, as well as an array <code>const <a
+You can bind all the vertex buffers you need to fill all of the
+bindings you defined during graphics pipeline creation in one go
+with this command, or just update subset of them; it takes
+parameters `uint32_t firstBinding` and `uint32_t bindingCount`
+for the binding number to start with and the number of bindings
+to update starting from there, respectively. Aside from those, it
+takes an array of the vertex buffers themselves, as well as an
+array <code>const <a
 href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDeviceSize.html">VkDeviceSize</a>\*
 pOffsets</code> which can be used to specify offsets to start at
-for each buffer.
+for each buffer. If you're storing all your vertex data in one
+large buffer, you can just specify offsets into it for each block
+of vertex data corresponding to each respective binding you've
+defined (and just pass the same buffer handle repeatedly for each
+binding).
 
 You can submit this command repeatedly for the same graphics
 pipeline; repeated submissions will update the relevant bindings
-with new data. If some of the vertex data stay the same between
-draw calls and other data change, you can put them in separte
-vertex buffers so that you only need to update the bindings for
-the data that change.
+with new data.
+
+##### Binding an index buffer
 
 The contents of an index buffer might look like this:
 
@@ -9375,12 +9380,23 @@ The contents of an index buffer might look like this:
 uint16_t indices[] = { 0, 1, 2, 3, 1, 0, /* ... */ };
 ```
 
-These are indices into the vertex buffer. They can be either
+These are indices into the vertex buffers. They can be either
 16-bit or 32-bit unsigned integers. If you use 16-bit, it means
 less data to copy into the
 [`VkBuffer`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkBuffer.html)
-beforehand if you have 65,536 or less entries you need to address
-in the vertex buffer.
+beforehand if you have 65,536 or less vertices in the draw call.
+
+Just to be clear, these indices are used to assemble a vertex
+using the data from each block of bound vertex data. So, an index
+of `0` would take data from the offset defined for each binding
+to assemble a vertex, an index of `1` would take data from 1 past
+each offset, etc. That's why you can bind multiple vertex buffers
+(one per vertex input binding) but only a single index buffer.
+
+(Vertex buffers bound to bindings with an input rate of
+[`VK_VERTEX_INPUT_RATE_INSTANCE`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkVertexInputRate.html)
+aren't included in this, as they're not addressed via the vertex
+index—more on that shortly.)
 
 You can bind an index buffer to your command buffer with
 [`vkCmdBindIndexBuffer()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkCmdBindIndexBuffer.html)
@@ -9393,11 +9409,12 @@ href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkIn
 indexType</code> which you can use to specify whether you're
 using 16-bit or 32-bit indices. When you submit an indexed draw
 command, these indices will be read in, zero-extended to 32 bits
-if they have less than that, and then added to `offset` to
-calculate the ultimate index into the vertex buffer. So, even if
-you need to read vertex indices past the 65,536 mark, you can
-still use 16-bit indices if you want as long as you don't have to
-address more than 65,536 vertices in total.
+if they have less than that, and then added to the offset for the
+binding to calculate the ultimate index into the vertex buffer in
+question. So, even if you need to read from indices past the
+65,536 mark, you can still use 16-bit indices if you want as long
+as you don't have more than 65,536 vertices in total for the draw
+call.
 
 ##### Recording a draw command
 
@@ -9417,8 +9434,8 @@ The most straightforward draw command is
 This does a non-indexed draw, so an index buffer isn't involved.
 As you might expect, it has `uint32_t firstVertex` and `uint32_t
 vertexCount` parameters for the index of the first vertex to
-start with in the vertex buffer and the number of vertices to use
-in the draw call from there. However, it also has `uint32_t
+start with in the vertex buffers and the number of vertices to
+use in the draw call from there. However, it also has `uint32_t
 firstInstance` and `uint32_t instanceCount` parameters, which
 might seem a little more cryptic to you right now. This can be
 used to submit the specified set of vertices more than once, also
@@ -9504,9 +9521,9 @@ effect](pics/StarfieldSimulation.gif)](pics/StarfieldSimulation.gif)
 
 Each of the stars has the exact same shape (a circle). You could
 therefore store the vertex information for a single, abstract
-circle in one vertex buffer and store the position of each star
-instance in another vertex buffer. If you set the first vertex
-buffer as `VK_VERTEX_INPUT_RATE_VERTEX`, set the second as
+circle at one vertex input binding and store the position of each
+star instance at another binding. If you set the first binding as
+`VK_VERTEX_INPUT_RATE_VERTEX`, set the second as
 `VK_VERTEX_INPUT_RATE_INSTANCE`, and set `instanceCount` to the
 number of stars you want to draw, you can get the effect without
 having to pass a lot of repetitive vertex information. (Of
