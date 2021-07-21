@@ -9909,6 +9909,21 @@ topology or a triangle list with adjacency when designing a cloth
 simulation, especially if the cloth is in a shape that's easy to
 represent using a triangle strip (like a rectangle).
 
+##### Patch list
+
+This topology doesn't lend itself as well to being diagrammed as
+the others. The number of vertices in the type of primitive it
+defines is user-configurable; specifically, it's equal to the
+value of
+[`VkPipelineTessellationStateCreateInfo::patchControlPoints`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineTessellationStateCreateInfo.html#_members),
+which you can set during graphics pipeline creation. The manner
+in which space is portioned by these primitives is also
+user-configurable via tessellation control and evaulation
+shaders, which we'll get into before long. As such, they don't
+have a defined provoking vertex.  The number of primitives
+produced with this topology is equal to the number of vertices
+divided by
+[`patchControlPoints`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkPipelineTessellationStateCreateInfo.html#_members).
 
 ## Shaders
 
