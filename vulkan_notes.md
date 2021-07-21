@@ -9674,9 +9674,28 @@ geometry shader to guide the procedural generation of geometry in
 a scene. Which you should use depends on the kind of input data
 your geometry shader needs; the topologies with adjacency are
 intended specifically for this purpose, in case your geometry
-shader needs some extra context. Looking at the toplogies from this
-angle puts them in a different light than considering them from
-the perspective of fragment shading.
+shader would benefit from some extra context. Looking at the
+toplogies from this angle puts them in a different light than
+considering them from the perspective of fragment shading.
+
+Regarding the topologies with adjacency, also, the example use
+cases I've given all concern GPU-based physics simulations. This
+is a fairly obvious application for these topologies as the
+adjacency information is useful for that purpose. However, that
+style of GPU-based physics dates to before the introduction of
+compute shaders, which in many cases will be both simpler _and_
+more efficient to use for GPU-based physics than via graphics
+shading using topologies with adjacency. The latter approach
+generally involves transform feedback and multiple draw calls to
+account for all the constraints on the simulation; you can see an
+example implementation of a cloth simulation using this method in
+[this 2007 whitepaper from
+Nvidia](http://developer.download.nvidia.com/whitepapers/2007/SDK10/Cloth.pdf),
+which was published a couple years before DX11 introduced compute
+shaders. The inclusion of these topologies in Vulkan is helpful
+for porting older applications to Vulkan that work this way, but
+may not be the best approach for new applications that can start
+fresh.
 
 The patch list topology is intended specifically for use with
 tessellation. The idea there is that you can pick a number of
@@ -9822,7 +9841,10 @@ fluid physics simulation, treating the nodes as particles and
 using the adjacency information to help refine the simulation.
 Out of all the topologies with adjacency, this one is the most
 general, so it's well-suited to something like liquid if you need
-to model droplets and so on.
+to model droplets and so on. Remember from the beginning of this
+section, though, that a compute shader is likely to be easier and
+more efficient to use for this purpose, so you may prefer that
+approach if you can freely choose between either.
 
 ##### Line strip with adjacency
 
@@ -9851,21 +9873,11 @@ for this one is
 
 This is very nearly as general as a line list with adjacency, and
 could similarly be used for a complex fluid simulation or mesh
-deformation. The question of which to use is mainly an
-optimization matter, and a rather baroque one at that: to quote
-[this whitepaper from
-Nvidia](http://developer.download.nvidia.com/whitepapers/2007/SDK10/Cloth.pdf),
+deformation. It might be more efficient than a line list with
+adjacency depending on the specific case, but again, a compute
+shader may be more efficient than using either for this purpose.
 
-> "A spring constraint involves two vertices; so it is processed
-> during the geometry shader stage as a line primitive. The
-> geometry shader can actually process more than one constraint in
-> one call since it can have up to six vertices as input by
-> declaring its input parameter as a triangle with adjacency. The
-> choice of the optimal number of input vertices is not
-> straightforward: On one hand, if fewer vertices are processed by
-> one geometry shader invocation, then more rendering passes are
-> required to process all constraints; on the other hand, geometry
-> shader performance degrades as more vertices are output."
+
 
 ## Shaders
 
