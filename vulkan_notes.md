@@ -10077,3 +10077,29 @@ similar to the Cartesian coordinates you probably encountered in
 grade school, but they allow for points at infinity; barycentric
 coordinates are a special case in which coordinates are given in
 relation to a [simplex](https://en.wikipedia.org/wiki/Simplex).
+
+The most obvious motivation for homogeneous coordinates is
+expressed in a picture like this one, which you've probably
+encountered the likes of before in the context of discussions
+about projection:
+
+![train tracks vanishing at horizon](pics/tracks_persp.svg)
+
+As you can see, the train tracks appear to meet at a point on the
+horizon. If you imagine yourself standing here and looking down
+at your feet, you could easily see that the tracks were parallel,
+but they don't appear that way anymore when you look forward like
+this. How could we express this situation mathematically?
+
+In a Euclidean space—like the kind of geometry you probably did
+in grade school—parallel lines never converge like they do in the
+picture. That what it means for two lines to be parallel, right?
+They never intersect? Well, if you look at those train tracks, it
+appears that they _do_ intersect, somewhere out there over the
+rainbow.
+
+Of course, if you actually started walking towards where this
+point appears to be, it would never get any closer, even if the
+train tracks were infinitely long. The tracks would always appear
+parallel if you looked straight down at them. So, it might be
+natural to say that they intersect "at infinity."
