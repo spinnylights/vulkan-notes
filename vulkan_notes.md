@@ -9970,3 +9970,31 @@ triangle strips or fans, like a large flat sheet or a gemstone,
 as it helps to cut down on redundant vertices. In practice,
 though, you'll probably end up just using a triangle list in this
 day and age if you're not porting an older application to Vulkan.
+
+### Vertex shading
+
+After primitive assembly, the vertices are passed to the vertex
+shading stage. One vertex shader invocation is produced for each
+vertex in each instance in the draw call. Although primitive
+assembly technically takes place before vertex shading, its
+results are not particularly apparent in the vertex shader, so
+it's relatively safe to imagine it happening afterwards if you
+want. What _is_ apparent in the vertex shader is the vertex index
+and instance index for the vertex associated with the invocation,
+as we've already discussed:
+
+```glsl
+in int gl_BaseVertex;    // the starting vertex index
+in int gl_BaseInstance;  // the starting instance index
+in int gl_VertexIndex;   // the current vertex index
+in int gl_InstanceIndex; // the current instance index
+```
+
+See "Vertices and instances" if you need a deeper refresher on
+these built-in inputs.
+
+If you're not using tessellation or geometry shading, the vertex
+shader is where you prepare your vertices for rasterization. This
+is done using the built-in `out gl_PerVertex` block. This block
+is also present in the other pre-rasterization shading stages,
+though, so we'll discuss it in its own section.
