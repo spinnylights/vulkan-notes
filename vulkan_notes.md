@@ -10049,3 +10049,14 @@ rasterization when we focus on rasterization directly. The rest
 of this section will assume you have little to no familiarity
 with these variables or the concepts behind them.
 
+#### `vec4 gl_Position`
+
+This is intended for writing the coordinates of the vertex in
+_clip space_, which is one of the coordinate systems used in
+Vulkan. Getting your vertices into clip space properly usually
+involves a series of _linear transformations_. Also, clip space
+works in _homogenous coordinates_, which is why `gl_Position` is
+a `vec4` despite being intended to represent a coordinate in "3D"
+space. All of these concepts may be new to you, and each of them
+has a fair amount of depth even just in this context, so we'll
+take each one in turn.
