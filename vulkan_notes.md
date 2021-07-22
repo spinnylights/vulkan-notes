@@ -9998,3 +9998,36 @@ shader is where you prepare your vertices for rasterization. This
 is done using the built-in `out gl_PerVertex` block. This block
 is also present in the other pre-rasterization shading stages,
 though, so we'll discuss it in its own section.
+
+### The per-vertex blocks
+
+The following output block is pre-declared in vertex,
+tessellation control, tessellation evaluation, and geometry
+shaders, as an array `gl_out[]` in the tessellation control case:
+
+```glsl
+out gl_PerVertex {
+    vec4  gl_Position;
+    float gl_PointSize;
+    float gl_ClipDistance;
+    float gl_CullDistance;
+};
+```
+
+Similarly, the following input block array is pre-declared in
+tessellation control, tessellation evaluation, and geometry
+shaders:
+
+```glsl
+in gl_PerVertex {
+    vec4  gl_Position;
+    float gl_PointSize;
+    float gl_ClipDistance;
+    float gl_CullDistance;
+} gl_in[];
+```
+
+We'll discuss the differences between the `gl_PerVertex` blocks
+in different shader stages in their respective sections; the
+purpose of this section is to explore the meaning of the
+different variables within the block.
