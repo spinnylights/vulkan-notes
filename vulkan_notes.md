@@ -10072,7 +10072,7 @@ first introduced by August Möbius (of Möbius strip fame) in his
 Calcul_](http://sites.mathdoc.fr/cgi-bin/oeitem?id=OE_MOBIUS__1_1_0),
 named for the [barycentric
 coordinates](https://en.wikipedia.org/wiki/Barycentric_coordinate_system)
-he introduces therein. Homogeneous coordinates are relatively
+he describes therein. Homogeneous coordinates are relatively
 similar to the Cartesian coordinates you probably encountered in
 grade school, but they allow for points at infinity; barycentric
 coordinates are a special case in which coordinates are given in
