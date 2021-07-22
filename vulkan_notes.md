@@ -10027,7 +10027,25 @@ in gl_PerVertex {
 } gl_in[];
 ```
 
-We'll discuss the differences between the `gl_PerVertex` blocks
-in different shader stages in their respective sections; the
-purpose of this section is to explore the meaning of the
-different variables within the block.
+We'll discuss the (very minor) differences between the
+`gl_PerVertex` blocks in different shader stages in their
+respective sections; the purpose of this section is to explore
+the meaning of the different variables within the block, which
+are always the same. These variables are involved in configuring
+rasterization prior to fragment shading.
+
+They can be written to from any of the types of shaders in which
+they are pre-declared. If any one of them hasn't been written in
+an earlier stage, it will be undefined at the outset of the
+following stage. Otherwise, the values written by prior stages
+will be legible to later ones.
+
+If you have experience with OpenGL, you probably already know
+what these variables do. Their meaning in Vulkan is essentially
+the same as in OpenGL. As such, you can safely skip this section
+if you're confident in your understanding of the `gl_PerVertex`
+block; we'll cover the host-side aspects of configuring
+rasterization when we focus on rasterization directly. The rest
+of this section will assume you have little to no familiarity
+with these variables or the concepts behind them.
+
