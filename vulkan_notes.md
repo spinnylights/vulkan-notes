@@ -10103,3 +10103,19 @@ point appears to be, it would never get any closer, even if the
 train tracks were infinitely long. The tracks would always appear
 parallel if you looked straight down at them. So, it might be
 natural to say that they intersect "at infinity."
+
+If we wanted to approach this idea analytically—i.e., using
+algebra—Cartesian coordinates wouldn't exactly be ideal.
+Cartesian coordinates are that classic kind where a 2D point is
+described by two numbers (_x_,_y_):
+
+![points on cartesian grid](pics/cartesian_points.svg)
+
+This works great for a Euclidean space, but we don't have any
+straightforward way of expressing a point "at infinity" where our
+train tracks could intersect. Homogeneous coordinates solve this
+problem by using an extra number _w_ to describe a point in
+addition to the familiar numbers from Cartesian coordinates—so
+instead of (_x,y_), we have (_x,y,w_):
+
+![points on homogeneous cartesian grid](pics/homogeneous_points.svg)
