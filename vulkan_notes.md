@@ -10060,3 +10060,20 @@ a `vec4` despite being intended to represent a coordinate in "3D"
 space. All of these concepts may be new to you, and each of them
 has a fair amount of depth even just in this context, so we'll
 take each one in turn.
+
+##### Homogeneous coordinates
+
+Homogeneous coordinates are not specifically a computer graphics
+concept at all, but rather are a general mathematical tool used
+in _projective geometry_, a branch of mathematics that studies
+the geometry of projections (as you might imagine :P). They were
+first introduced by August Möbius (of Möbius strip fame) in his
+1827 book [_Der Barycentrische
+Calcul_](http://sites.mathdoc.fr/cgi-bin/oeitem?id=OE_MOBIUS__1_1_0),
+named for the [barycentric
+coordinates](https://en.wikipedia.org/wiki/Barycentric_coordinate_system)
+he introduces therein. Homogeneous coordinates are relatively
+similar to the Cartesian coordinates you probably encountered in
+grade school, but they allow for points at infinity; barycentric
+coordinates are a special case in which coordinates are given in
+relation to a [simplex](https://en.wikipedia.org/wiki/Simplex).
