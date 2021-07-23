@@ -1,5 +1,17 @@
 # Vulkan notes
 
+**Note 7/23/21**: To anyone keeping an eye on this repo, sorry
+for the slow pace of commits the last few days—I'm studying
+projective geometry more deeply so I can give a properly good
+explanation of what to do with the variables in the
+`gl_PerVertex` block. I want to give a presentation that's both
+more accessible and more mathematically rigorous than is usually
+found in graphics texts. Whether or not I can really have it both
+ways like that remains to be seen, but I need a deeper, more
+formal grasp of the subject in order to find out.
+
+---
+
 These are my notes on how Vulkan works (see `vulkan_notes.md`).
 They're written kind of like a long article and I might tighten
 them up into a proper tutorial or something eventually. Mostly
