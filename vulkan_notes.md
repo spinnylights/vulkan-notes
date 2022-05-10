@@ -992,6 +992,77 @@ There are also three draw commands introduced by the
 mesh shading extension. However, my GPU does not support mesh
 shading, so I'm not going to cover these.
 
+### Dispatch (compute shaders)
+
+If you want to run a compute shader, you can use one of the
+`vkCmdDispatch*()` commands. These commands provoke work in the
+_compute pipeline_ you've bound to the command buffer you're
+submitting dispatch commands to (see "Pipelines" below—that's
+what you actually put your compiled compute shaders in).
+**summarize overall**
+
+#### [`vkCmdDispatch()`](https://www.khronos.org/registry/vulkan/specs/1.3-extensions/man/html/vkCmdDispatch.html)
+
+The basic dispatch command is `vkCmdDispatch()`.  It's pretty
+easy to call—aside from a command buffer, you just need to pass
+the numbers of _local workgroups_ to dispatch in the X, Y, and Z
+dimensions. But what does that mean, exactly?
+
+In short, when you run a compute shader, Vulkan dispatches a
+certain number of invocations of it that all run in parallel
+(although there are ways to synchronize them). To be specific,
+the number of invocations Vulkan dispatches is `groupCountX *
+groupCountY * groupCountZ`, in terms of the parameters you pass
+into `vkCmdDispatch()`. So, this is where you specify how many
+invocations of your compute shader you'd like to run.
+
+For example, let's say your compute shader applies a filter to a
+3840 × 2160 pixel image, and you'd like to run an invocation for
+each pixel. Given that you've assigned your command buffer to the
+variable `comp_buff`, you could call `vkCmdDispatch()` as
+`vkCmdDispatch(comp_buff, 3840, 2160, 1)`. This would dispatch
+`3,840 * 2,160 * 1 == 8,294,400` invocations of your shader.
+
+All of these invocations run in a _global workgroup_ together.
+Invocations in the same global workgroup run in parallel. If you
+need to synchronize the invocations somehow, or you want subsets
+of them to be able to share information at runtime, you can
+organize them into _local workgroups_, which also have a size in
+X × Y × Z invocations just like global workgroups do. You
+specify the size of the local workgroup in the compute shader
+using the `local_size_x`/`y`/`z` layout qualifiers (see "In the
+compute shader" under "Layout qualifiers" below).
+
+The above `vkCmdDispatch(comp_buff, 3840, 2160, 1)` call for a
+3840 × 2160 image assumes that each invocation has its own local
+workgroup. Let's say your filter requires invocations to
+collaborate within 4 × 4 squares of pixels, so you've set a local
+workgroup size of 4 × 4 within the compute shader. The parameters
+of `vkCmdDispatch()` specify the number of local workgroups to
+dispatch, so in this case you could call
+`vkCmdDispatch(comp_buff, 960, 540, 1)` (in other words, 3840 ×
+2160 divided by 4).
+
+#### [`vkCmdDispatchIndirect()`](https://www.khronos.org/registry/vulkan/specs/1.3-extensions/man/html/vkCmdDispatchIndirect.html)
+
+Like the indirect draw commands, you can use
+`vkCmdDispatchIndirect()` to read the dispatch parameters from a
+buffer at runtime. It takes a buffer to read from and an offset
+to start reading at, and it expects to find a
+[`VkDispatchIndirectCommand`](https://www.khronos.org/registry/vulkan/specs/1.3-extensions/man/html/VkDispatchIndirectCommand.html)
+struct at that offset with the number of local workgroups to
+dispatch in the X, Y, and Z dimensions.
+
+#### [`vkCmdDispatchBase()`](https://www.khronos.org/registry/vulkan/specs/1.3-extensions/man/html/vkCmdDispatchBase.html)
+
+You can use `vkCmdDispatchBase()` if you want to apply offsets
+to the components of `gl_WorkGroupID` as reported in the compute
+shader (they start at (0, 0, 0) by default). In addition to the
+normal `groupCountX`/`Y`/`Z` parameters, it also takes
+`baseGroupX`/`Y`/`Z` parameters with the values for Vulkan to
+start counting at when determining the workgroup ID of a given
+invocation.
+
 ### Copying images and buffers
 
 There are four commands for simple image/buffer to buffer/image
@@ -7118,9 +7189,12 @@ opaque, matrix, or structure type.
 
 ###### In the compute shader
 
-Compute shaders don't support input or output variables (except
-for a few built-in inputs). They have to interface with the
-outside world through other means.
+Compute shaders don't support user-defined input or output
+variables; they read from and write to images, storage buffers,
+and atomic counters directly. That said, you specify the shader's
+local workgroup size by applying the `local_size_x`/`y`/`z`
+layout qualifers to `in` (see "In the compute shader" under
+"Layout qualifiers").
 
 ##### Uniform variables
 
@@ -7144,25 +7218,39 @@ are attached to. It must be used to qualify a block.
 
 ##### Shared variables
 
-Compute shaders can use the storage qualifier `shared` to declare
-global variables that have shared storage across all invocations
-in the same workgroup.
+You can use the storage qualifier `shared` in compute shaders to
+declare global variables that can be read from and written to by
+all the shader invocations in a given local workgroup (see "In
+the compute shader" under "Layout qualifiers" for more on local
+workgroups). `shared` variables have a single representation in
+memory per workgroup, and you have to take care to synchronize
+reads and writes to them using `barrier()` in your compute shader
+code.
 
-`shared` variables should not be declared with an initializer; as
-such, their contents are undefined at the time of declaration.
-Any data written to them after that point will be visible to
-the other invocaitons.
+You should declare shared variables without an initializer, so
+that they're left undefined at the start of execution:
 
-Access to these variables is coherent across invocations.
-However, it is not inherently synchronous; access to them should
-be synchronized with `barrier()` if needed.
+```glsl
+shared vec4 alphas;
+```
 
-There is a limit to how much memory can be allocated for shared
-variables on a given device. This is specified in bytes in
-`VkPhysicalDeviceLimits` under `maxComputeSharedMemorySize`. On
-my run-of-the-mill graphics card, this is ~50kB. For shared
-variables declared in a uniform block, you can determine their
-layout in memory by the rules in [15.6.4 "Offset and Stride
+During execution, you can have an invocation write to a shared
+variable and the results will be immediately visible to any of
+the other invocations in its workgroup; shared variables are
+implicitly coherent. However, shared variable access is not
+implicitly synchronous, so you should use the function
+`barrier()` between writing to and reading from shared variables
+(see "`barrier()`" under "Invocation and memory control" below).
+
+There is a limit to how much memory you can allocated for shared
+variables on a given device. Vulkan specifies this limit in bytes
+in `VkPhysicalDeviceLimits` under `maxComputeSharedMemorySize`.
+As of May 2022, [common
+values](https://vulkan.gpuinfo.org/displaydevicelimit.php?name=maxComputeSharedMemorySize&platform=all)
+for `maxComputeSharedMemorySize` are ~33kB and ~50kB, with some
+outliers reporting ~16kB and ~66kB. For shared variables declared
+in a uniform block, you can determine their layout in memory by
+the rules in [15.6.4 "Offset and Stride
 Assignment"](https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/chap15.html#interfaces-resources-layout)
 in the Vulkan spec. The amount of storage consumed by shared
 variables not declared in a block is implementation-dependent,
@@ -8061,6 +8149,36 @@ Technically, you aren't writing directly to the underlying image
 with these, but rather passing input to the _blend equation_.
 We'll talk about this more when we discuss `index` and when we
 cover blending.
+
+###### In the compute shader
+
+Although compute shaders have no user-defined inputs or outputs,
+they still require you to use a family of input layout qualifiers
+to specify the shader's _local workgroup size_: `local_size_x`,
+`local_size_y`, and `local_size_z`. To use them, you can just
+specify them for the `in` interface qualifier, without specifying
+any particular input variable.
+
+By default, all three are set to `1`, so if you wrote
+
+```glsl
+layout(local_size_x = 4, local_size_y = 4) in;
+```
+
+at the top of a compute shader, you would be specifying a
+two-dimensional compute shader with a 4 × 4 workgroup size.
+
+If you create a program object that includes any compute shaders,
+you have to use these layout qualifiers to specify a fixed
+workgroup size in at least one of them. If you include several
+compute shaders in a single program object and you use these
+layout qualifiers in more than one of them, you have to write the
+same declaration with them in every compute shader in the program
+object.
+
+Compute shader invocations running within the same local
+workgroup can share data between one another and synchronize
+their work (.
 
 ##### `set` and `binding`
 
@@ -9096,6 +9214,76 @@ greaterThanEqual() | >=
 equal()            | ==
 notEqual()         | !=
 not()              | !
+
+#### Invocation and memory control
+
+You have to explicitly synchronize shader invocations if that's
+something you require. GLSL gives you a few tools to do this. You
+can call the function `barrier()` in tesselation control and
+compute shaders to synchronize control flow and memory access
+between invocations in the same patch/workgroup, and you can call
+the `*memoryBarrier*()` functions to synchronize memory access
+alone in any shader stage.
+
+You should only call these functions in places that every
+invocation is guaranteed to reach. If you call them inside of a
+conditional branch that only some invocations reach, those
+invocations will wait forever for their partners to reach the
+same call site.
+
+##### `barrier()`
+
+You can only call `barrier()` in a tessellation control or
+compute shader. In either case, when an invocation reaches a
+`barrier()`, it stops and waits for all the other invocations in
+its patch or workgroup to reach the `barrier()` as well before
+continuing.  This ensures that each invocation in the
+patch/workgroup is at the same point in terms of control flow.
+Also, if an invocation writes to a tessellation control output
+variable or a `shared` compute shader variable before the
+`barrier()`, the results will be visible to all the other
+invocations in the patch/workgroup after the `barrier()`.
+
+In a tesselation control shader, you can only call `barrier()`
+inside of `main()`. In a compute shader, you can call it anywhere
+you like, provided that all invocations are guaranteed to reach
+the call site.
+
+If you need to synchronize access to a variable that's not a
+tessellation control output variable or `shared` compute shader
+variable from a tessellation control or compute shader, you
+should use both `barrier()` and one of the memory barrier
+functions one after the other.
+
+##### `*memoryBarrier*()`
+
+These functions create a memory barrier between shader
+invocations in the same program. The most general is
+`memoryBarrier()`, but there's also
+`memoryBarrierAtomicCounter()`, `memoryBarrierBuffer()`, and
+`memoryBarrierImage()`, as well as `groupMemoryBarrier()` and
+`memoryBarrierShared()` for compute shaders.
+
+When you call `memoryBarrier()`, any writes an invocation in the
+program has performed to memory that other invocations can access
+becomes visible to those invocations.
+`memoryBarrierAtomicCounter()`, `memoryBarrierBuffer()`, and
+`memoryBarrierImage()` are the same, but they apply only to
+atomic counters, buffers, and images respectively.
+
+In a compute shader, you can also use `groupMemoryBarrier()` to
+create a memory barrier just within a shader's workgroup.
+`memoryBarrierShared()` creates a memory barrier only for shared
+variables within a shader's workgroup, but you don't need to use
+it as of GLSL 4.60 as long as you call `barrier()`.
+
+In general, for tessellation control and compute shaders, these
+functions aren't sufficient to order accesses within a single
+patch/workgroup; you also need to call `barrier()` on top of a
+memory barrier function (see "`barrier()`" above). If you're just
+trying to synchronize access to a tessellation control output
+variable or `shared` variable, you can use `barrier()` alone,
+without calling a memory barrier function.
 
 ## Rendering in detail
 
