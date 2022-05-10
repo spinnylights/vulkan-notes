@@ -999,7 +999,12 @@ If you want to run a compute shader, you can use one of the
 _compute pipeline_ you've bound to the command buffer you're
 submitting dispatch commands to (see "Pipelines" below—that's
 what you actually put your compiled compute shaders in).
-**summarize overall**
+
+`vkCmdDispatch()` is the "default option." If you want to read
+its parameters from a buffer at runtime, you can use
+`vkCmdDispatchIndirect()`, and if you want to apply offsets to
+the components of `gl_WorkGroupID`, you can use
+`vkCmdDispatchBase()`.
 
 #### [`vkCmdDispatch()`](https://www.khronos.org/registry/vulkan/specs/1.3-extensions/man/html/vkCmdDispatch.html)
 
