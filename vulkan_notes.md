@@ -7083,7 +7083,7 @@ specified, the variable is local to the shader and immutable
 after initialization. The rest of the storage qualifiers are new
 to us.
 
-##### Input and output variables
+##### Input and output variables (`in` and `out`)
 
 Global variables can be declared with the storage qualifiers `in`
 and `out`. `in` indicates that the variable will get its value
@@ -7196,7 +7196,7 @@ local workgroup size by applying the `local_size_x`/`y`/`z`
 layout qualifers to `in` (see "In the compute shader" under
 "Layout qualifiers").
 
-##### Uniform variables
+##### Uniform variables (`uniform`)
 
 Variables declared in a block can take the storage qualifier
 `uniform` to indicate that they are initialized from the Vulkan
@@ -7210,13 +7210,13 @@ Since uniform variables all exist in a single global namespace at
 link time, they need to be declared with the same name, type,
 etc. in any shader that makes use of them.
 
-##### Buffer variables
+##### Buffer variables (`buffer`)
 
 The storage qualifier `buffer` indicates variables that are
 accessed through a `VkBuffer` bound to the pipeline the shaders
 are attached to. It must be used to qualify a block.
 
-##### Shared variables
+##### Shared variables (`shared`)
 
 You can use the storage qualifier `shared` in compute shaders to
 declare global variables that can be read from and written to by
