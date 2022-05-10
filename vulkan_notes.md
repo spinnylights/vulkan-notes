@@ -571,12 +571,21 @@ interested in.
 
 ### Queue families
 
-Most of the things you might want to do with Vulkan are done by
-submitting _commands_ to a _queue_. We cover both of those
-concepts elsewhere. What's important right now is that a physical
-device has _queue families_ from which queues can be selected,
-and you need to investigate them if you ultimately want to have
-some queues to work with. This is done with
+A lot of what you do with Vulkan is just setting things up. When
+you want to actually do something within the context you've
+created, you generally perform what's called _command
+submission_, where you submit a "command" to what's called a
+_queue_ (`VkQueue`) using one of the `vkCmd*()` functions. In
+order to do _that_, you need to get a queue handle (`VkQueue`
+again) from the device using `vkGetDeviceQueue()`.
+`vkGetDeviceQueue()` requires you to specify what _queue family_
+you want your queue to come from. A queue family is a set of
+queues that support certain kinds of operations, like running
+compute shaders or drawing to the screen, and they're associated
+with a physical device. Now that you have a physical device, you
+almost certainly want to enumerate the properties of its queue
+families so that you can obtain handles to queues and submit
+commands to them. You can do this with
 [`vkGetPhysicalDeviceQueueFamilyProperties()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetPhysicalDeviceQueueFamilyProperties.html)
 or
 [`vkGetPhysicalDeviceQueueFamilyProperties2()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetPhysicalDeviceQueueFamilyProperties2KHR.html);
@@ -598,7 +607,6 @@ display graphics in a platform window, you also need
 which will tell you if queues in the given family support
 presentation to the given surface
 ([`vkQueuePresentKHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueuePresentKHR.html)).
-A mature game will generally need to do all of these things.
 
 In any case, this is the time to pick which queue families you're
 going to use for which sorts of operations. It's generally a good
@@ -687,57 +695,60 @@ information to have cached, as you'll see in "Memory management".
 
 ## Queues
 
-In order to actually do work on a device with Vulkan, commands
-need to be submitted to it. These commands are submitted through
-Vulkan objects called queues.
+In order to actually do work on a device with Vulkan, you have to
+"submit commands" to the device instead of just asking it to do
+things directly. To be more specific, you submit these commands
+to Vulkan objects called _queues_ (`VkQueue`), and then the
+device carries out your commands probably very soon.
 
-The reason it is done this way, rather than calling commands on
-the device directly, is mainly a matter of performance. For one,
-sending a command to a device is an expensive operation and
-should be kept to a minimum; this approach allows many commands
-to be prepared in advance and then submitted to the device all at
-once. Also, this approach increases opportunities for
-concurrency: commands may run simultaneously unless explicltly
-synchronized (see "Synchronization," below). Because of the
-highly parallel nature of graphics devices, this is a more
-reasonable default than having the host call commands
-sequentially.
+This bit of indirection might seem a little oblique, but it makes
+sense from a performance standpoint. For one, command submission
+is a time-consuming operation; this approach allows you to
+prepare many commands and then submit them to the device all in
+one go. Also, this approach increases opportunities for
+parallelism, as Vulkan allows commands to run simultaneously
+unless you explicitly say otherwise (see "Synchronization,"
+below).
 
-When creating a logical device, queues are made for it at the
-same time as the device itself. The queues to make are specified
-via
+When Vulkan creates a logical device, it prepares queues for it
+as part of the process. You specify what sort of queues you'd
+like using
 [`VkDeviceQueueCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDeviceQueueCreateInfo.html);
 [`VkDeviceCreateInfo`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDeviceCreateInfo.html)
 has a parameter `pQueueCreateInfos` which holds an array of
-`VkDeviceQueueCreateInfo`s. The queues that can be created depend
-on the properties of the physical device.
+these. The sorts of queues you can set up depend on the
+underlying physical device (see "Queue families" under "Physical
+devices" above).
 
 Once the logical device has been created, you can retrieve
-handles to any of its queues via
+handles (`VkQueue`) to any of its queues via
 [`vkGetDeviceQueue()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetDeviceQueue.html)
 (or
 [`vkGetDeviceQueue2()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkGetDeviceQueue2.html),
 if you want to retrieve a handle to a queue created with specific
 [`VkDeviceQueueCreateFlags`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDeviceQueueCreateFlags.html)).
 
-Work is submitted to a queue via queue submission commands such
-as
+In order to actually submit commands to a queue once you've got a
+`VkQueue` handle, first you need what's called a _command pool_,
+which you can allocate _command buffers_ from (see "Command
+buffers" below). Once you have a command buffer, you "record"
+commands into it using `vkCmd*()` functions, and then "submit"
+it to the queue using queue submission commands such as
 [`vkQueueSubmit2KHR()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueSubmit2KHR.html)
 or
 [`vkQueueSubmit()`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/vkQueueSubmit.html).
 A queue submission command takes a target queue, a set of
-_batches_ of work, and optionally a fence to signal on completion
-(see "Fences" under "Synchronization"). Each batch (described by
-e.g.
+_batches_ of work, and optionally a fence for Vulkan to signal
+when everything is finished (see "Fences" under
+"Synchronization"). Each batch (described by e.g.
 [`VkSubmitInfo2KHR`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkSubmitInfo2KHR.html))
-consists of zero or more semaphores to wait on before starting,
-zero or more work items to execute (in the form of command
-buffers), and zero or more semaphores to signal afterwards (see
-"Semaphores" under "Synchronization").
+consists of zero or more semaphores for the device to wait on
+before starting, zero or more command buffers for the device to
+execute, and zero or more semaphores for Vulkan to signal
+afterwards (see "Semaphores" under "Synchronization").
 
-Queues are destroyed along with the logical device they were
-created with when `vkDestroyDevice()` is called on the device in
-question.
+You free queues along with their logical device when you call
+`vkDestroyDevice()` on the device in question.
 
 ## Command buffers
 
