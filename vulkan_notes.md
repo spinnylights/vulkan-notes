@@ -4761,9 +4761,9 @@ on `#version` lines.
 
 The `#line` directive can be used to change the current line
 number, similarly to in C++. It is used in the form `#line <line>
-<source_string_number>`, where `<line>` is a constant integer
+<source_string_number>`, where `<line>` is a constant integral
 expression and `<source_string_number>` is an optional constant
-integer expression. If `<source_string_number>` is omitted the
+integral expression. If `<source_string_number>` is omitted the
 directive is assumed to apply to the current source string.
 
 ##### `#pragma`
@@ -5176,7 +5176,7 @@ performing depth texture comparison. These are named by appending
 
 So, `sampler2DArrayShadow` is a shadow sampler for a 2D array
 texture, for instance. These variants do not exist for the
-integral `sampler` types.
+integer `sampler` types.
 
 We'll get into depth comparisons later on.
 
@@ -5185,7 +5185,7 @@ We'll get into depth comparisons later on.
 These are handles for accessing subpass inputs within fragment
 shaders. Their names all contain the string `subpassInput`. Like
 sampler types, they can have a `u` or `i` prefix indicating
-integral type, and otherwise are taken as single-precision
+integer type, and otherwise are taken as single-precision
 floating point. They can also have the suffix `MS`, indicating a
 multi-sampled subpass input. So, `subpassInput` is a
 single-precision floating point subpass input, `isubpassInputMS`
@@ -5248,7 +5248,7 @@ Conversions"](https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.
 in the GLSL spec.
 
 If an operation occurs with a floating point operand and an
-integral operand, the integral operand is implicitly converted to
+integer operand, the integer operand is implicitly converted to
 match the type of the floating point operand. If an operation
 occurs with `int` and `uint` operands, the `int` is implicitly
 converted to a `uint`. If an operation occurs with `float` and
@@ -8140,7 +8140,7 @@ My choice of `vec4` for `tex` was not arbitrary—you can use other
 types, but `vec4` is fairly natural because each of the four
 components of one of these locations corresponds to the R, G, B,
 and A values for the texel in question (`uvec4` or the like might
-make more sense if the image has an integral format, of course).
+make more sense if the image has an integer format, of course).
 
 If you do split one of these outputs up by component, note that
 the different variables need to have the same type:
@@ -8881,7 +8881,7 @@ even if `x` is a vector, although the component types should
 match (i.e. if `x` is a `dvec4`, `y` can be a `double`).
 
 `modf()` takes two parameters and its second is `out`; `mod(x,y)`
-returns the fractional part of `x` and sets `y` to the integral
+returns the fractional part of `x` and sets `y` to the integer
 part, like `math.h`'s `modf()`. The types of `x` and `y` should
 match. Both `y` and the return value will have the same sign as
 `x`.
@@ -9082,7 +9082,7 @@ NaNs, `isnan()` will always return `false`. `isinf(x)` returns
 `floatBitsToInt()` and `intBitsToFloat()`. These convert between
 a `float` and an `int` or `uint` value corresponding to its
 underlying representation (IEEE floats always have a sign bit so
-the choice of integral type is more-or-less immaterial). If a
+the choice of integer type is more-or-less immaterial). If a
 value corresponding to a NaN is passed into `intBitsToFloat()`
 the result is undefined.
 
@@ -9092,7 +9092,7 @@ the result is undefined.
 floating point types.
 
 `frexp(x, exp)`, where `x` is a floating-point type and `exp` is
-a signed integral type, returns the significand of `x` and writes
+a signed integer type, returns the significand of `x` and writes
 its exponent into `exp`. If the implementation supports signed 0,
 a `-0` input will return a `-0` significand. If `x` is a NaN or
 infinity, the result is undefined.
@@ -9139,8 +9139,8 @@ reverse.
 ##### Safe arithmetic
 
 `uaddCarry()`, `usubBorrow()`, and `u/imulExtended()`. The `u*`
-functions take arguments of unsigned integral type, while
-`imulExtended()` takes signed integral arguments.
+functions take arguments of unsigned integer type, while
+`imulExtended()` takes signed integer arguments.
 
 `uaddCarry(x, y, carry)` returns `x + y` modulo 2<sup>32</sup>,
 setting `carry` to `1` if the result would have overflowed and to
@@ -9159,11 +9159,11 @@ bits in `lsb`.
 
 `bitfieldExtract()`, `bitfieldInsert()`, `bitfieldReverse()`,
 `bitCount()`, `findLSB()`, and `findMSB()`. These are for working
-with integral types as collections of bits.
+with integer types as collections of bits.
 
 `bitfieldExtract(val, offset, bits)` returns `bits` bits from
 `val` starting at `offset`, stored in the low bits of the result.
-`val` can be of signed or unsigned integral type but `offset` and
+`val` can be of signed or unsigned integer type but `offset` and
 `bits` are always `int`, so if `val` is a vector the same
 `offset` and `bits` will be used for all its components. However,
 the result is undefined if `bits` or `val` is negative. It's also
