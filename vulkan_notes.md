@@ -5920,8 +5920,25 @@ innermost loop or `switch` statement in which it is found.
 
 ##### `discard`
 
-This is used in fragment shaders to abandon the current fragment.
-We'll discuss it later on.
+You can use this in a fragment shader to have Vulkan abandon the
+current fragment. Within a fragment shader, if execution reaches
+`discard`, Vulkan will immediately discard the fragment and won't
+update any relevant buffers. If your shader has already written
+directly to other buffers such as a shader storage buffer when
+execution reaches `discard`, those writes will still take effect.
+
+You would typically use `discard` within a conditional statement;
+the GLSL 4.60.7 spec gives this example:
+
+```glsl
+if (intensity < 0.0)
+    discard;
+```
+
+One way you might choose whether or not to discard a fragment is
+by testing its alpha value. If you decide to do this, remember
+that Vulkan performs coverage testing after fragment shading, and
+the coverage test may change the alpha value.
 
 ##### `return`
 
