@@ -5175,24 +5175,6 @@ constructor that creates a `sampler2D` from the corresponding
 `texture2D`. We'll discuss this in more detail shortly when we
 get into constructors.
 
-##### Shadow samplers
-
-There are shadow forms of some of the floating-point `sampler` types for
-performing depth texture comparison. These are named by appending
-`Shadow` to the type name. The applicable types are:
-
-* `1`–`2D`,
-* `1`–`2DArray`,
-* `2DRect`,
-* `Cube`,
-* and `CubeArray`.
-
-So, `sampler2DArrayShadow` is a shadow sampler for a 2D array
-texture, for instance. These variants do not exist for the
-integer `sampler` types.
-
-We'll get into depth comparisons later on.
-
 ##### Subpass inputs
 
 These are handles for accessing subpass inputs within fragment
