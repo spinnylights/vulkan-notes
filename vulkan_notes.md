@@ -5942,7 +5942,19 @@ the coverage test may change the alpha value.
 
 ##### `return`
 
-This is used to leave functions; we'll discuss it shortly.
+This is the classic keyword for exiting functions à la C. You can
+write an expression after `return` and the value of the
+expression will become the return value of the function, as you
+would probably expect.
+
+As in C, you can use `return` to return early from `main()`. If
+you do this in a fragment shader, note that the outcome will be
+different than if you had used `discard`; with `return`, Vulkan
+will still update buffers as normal based on the outputs you've
+defined. If you use `return` from `main()` in a fragment shader
+without defining any outputs, Vulkan will do the same thing as if
+you had allowed execution to reach the _end_ of `main()` at that
+point without defining any outputs.
 
 ### Functions
 
