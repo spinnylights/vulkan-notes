@@ -5117,23 +5117,36 @@ value.
 
 ##### Texture-combined samplers
 
-These are handles for accessing textures. They are specified with
-an optional type prefix, the string `sampler`, and one of a set
-of possible strings, in that order. The prefixes are `i` for
-signed integer and `u` for unsigned integer; without them,
-single-precision float is assumed. The set of possible strings
-following `sampler` is:
+These are handle types for accessing textures. They are specified
+with an optional type prefix, the string `sampler`,
+and one of a set of possible strings describing the kind of
+resource the sampler is designed to access, in that order. Here's
+a few examples:
 
-String        | Meaning
-------        | -------
-`1`–`3D`      | 1–3D (i.e. `sampler2D` is for a 2D `float` texture)
-`1`–`2DArray` | 1–2D array
-`2DMS`        | 2D multisample
-`2DMSArray`   | 2D multisample array
-`2DRect`      | rectangle
-`Cube`        | cube-mapped
-`CubeArray`   | cubemap array
-`Buffer`      | buffer
+```glsl
+sampler1D              // 1D, single-precision floating point image
+usamplerCube           // unsigned integer cube map
+isamplerBuffer         // signed integer texel buffer
+samplerCubeArrayShadow // single-precision floating point cube map array depth texture
+```
+
+If you don't use an `u` or `i` prefix, GLSL assumes the
+underlying image data is in a single-precision floating point
+format. If you use `u`, it means "unsigned integer format," and
+if you use `i`, it means "signed integer format."
+
+The set of possible strings following `sampler` is:
+
+String        | Meaning                                              | In Vulkan
+------        | -------                                              | ---------
+`1`–`3D`      | 1–3D (i.e. `sampler2D` is for a 2D `float` texture)  | `VK_IMAGE_TYPE_1`–`3D` (see "Images" > "Creation" > "Layers")
+`1`–`2DArray` | 1–2D array                                           | `VK_IMAGE_TYPE_1`–`3D`, `VkImageCreateInfo::arrayLayers > 1` (see "Images" > "Creation" > "Layers")
+`2DMS`        | 2D multisample                                       | `VkImageCreateInfo::samples > VK_SAMPLE_COUNT_1_BIT`, etc. (see "Images" > "Creation" > "Samples")
+`2DMSArray`   | 2D multisample array                                 | `VkImageCreateInfo::samples > VK_SAMPLE_COUNT_1_BIT`, `VkImageCreateInfo::arrayLayers > 1`, etc. (see "Images" > "Creation" > "Samples", "Layers")
+`Cube`        | cube map                                             | `VkImageCreateInfo::flags & VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT == 1`, etc. (see "Images" > "Creation" > "Layers")
+`CubeArray`   | cubemap array                                        | `VkImageCreateInfo::flags & VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT == 1`, `VkImageCreateInfo::arrayLayers > 1`, etc. (see "Images" > "Creation" > "Layers")
+`Buffer`      | buffer                                               | `VkBufferCreateInfo::flags & VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT == 1` (see "Buffers")
+\*`Shadow`    | shadow sampler variant; comes after `1`–`2D`, `1`–`2DArray`, `2DRect`, `Cube`, and `CubeArray` | `VkImageCreateInfo::format` is a depth image format such as `VK_FORMAT_D16_UNORM` (see "Images" > "Creation" > "Format")
 
 So, `usamplerCubeArray` is a sampler for an integer cubemap array
 texture, `isampler1DArray` is a sampler for a signed integer 1D
