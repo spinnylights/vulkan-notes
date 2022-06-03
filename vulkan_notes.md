@@ -6334,6 +6334,193 @@ themselves are organized via _descriptor set layouts_, which are
 then made available in a pipeline via a _pipeline layout_, which
 is used in the creation of a pipeline (good grief!).
 
+#### Descriptor types
+
+##### Storage image
+
+A _storage image_ (`VK_DESCRIPTOR_TYPE_STORAGE_IMAGE`) wraps a
+`VkImage`/`VkImageView` pair and presents it to the shader as
+"raw texel data." In precise terms, you can use load, store, and
+atomic GLSL image functions like `imageLoad()`, `imageStore()`,
+and `imageAtomicAdd()` on a GLSL image variable backed by a
+storage image descriptor. GLSL represents them with types like
+`image2D`.
+
+You have to use the `VK_IMAGE_LAYOUT_GENERAL` layout for the
+storage image's underlying image subresources.
+
+If you want to perform load or store operations on the storage
+image, Vulkan must include `VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT`
+in the associated image view's format features. If you want to
+perform atomic operations on the storage image, Vulkan must
+include `VK_FORMAT_FEATURE_STORAGE_IMAGE_ATOMIC_BIT` in the
+view's format features.
+
+##### Sampler
+
+A _sampler descriptor_ (`VK_DESCRIPTOR_TYPE_SAMPLER`) wraps a
+sampler, apart from any particular image. GLSL represents them
+with the types `sampler` and `samplerShadow`.
+
+##### Sampled image
+
+A _sampled image_ (`VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE`) wraps a
+`VkImage`/`VkImageView` pair and presents it to the shader as
+"sampleable color data." In precise terms, you can combine a GLSL
+image variable backed by a sampled image with a GLSL sampler and
+use it with GLSL's texture functions. GLSL represents them with
+types like `texture2D`.
+
+You have to use one of the following layouts for the
+storage image's underlying image subresources:
+
+* `VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL`
+* `VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL`
+* `VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL`
+* `VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL`
+* `VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL`
+* `VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL`
+* `VK_IMAGE_LAYOUT_GENERAL`
+
+Vulkan must include `VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT` in the
+format features of the underlying image view.
+
+##### Combined image sampler
+
+A _combined image sampler_
+(`VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER`) wraps both a
+sampler and image/view pair at the same time. GLSL represents
+them with types like `sampler2D`.
+
+You have to use one of the layouts Vulkan allows for sampled
+images for the underlying image subresources of the combined
+image sampler's image component (see "Sampled image" above).
+
+In some environments, you'll get better performance from a
+combined image sampler than you will if you use a separate
+sampled image and sampler and bring them together in the shader,
+according to the Vulkan spec.
+
+##### Uniform texel buffer
+
+A _uniform texel buffer_
+(`VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER`) wraps a buffer/view
+pair and presents it to the shader as "read-only formatted texel
+data." You can access their data using `texelFetch()`. GLSL
+represents them as `uniform textureBuffer` variables.
+
+GLSL treats their data as image data for format purposes, so you
+don't have to cast it into the right format in the shader. You
+can specify the format in the buffer view and the buffer will
+behave in the shader as if it was an image in the same format.
+
+You should ensure that the image data within the buffer is in a
+format with `VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT` set in
+its `VkFormatProperties::bufferFeatures`.
+
+##### Storage texel buffer
+
+A _storage texel buffer_
+(`VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER`) wraps a buffer/view
+pair and presents it to the shader as "read/write formatted texel
+data" (with some caveats). You can think of them as similar to
+storage images, but with a buffer instead. They support load,
+store, and atomic operations (again, with some caveats). GLSL
+represents them as `uniform imageBuffer` variables.
+
+Vulkan guarantees support for performing load operations on
+storage texel buffers in all shader stages, provided that the
+buffer format has `VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_BIT`
+set. However, Vulkan only guarantees support for stores and
+atomic operations on storage texel buffers in compute shaders;
+stores require `VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_BIT` and
+atomic operations require
+`VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_ATOMIC_BIT`. If the
+physical device supports the `fragmentStoresAndAtomics` feature,
+you can perform stores and atomic operations on storage texel
+buffers from a fragment shader, and if it supports
+`vertexPipelineStoresAndAtomics`, you can perform them from
+vertex, tessellation, and geometry shaders.
+
+##### Storage buffer
+
+A _storage buffer_ (`VK_DESCRIPTOR_TYPE_STORAGE_BUFFER`) wraps a
+buffer directly; you can consume them in a shader as a struct you
+define. You can perform load, store, and atomic operations on
+storage buffers (although you can only perform atomic operations
+on struct members of certain types; see the atomic functions in
+the GLSL stdlib section for the details). GLSL represents them
+simply as `buffer` structs with an accompanying block.
+
+##### Uniform buffer
+
+A _uniform buffer_ (`VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER`) wraps a
+buffer directly, like a storage buffer, but you can only perform
+load operations on a uniform buffer. GLSL represents them as
+`uniform` structs with an accompanying block.
+
+##### Dynamic uniform buffer
+
+A _dynamic uniform buffer_
+(`VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC`) is almost the same
+as a uniform buffer (see above), but you can specify an
+additional offset into it when you're binding the descriptor set.
+
+##### Dynamic storage buffer
+
+A _dynamic storage buffer_
+(`VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC`) is almost the same
+as a storage buffer (see above), but like a dynamic uniform
+buffer, you can specify an additional offset into it when you're
+binding the descriptor set.
+
+##### Inline uniform block
+
+An _inline uniform block_
+(`VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK`) is also very similar
+to a uniform buffer (see above), but you allocate the storage for
+it directly from the descriptor pool instead of associating it
+with a separate buffer, and you write data to it when you update
+its descriptor set. They were brought into core Vulkan with
+version 1.3, and provided by `VK_EXT_inline_uniform_block` before
+that. Most commonly, they're used for small sets of constant
+data, similarly to push constants, but with the advantage that
+you can reuse the same set of data across different drawing and
+dispatch commands.
+
+Generally, there's not too much space available for an inline
+uniform block.
+[`VkPhysicalDeviceInlineUniformBlockProperties::maxInlineUniformBlockSize`](https://www.khronos.org/registry/vulkan/specs/1.3-extensions/man/html/VkPhysicalDeviceInlineUniformBlockPropertiesEXT.html)
+gives the limit in bytes, and it's 256 on about [half of the
+platforms
+surveyed on
+gpuinfo.org](https://vulkan.gpuinfo.org/displaycoreproperty.php?core=1.3&name=maxInlineUniformBlockSize&platform=all)
+as of June 2022, although some platforms provide as much as ~4
+MB.
+
+You can't aggragate inline uniform block descriptors into arrays.
+When you specify the array size for an inline uniform block
+descriptor, you're actually just specifying the binding's
+capacity in bytes.
+
+##### Input attachment
+
+An _input attachment_ (`VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT`)
+wraps an image/view pair and presents it to the shader as
+"read-only framebuffer-local color data." You can perform
+framebuffer-local load operations on an image presented through
+an input attachment (i.e. load operations on the same fragment
+position as in a previous subpass within the same render
+pass). When you can use an input attachment, you may see better
+performance from doing so, especially on tiling architectures.
+
+You can use any format for an input attachment that you could use
+for color or depth/stencil attachments. Like with those
+attachments, you must have the underlying image subresources in a
+layout that permits shader access.
+
+#### Descriptor API overview
+
 Descriptors themselves are not represented by a discrete object
 in Vulkan. Descriptor sets are, but by an opaque handle
 [`VkDescriptorSet`](https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkDescriptorSet.html),
