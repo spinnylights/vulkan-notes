@@ -10534,3 +10534,38 @@ addition to the familiar numbers from Cartesian coordinates—so
 instead of (_x,y_), we have (_x,y,w_):
 
 ![points on homogeneous cartesian grid](pics/homogeneous_points.svg)
+
+Here are our points from before expressed in homogeneous
+coordinates. In this diagram, every point has a _w_ component of
+1. Homogeneous coordinates can describe Euclidean space just
+fine—this is like the situation where you're looking straight
+down at the train tracks. What if we were to look up slightly?
+
+![points on slight homogeneous grid](pics/homogeneous_grid_slight.svg)
+
+Here we've decided to say that points on the _x_-axis from before
+have a _w_ component of 1. As you can see, points with a _w_
+component of less than 1 appear further away than the _x_-axis,
+whereas points with a _w_ component of more than 1 appear closer
+than it.
+
+A
+
+A
+
+A
+
+A
+
+A
+
+A
+
+A
+
+A
+
+A
+
+A
+
