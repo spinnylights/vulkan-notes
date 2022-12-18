@@ -28,7 +28,9 @@ rb_prog="$rb_code_start $rb_add_lang"
 
 build="\
     ruby -e '$rb_prog' < $md_f | markdown -f fencedcode -o $body_f \
-    && cat $header_f $body_f $footer_f > $html_f"
+    && cat $header_f $body_f $footer_f > $html_f \
+    && ruby table_of_conts.rb > _$html_f \
+    && mv _$html_f $html_f"
 eval "$build"
 
 vim "$md_f"

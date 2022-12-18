@@ -4,6 +4,8 @@ The text of this file is made available under the [CC BY-SA
 4.0](https://creativecommons.org/licenses/by-sa/4.0/legalcode)
 license.
 
+## Table of contents
+
 ## Introduction
 
 Vulkan is often described as a low-level API, but to me that's a
